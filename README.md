@@ -41,3 +41,9 @@ Evidências atualizadas e checklist de integração: [revisão FE-01](docs/fe-01
 `src/events/EventViews.tsx` contém catálogo e agenda isolados, ainda não conectados à rota. Seus modelos são de apresentação, não DTOs de API. Os exemplos sintéticos existem somente em `EventViews.test.tsx`; execute `npm test -- src/events/EventViews.test.tsx` para verificar os componentes.
 
 Contratos inspecionados, bloqueios, resultados e parecer dos três papéis: [relatório FE-04](docs/events/fe-04-report.md). Entrega parcial; não implementa as issues #5/#6.
+
+## Inscrições — preparação da #5
+
+`src/events/RegistrationViews.tsx` oferece resumos isolados de capacidade, situação individual e posição na espera. Não está conectado às rotas ou APIs, não permite gravação e não carrega dados fictícios em produção. Execute `npm test -- src/events/RegistrationViews.test.tsx` para os exemplos sintéticos de teste.
+
+Contratos inspecionados, bloqueios de integração, resultados e parecer dos papéis: [relatório FE-05](docs/events/fe-05-report.md). A issue #6 não foi iniciada.
