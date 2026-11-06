@@ -1,0 +1,16 @@
+:root { font-family: system-ui, sans-serif; color: #182f35; background: #f4f7f6; line-height: 1.6; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 1rem 5%; background: white; border-bottom: 1px solid #ccd8d5; }
+nav { display: flex; align-items: center; gap: 1.5rem; }
+main { max-width: 64rem; margin: auto; padding: 2rem 1rem; }
+section { max-width: 28rem; }
+form { display: grid; gap: .75rem; }
+input, button { font: inherit; padding: .75rem; border: 1px solid #647c78; border-radius: .35rem; }
+button { background: #155c50; color: white; cursor: pointer; }
+button:disabled { opacity: .7; cursor: wait; }
+a { color: #155c50; }
+:focus-visible { outline: 3px solid #976000; outline-offset: 3px; }
+.skip { position: absolute; left: 1rem; top: -5rem; background: white; padding: .5rem; }
+.skip:focus { top: .5rem; }
+[role=alert] { color: #9b2424; }
