@@ -31,3 +31,5 @@ O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs
 6. #6 Menores/presença: planejamento, com decisões funcionais deliberadamente pendentes.
 
 Não avançar implementando contratos fictícios para contornar dependências. Entrega da #1 deve seguir em PR rascunho, sem merge, com os bloqueios explícitos.
+
+Evidências atualizadas e checklist de integração: [revisão FE-01](docs/fe-01-review.md).
