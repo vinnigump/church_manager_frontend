@@ -33,3 +33,11 @@ O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs
 Não avançar implementando contratos fictícios para contornar dependências. Entrega da #1 deve seguir em PR rascunho, sem merge, com os bloqueios explícitos.
 
 Evidências atualizadas e checklist de integração: [revisão FE-01](docs/fe-01-review.md).
+
+## Eventos — preparação da #4
+
+`/eventos` exige autenticação e informa indisponibilidade enquanto os contratos reais de Eventos/capacidades não forem publicados. Não consulta endpoints presumidos nem apresenta dados simulados.
+
+`src/events/EventViews.tsx` contém catálogo e agenda isolados, ainda não conectados à rota. Seus modelos são de apresentação, não DTOs de API. Os exemplos sintéticos existem somente em `EventViews.test.tsx`; execute `npm test -- src/events/EventViews.test.tsx` para verificar os componentes.
+
+Contratos inspecionados, bloqueios, resultados e parecer dos três papéis: [relatório FE-04](docs/events/fe-04-report.md). Entrega parcial; não implementa as issues #5/#6.
