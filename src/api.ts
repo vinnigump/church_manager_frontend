@@ -10,13 +10,15 @@ interface Csrf { headerName: string; token: string }
 export class ApiClient {
   private authorization?: string
   private csrf?: Csrf
+  private generation = 0
   onUnauthorized?: () => void
   constructor(private base = import.meta.env.VITE_API_BASE_URL || '/api/v1') {
     if (!base.startsWith('/') || base.startsWith('//')) throw new Error('A API deve usar a mesma origem.')
   }
-  clear() { this.authorization = undefined; this.csrf = undefined }
+  clear() { this.generation++; this.authorization = undefined; this.csrf = undefined }
   async login(login: string, password: string): Promise<Account> {
     this.clear()
+    const generation = this.generation
     if (location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(location.hostname)) throw new Error('A autenticação exige HTTPS.')
     const bytes = new TextEncoder().encode(`${login}:${password}`)
     this.authorization = `Basic ${btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''))}`
@@ -24,10 +26,11 @@ export class ApiClient {
       const account = await this.request<Account>('/accounts/me')
       this.csrf = await this.request<Csrf>('/csrf')
       return account
-    } catch (error) { this.clear(); throw error }
+    } catch (error) { if (generation === this.generation) this.clear(); throw error }
   }
   async request<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) throw new Error('Caminho inválido.')
+    const generation = this.generation
     const headers = new Headers(init.headers)
     if (this.authorization) headers.set('Authorization', this.authorization)
     if (!['GET', 'HEAD', 'OPTIONS'].includes((init.method || 'GET').toUpperCase())) {
@@ -37,11 +40,14 @@ export class ApiClient {
     let response: Response
     try { response = await fetch(`${this.base}${path}`, { ...init, headers, credentials: 'same-origin', cache: 'no-store', redirect: 'error' }) }
     catch { throw new ApiError(0) }
+    if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
     if (!response.ok) {
       if (response.status === 401) { this.clear(); this.onUnauthorized?.() }
       throw new ApiError(response.status)
     }
-    return response.status === 204 ? undefined as T : response.json() as Promise<T>
+    const result = response.status === 204 ? undefined : await response.json()
+    if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
+    return result as T
   }
 }
 export const api = new ApiClient()
