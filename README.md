@@ -78,6 +78,9 @@ O contrato assignments-v1 1.2 permite consultar atribuições por fonte delegada
 O GET valida origem, autoria e fonte vigente; a fonte é obrigatória no caminho
 delegado e a tela reconsulta ao foco. Gestão central permanece separada.
 [Contrato, testes e limites](docs/fe-01-delegated-assignment-read.md).
+Atribuições desta fonte oferecem revogação contextual com confirmação e revisão;
+o servidor decide política central ou origem/autoria delegada. Falhas exigem
+reconciliação explícita. [Revogação contextual](docs/fe-01-delegated-assignment-revoke.md).
 
 Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
 e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
