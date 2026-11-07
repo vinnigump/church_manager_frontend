@@ -57,6 +57,34 @@ describe('agenda isolada', () => {
     expect(screen.getByText(occurrence.title)).toBeInTheDocument()
     expect(screen.getByText(/único por ocorrência/)).toBeInTheDocument()
   })
+  it('trata fuso inválido sem lançar exceção ou mostrar listagem parcial', () => {
+    render(<EventAgenda church={church} timeZone="Invalid/Zone" state={{ kind: 'ready', items: [occurrence] }}/>)
+    expect(screen.getByRole('alert')).toHaveTextContent('período ou fuso horário inválido')
+    expect(screen.queryByText(occurrence.title)).not.toBeInTheDocument()
+  })
+  it.each([
+    ['not-a-date', occurrence.endsAt],
+    ['2026-11-06T01:00:00', occurrence.endsAt],
+    ['2026-02-30T01:00:00Z', occurrence.endsAt],
+    [occurrence.startsAt, 'not-a-date'],
+    [occurrence.startsAt, occurrence.startsAt],
+    [occurrence.endsAt, occurrence.startsAt],
+  ])('trata período inválido %s até %s', (startsAt, endsAt) => {
+    show([occurrence, { ...occurrence, id: 'invalid', startsAt, endsAt }])
+    expect(screen.getByRole('alert')).toHaveTextContent('período ou fuso horário inválido')
+    expect(screen.queryByText(occurrence.title)).not.toBeInTheDocument()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  })
+  it('dados inválidos de outra igreja não impedem agenda autorizada atual', () => {
+    show([occurrence, { ...occurrence, id: 'other', churchId: 'other', startsAt: 'invalid' }])
+    expect(screen.getByText(occurrence.title)).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+  it('aceita offset explícito e ordena pelo instante real', () => {
+    show([{ ...occurrence, startsAt: '2026-11-05T22:00:00-03:00' }])
+    expect(screen.getByText('05/11/2026, 22:00')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
   it('filtra pela data local, não pelo dia UTC', () => {
     show([{ ...occurrence, endsAt: '2026-11-06T02:00:00Z' }])
     fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-11-06' } })
