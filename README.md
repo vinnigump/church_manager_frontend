@@ -28,6 +28,21 @@ O backend já publica a consulta pontual `GET /api/v1/accounts/me/authorization`
 
 O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs de domínio ainda não integradas. Erros HTTP e falhas de leitura de JSON não exibem o corpo recebido nem mensagens brutas do parser, evitando refletir dados sensíveis. [Relatório de erros JSON](docs/fe-01-json-errors.md). Não armazenamos credenciais em storage nem logs.
 
+## Consultas administrativas de segurança — FE-01
+
+`/seguranca/denominacoes/:denominationId/perfis` lista os perfis; o detalhe em
+`/perfis/:profileId` apresenta estado, escopo e histórico, com acesso a
+`/versoes/:versionId`. `/seguranca/denominacoes/:denominationId/permissoes` consulta
+o catálogo técnico. Todas exigem security:profile:manage/DENOMINATION antes dos
+GETs, com nova autorização pelo backend. O catálogo denominacional oferece o
+acesso quando essa permissão própria for confirmada. O contexto vem de acesso
+já autorizado; não há descoberta fictícia ou formulário de UUID.
+
+Disponibilidade técnica não concede permissão; snapshots de versões preservam
+códigos retirados e não representam autorização efetiva. Estas telas são somente
+leitura. Não implementam ainda comandos de perfis ou atribuições. `/admin` continua
+negado por padrão para a sessão técnica sem contrato; conta denominacional real
+usa as novas rotas contextuais. [Relatório FE-01](docs/fe-01-security-read.md).
 ## Ordem das atividades
 
 1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.

@@ -1,0 +1,6 @@
+.security-panel { max-width: none; margin-block: 2rem; }
+.security-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-block: 1rem; }
+.security-list { list-style: none; padding: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.security-list > li { min-width: 0; overflow-wrap: anywhere; border: 1px solid #ccd8d5; border-radius: .5rem; padding: 1rem; background: white; }
+.security-list h2, .security-list h3 { margin-top: 0; }
+.security-codes { overflow-wrap: anywhere; }
