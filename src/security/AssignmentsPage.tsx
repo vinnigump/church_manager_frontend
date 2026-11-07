@@ -41,7 +41,7 @@ export default function AssignmentsPage() {
       <ResourceAccess permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId}>
         <div key={`${account?.id}:${denominationId}:${assignmentId ?? ''}`}>
           <p>O estado registrado e a vigência não representam autorização efetiva da conta. Cada operação é autorizada pelo servidor.</p>
-          {assignmentId ? <><Link to={`${securityRoute(denominationId)}/atribuicoes`}>Voltar às atribuições</Link><Detail denominationId={denominationId} assignmentId={assignmentId}/></> : <List denominationId={denominationId}/>}
+          {assignmentId ? <><Link to={`${securityRoute(denominationId)}/atribuicoes`}>Voltar às atribuições</Link><Detail denominationId={denominationId} assignmentId={assignmentId}/></> : <><Link to={`${securityRoute(denominationId)}/delegacoes`}>Fontes de delegação da denominação</Link><List denominationId={denominationId}/></>}
         </div>
       </ResourceAccess>}
   </>

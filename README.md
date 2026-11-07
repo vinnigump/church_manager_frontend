@@ -61,6 +61,11 @@ a própria permissão é reconsultada. Rede/5xx/schema não geram retry de escri
 necessário reconciliar os dados antes de nova tentativa. [Relatório de gestão](docs/fe-01-profile-management.md).
 ## Ordem das atividades
 
+Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` lista
+com gestão central; o detalhe `/:delegationId` também permite o próprio delegado
+conforme autorização do GET no servidor. Histórico consultável não comprova fonte
+operacional nem autoriza concessão. [Contrato e testes](docs/fe-01-delegation-read.md).
+
 Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
 e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
 da gestão de perfis. Exibem identificadores, estado registrado e vigência UTC;
