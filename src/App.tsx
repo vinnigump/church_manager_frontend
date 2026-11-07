@@ -10,7 +10,8 @@ function Layout() {
   const main = useRef<HTMLElement>(null)
   useEffect(() => {
     const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
-    document.title = `${titles[pathname] ?? 'Página não encontrada'} | Church Manager`
+    const pageTitle = main.current?.querySelector('h1[data-page-title]')?.getAttribute('data-page-title')
+    document.title = `${pageTitle ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
     main.current?.focus()
   }, [pathname])
   return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header><Link to="/">Church Manager</Link><nav aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>

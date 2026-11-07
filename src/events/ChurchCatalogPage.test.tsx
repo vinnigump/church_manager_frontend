@@ -58,6 +58,8 @@ describe('consulta paginada do catálogo autorizada', () => {
     const fetcher = mockCatalog()
     show()
     expect(await screen.findByText(item.name)).toBeInTheDocument()
+    expect(document.title).toBe('Catálogo de eventos | Church Manager')
+    expect(screen.getByRole('main')).toHaveFocus()
     expect(screen.getByText('Origem denominacional')).toBeInTheDocument()
     expect(screen.getByText('Obrigatório no catálogo')).toBeInTheDocument()
     expect(screen.getByText('Habilitado')).toBeInTheDocument()

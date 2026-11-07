@@ -2,7 +2,7 @@
 
 ## Implementador
 
-Branch `feat/fe-04-live-church-catalog`, base `origin/main` 980996d. PRs #15/#16 integrados por ação humana; #17/#18 permaneciam independentes na última consulta. A nova checagem do backend identificou merge humano do [PR #73](https://github.com/vinnigump/church_manager/pull/73), commit f6f35b5699192bb0899e2967a6b09d271a89aaa2. A tarefa foi retomada assim que o contrato ficou disponível.
+Branch `feat/fe-04-live-church-catalog`, iniciada na base `origin/main` 980996d e atualizada para 4b48630 após novos merges humanos. PRs #15–#18 integrados por ação humana. A nova checagem do backend identificou merge humano do [PR #73](https://github.com/vinnigump/church_manager/pull/73), commit f6f35b5699192bb0899e2967a6b09d271a89aaa2. A tarefa foi retomada assim que o contrato ficou disponível.
 
 Instruções, papéis, issue #4 reconciliada, comentários e componentes existentes consultados. Sem recorrência semanal/mensal/personalizada. Não ativa operações ainda planejadas.
 
@@ -29,7 +29,7 @@ Listagem paginada apresenta origem, obrigatoriedade e habilitação dos campos r
 
 Loading, vazio, erro e sucesso; retry explícito; respostas antigas ignoradas/abortadas ao trocar página ou contexto. Dados anteriores não aparecem durante carregamento. Erros do backend não refletem o corpo recebido; 401 limpa sessão pelo fluxo existente. A guarda reconsulta ao retomar foco e pode remontar a consulta na página inicial.
 
-`data-page-title` no título identifica um texto estático para integração com o ajuste de navegação acessível em revisão no PR #17; não contém nome de evento/igreja/pessoa. Sem dados nominais, URLs privadas, armazenamento de snapshots ou fixtures em produção.
+`data-page-title` no título identifica um texto estático para integração com o ajuste de navegação acessível do PR #17 já integrado; o layout lê somente esse metadado explícito, sem incorporar nome de evento/igreja/pessoa ao título. Sem dados nominais, URLs privadas, armazenamento de snapshots ou fixtures em produção.
 
 ## Testador
 
@@ -39,7 +39,7 @@ Instalação reproduzida com `npm ci` do lockfile atual da principal na tarefa a
 | --- | --- |
 | `npm run lint` | Passou |
 | `npm run typecheck` | Passou |
-| `npm test` | 138 testes passaram: 24 novos + 114 regressões da base |
+| `npm test` | 147 testes passaram após atualização da base: 24 novos + 123 regressões |
 | `npm run build` | Passou, Vite 7.3.7 |
 
 Testes usam o cliente real e componentes com respostas controladas conforme o contrato publicado: URI/query, cookies/no-store, schema em runtime, paginação/duplicatas inválidas, campos extras descartados, guarda anônima/negada, UUID inválido, estados, troca de página/contexto, respostas tardias, erro de rede e retry, 403/404/409/422/500, 401 com AuthProvider/login reais e ausência de ações de escrita.
