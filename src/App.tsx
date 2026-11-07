@@ -1,11 +1,18 @@
-import { useState, type FormEvent } from 'react'
-import { Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Guard, useAuth } from './auth'
 import EventsPage from './events/EventViews'
 
 function Layout() {
   const { account, logout } = useAuth()
-  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header><Link to="/">Church Manager</Link><nav aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main id="conteudo" tabIndex={-1}><Outlet /></main></>
+  const { pathname } = useLocation()
+  const main = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
+    document.title = `${titles[pathname] ?? 'Página não encontrada'} | Church Manager`
+    main.current?.focus()
+  }, [pathname])
+  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header><Link to="/">Church Manager</Link><nav aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>
 }
 function Login() {
   const { account, login, expired } = useAuth()
