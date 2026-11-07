@@ -35,6 +35,7 @@ bloqueios: []
 proxima_acao: "Descrever ação concreta"
 pode_concluir: false
 aceite_humano: PENDENTE
+validacao_visual: PENDENTE_VALIDACAO_MANUAL
 ```
 
 ## Papéis e atualização
@@ -55,3 +56,10 @@ Atualizar o resumo na issue a cada handoff e no encerramento do PR. Se houver v�
 
 ## Segurança e operação
 Não publicar segredos, dados pessoais, logs sensíveis ou artefatos de produção. Não fazer merge/deploy nem encerrar issues automaticamente sem autorização humana explícita. Se CI/ambiente estiver indisponível, registrar `NAO_EXECUTADO` e bloqueio.
+
+## Validação visual e homologação manual
+**Evidência visual (captura de tela, vídeo, gravação do navegador ou comparação pixel a pixel) NÃO é obrigatória para os agentes.** O agente não deve bloquear entrega, PR, testes técnicos ou parecer técnico por não conseguir produzir essa evidência. Não fabricar capturas nem declarar homologação visual executada.
+
+**Responsabilidade do usuário:** a inspeção visual e a homologação de interface serão feitas manualmente pelo responsável humano. O agente deve fornecer apenas instruções reproduzíveis para essa inspeção quando houver interface: URL/rota, pré-requisitos, perfil/permissões, dados de exemplo não sensíveis, passos e resultado esperado. Se não houver interface, registrar `NAO_APLICAVEL`.
+
+Registrar separadamente `validacao_visual: PENDENTE_VALIDACAO_MANUAL | APROVADA_MANUALMENTE | REPROVADA_MANUALMENTE | NAO_APLICAVEL`. Somente o humano pode marcar APROVADA_MANUALMENTE/REPROVADA_MANUALMENTE. A ausência de screenshot não constitui falha de critério técnico; quando a história exigir aceite visual, ela pode ficar `PRONTA_PARA_ACEITE`, mas não `CONCLUIDA` até a decisão humana.
