@@ -9,7 +9,7 @@ import './security.css'
 
 export const securityRoute = (denominationId: string) => `/seguranca/denominacoes/${denominationId}`
 const scopeName = (scope: string) => ({ CHURCH: 'Igreja', DENOMINATION: 'Denominação' }[scope] ?? scope)
-const statusName = (status: string) => ({ ENABLED: 'Ativo', DISABLED: 'Desativado', LEGACY_REVIEW: 'Legado em revisão', DRAFT: 'Rascunho', PUBLISHED: 'Publicada', LEGACY_SNAPSHOT: 'Registro legado' }[status] ?? status)
+const statusName = (status: string) => ({ ACTIVE: 'Ativo', ENABLED: 'Ativo', DISABLED: 'Desativado', LEGACY_REVIEW: 'Legado em revisão', DRAFT: 'Rascunho', PUBLISHED: 'Publicada', LEGACY_SNAPSHOT: 'Registro legado' }[status] ?? status)
 type State<T> = { kind: 'loading' } | { kind: 'ready'; data: T } | { kind: 'error'; message: string }
 function useRead<T>(context: string, load: (signal: AbortSignal) => Promise<T>) {
   const [attempt, setAttempt] = useState(0)
@@ -51,6 +51,7 @@ function Profiles({ denominationId }: { denominationId: string }) {
   const load = useCallback((signal: AbortSignal) => listProfiles(denominationId, page, signal), [denominationId, page])
   const query = useRead(JSON.stringify([denominationId, page]), load)
   return <ReadResult query={query} label="perfis">{data => <>
+    <p><Link to={`${securityRoute(denominationId)}/perfis/novo`}>Criar perfil de acesso</Link></p>
     <p role="status">Página {page + 1} · {data.total} perfis.</p>
     {data.items.length ? <ul className="security-list">{data.items.map(profile => <li key={profile.id}>
       <h2>{profile.name}</h2><p>Código: {profile.code}</p><p>Escopo: {scopeName(profile.scopeType)}</p><p>Estado: {statusName(profile.status)}</p>
@@ -79,6 +80,7 @@ function ProfileDetails({ denominationId, profileId }: { denominationId: string;
   const query = useRead(JSON.stringify([denominationId, profileId]), load)
   return <ReadResult query={query} label="perfil">{profile => <>
     <h2>{profile.name}</h2><p>Código: {profile.code}</p><p>Escopo: {scopeName(profile.scopeType)}</p><p>Estado: {statusName(profile.status)}</p>
+    <p><Link to={`${securityRoute(denominationId)}/perfis/${profile.id}/gerenciar`}>Gerenciar perfil</Link></p>
     {profile.publishedVersionId ? <p><Link to={`${securityRoute(denominationId)}/perfis/${profile.id}/versoes/${profile.publishedVersionId}`}>Consultar versão publicada de referência</Link></p> : <p>Este perfil não possui versão publicada de referência.</p>}
     <p>Consultar ou publicar um perfil não o atribui a nenhuma pessoa.</p>
     <VersionHistory denominationId={denominationId} profileId={profileId}/>
