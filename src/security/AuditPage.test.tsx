@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App'
@@ -34,7 +34,7 @@ describe('auditoria estruturada denominacional', () => {
     expect(screen.getByText('Resultado: Sucesso')).toBeInTheDocument()
     expect(screen.getByText(/não comprova recebimento pelo cliente/)).toBeInTheDocument()
     expect(new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams.get('permissionCode')).toBe('security:audit:read')
-    expect(document.title).toBe('Auditoria de segurança | Church Manager')
+    await waitFor(() => expect(document.title).toBe('Auditoria de segurança | Church Manager'))
   })
   it('nega auditoria mesmo com gestão de perfis e atribuições', async () => {
     const fetcher = server()
@@ -109,5 +109,74 @@ describe('auditoria estruturada denominacional', () => {
     await expect(listAudit(denomination, { from: entry.occurredAt, to: entry.occurredAt })).rejects.toThrow('validar')
     await expect(listAudit(denomination, {}, 100001)).rejects.toThrow('validar')
     expect(fetcher).not.toHaveBeenCalled()
+  })
+})
+
+describe('auditoria 1.2.0: recusas administrativas explícitas', () => {
+  const denial = { ...entry, resourceType: 'AUDIT_LOG', resourceId: null, outcome: 'DENIED', action: 'AUDIT_QUERY_DENIED' }
+  const respond = (value: unknown) => {
+    const fetcher = server()
+    fetcher.mockImplementation(async () => json({ items: [value], page: 0, size: 20, total: 1 }))
+    return fetcher
+  }
+  it.each(['AUDIT_QUERY_DENIED', 'PROFILE_MANAGEMENT_DENIED', 'ASSIGNMENT_MANAGEMENT_DENIED'])('consulta ação tipada %s somente com filtro explícito e projeta sem metadata', async action => {
+    const fetcher = respond({ ...denial, action, metadata: { reason: 'private' }, freeText: 'secret', account: { name: 'private' } })
+    expect((await listAudit(denomination, { resourceType: 'AUDIT_LOG' })).items).toEqual([{ ...denial, action }])
+    const params = new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams
+    expect(Object.fromEntries(params)).toEqual({ page: '0', size: '20', resourceType: 'AUDIT_LOG' })
+  })
+  it.each([{}, { resourceId: id }, { resourceType: 'ACCESS_ROLE' as const }])('rejeita AUDIT_LOG em consulta não explícita %j', async filters => {
+    respond(denial)
+    await expect(listAudit(denomination, filters)).rejects.toThrow('validar')
+  })
+  it.each([{ action: 'ARBITRARY_DENIED' }, { action: 'PROFILE_PUBLISHED' }, { outcome: 'SUCCESS' }, { action: '' }, { actorUserId: null }])('não admite par/ator/resultado incompatível %j', async patch => {
+    respond({ ...denial, ...patch })
+    await expect(listAudit(denomination, { resourceType: 'AUDIT_LOG' })).rejects.toThrow('validar')
+  })
+  it('consulta padrão não envia tipo nem habilita a busca de recusas por selecionar sem aplicar', async () => {
+    const fetcher = server(); show()
+    await screen.findByText('Resultado: Sucesso')
+    const calls = fetcher.mock.calls.length
+    expect(new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams.has('resourceType')).toBe(false)
+    fireEvent.change(screen.getByLabelText('Tipo de recurso'), { target: { value: 'AUDIT_LOG' } })
+    expect(fetcher).toHaveBeenCalledTimes(calls)
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+    expect(screen.getByText('Resultado: Sucesso')).toBeInTheDocument()
+  })
+  it('aplicar mostra recusas tipadas e limites de cobertura, pagina mantendo opt-in e permite voltar ao padrão', async () => {
+    const fetcher = server()
+    fetcher.mockImplementation(async url => {
+      if (url.includes('/authorization?')) return json({ allowed: true })
+      const params = new URL(url, 'https://example.test').searchParams
+      const page = Number(params.get('page'))
+      return json({ items: page ? [] : [params.get('resourceType') === 'AUDIT_LOG' ? denial : entry], page, size: 20, total: 21 })
+    })
+    show(); await screen.findByText('Resultado: Sucesso')
+    fireEvent.change(screen.getByLabelText('Tipo de recurso'), { target: { value: 'AUDIT_LOG' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros de auditoria' }))
+    await screen.findByRole('heading', { name: 'AUDIT_QUERY_DENIED' })
+    expect(screen.getByText('Resultado: Negado')).toBeInTheDocument()
+    expect(screen.getByRole('note')).toHaveTextContent('Não representa todas as recusas do sistema')
+    expect(screen.getByText('Tipo de recurso: Recusas administrativas de consulta e gestão')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+    await screen.findByText('Nenhum registro de auditoria nesta página e filtros.')
+    let params = new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams
+    expect(params.get('resourceType')).toBe('AUDIT_LOG')
+    expect(params.get('page')).toBe('1')
+    fireEvent.change(screen.getByLabelText('Tipo de recurso'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros de auditoria' }))
+    await screen.findByText('Resultado: Sucesso')
+    params = new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams
+    expect(params.has('resourceType')).toBe(false)
+    expect(params.get('page')).toBe('0')
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+  it('rota explícita fixa o tipo e mantém a verificação de auditoria, sem concessão pela recusa registrada', async () => {
+    const fetcher = server()
+    fetcher.mockImplementation(async url => url.includes('/authorization?') ? json({ allowed: true }) : json({ items: [{ ...denial, resourceId: id }], page: 0, size: 20, total: 1 }))
+    show(`${route}/AUDIT_LOG/${id}`)
+    await screen.findByRole('heading', { name: 'AUDIT_QUERY_DENIED' })
+    expect(screen.getByLabelText('Tipo de recurso')).toBeDisabled()
+    expect(new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams.get('permissionCode')).toBe('security:audit:read')
   })
 })

@@ -127,17 +127,18 @@ describe('agenda isolada', () => {
   })
 })
 
-describe('rota de eventos sem integração', () => {
+describe('entrada de eventos sem descoberta de contexto', () => {
   it('redireciona visitante e não faz requests de eventos', () => {
     const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/eventos']}><AuthProvider><App /></AuthProvider></MemoryRouter>)
     expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(fetcher).not.toHaveBeenCalled()
   })
-  it('conta sem capacidades vê indisponibilidade, sem catálogo, ações ou mocks', () => {
+  it('conta sem contexto vê orientação de acesso e limite público, sem catálogo, ações ou mocks', () => {
     const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/eventos']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App /></AuthContext.Provider></MemoryRouter>)
-    expect(screen.getByRole('status')).toHaveTextContent('ainda não estão disponíveis')
+    expect(screen.getByRole('status')).toHaveTextContent('A agenda pública ainda não está disponível.')
+    expect(screen.getByText(/catálogo, o calendário anual e as ocorrências administrativas/)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Catálogo de eventos' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /publicar|criar|cancelar|inscrever/i })).not.toBeInTheDocument()
     expect(fetcher).not.toHaveBeenCalled()
