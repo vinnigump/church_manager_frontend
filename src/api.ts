@@ -45,7 +45,13 @@ export class ApiClient {
       if (response.status === 401) { this.clear(); this.onUnauthorized?.() }
       throw new ApiError(response.status)
     }
-    const result = response.status === 204 ? undefined : await response.json()
+    let result: unknown
+    try { result = response.status === 204 ? undefined : await response.json() }
+    catch {
+      if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
+      // O parser pode incluir trechos do corpo recebido em sua mensagem.
+      throw new Error('Não foi possível validar a resposta do servidor. Tente novamente.')
+    }
     if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
     return result as T
   }

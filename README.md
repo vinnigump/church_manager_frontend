@@ -26,7 +26,7 @@ O backend já publica a consulta pontual `GET /api/v1/accounts/me/authorization`
 
 **Bloqueio parcial da #1:** a descoberta de contextos autorizados e a sessão administrativa técnica continuam pendentes. `/admin` permanece negado por padrão; a nova guarda não foi ligada a uma operação inexistente. Não inferimos concessões a partir de login/status. O administrador técnico não possui `identity:self`; `/accounts/me` não é um endpoint de descoberta para esse perfil.
 
-O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs de domínio ainda não integradas. Erros HTTP não exibem o corpo recebido, evitando refletir dados sensíveis. Não armazenamos credenciais em storage nem logs.
+O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs de domínio ainda não integradas. Erros HTTP e falhas de leitura de JSON não exibem o corpo recebido nem mensagens brutas do parser, evitando refletir dados sensíveis. [Relatório de erros JSON](docs/fe-01-json-errors.md). Não armazenamos credenciais em storage nem logs.
 
 ## Ordem das atividades
 
