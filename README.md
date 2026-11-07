@@ -19,6 +19,12 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
+O detalhe da ocorrência oferece espaço e sobreposições de planejamento
+(`event-spaces-v1` 1.0.0): resumo global, candidatos paginados e configuração
+de espaço somente do rascunho com revisão compartilhada. Alertas não confirmam
+disponibilidade, reserva ou autorização de publicar.
+[Relatório FE-04](docs/events/fe-04-space-planning.md).
+
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
 O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).
@@ -120,7 +126,7 @@ Atualização posterior com contrato real, testes e limites: [autorização por 
 
 ## Eventos — preparação da #4
 
-`/eventos` exige autenticação. A agenda detalhada de ocorrências ainda não está integrada; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
+`/eventos` exige autenticação. Catálogo, calendário anual e ocorrências administrativas usam contratos publicados no backend. A agenda pública continua pendente.
 
 `/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. EVENT_CREATE libera criação local e EVENT_EDIT libera habilitação/desabilitação local, sempre com nova autorização no backend e CSRF. Templates obrigatórios não têm controles de alteração.
 

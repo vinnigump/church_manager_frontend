@@ -50,6 +50,7 @@ export default function PlanningPage() {
     {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">O acesso ao planejamento é inválido. Abra novamente o acesso autorizado da ocorrência.</p> :
       <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
         <p><Link to={`/eventos/igrejas/${churchId}/catalogo`}>Catálogo da igreja</Link></p>
+        <p><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${occurrenceId}`}>Voltar à ocorrência</Link></p>
         <PlanningRecords key={`${account?.id}:${churchId}:${occurrenceId}`} churchId={churchId} occurrenceId={occurrenceId}/>
       </ResourceAccess>}
   </div>

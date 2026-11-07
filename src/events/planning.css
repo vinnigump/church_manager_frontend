@@ -4,3 +4,6 @@
 .planning dt { font-weight: 700; }
 .planning-outcome { font-weight: 700; }
 .planning [data-outcome='CRITICAL'] { color: var(--rio-color-error); }
+.planning fieldset { min-width: 0; }
+.planning label { display: grid; gap: .4rem; margin-block: 1rem; }
+.planning input { width: 100%; min-width: 0; box-sizing: border-box; }

@@ -1,6 +1,7 @@
 import { api, type ApiClient } from '../api'
 import { isUuid } from '../validation'
 import { instant } from '../security/security-api'
+import { editableOccurrence, type Occurrence } from './occurrence-api'
 
 // event-spaces-v1.openapi.json 1.0.0, backend #97.
 export type PlanningOutcome = 'OUTSIDE_SCOPE' | 'UNDETERMINED' | 'NONE' | 'PREVENTIVE' | 'MODERATE' | 'CRITICAL'
@@ -45,4 +46,26 @@ export async function readPlanningOverlaps(churchId: string, occurrenceId: strin
   const path = base(churchId, occurrenceId)
   if (!integer(page) || page > 100000) throw invalid()
   return parsePlanningPage(await client.request<unknown>(`${path}/conflicts?page=${page}&size=20`, { signal }), occurrenceId, page)
+}
+export interface SpaceWrite { code: string | null; name: string | null }
+export function validateSpaceWrite(input: SpaceWrite): SpaceWrite {
+  if ((input.code !== null && !/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/.test(input.code))
+    || (input.name !== null && (!input.name.trim() || input.name.length > 180)) || (input.code === null && input.name !== null)) {
+    throw new Error('Informe código exato de até 64 caracteres (letras, números, _, ., : ou -), começando por letra ou número. Nome opcional de até 180 caracteres exige código.')
+  }
+  return { code: input.code, name: input.name === null ? null : input.name.trim() }
+}
+export async function saveOccurrenceSpace(churchId: string, occurrence: Occurrence, before: OccurrenceSpace, input: SpaceWrite, signal?: AbortSignal, client: ApiClient = api) {
+  const path = base(churchId, occurrence.id)
+  const body = validateSpaceWrite(input)
+  if (!editableOccurrence(occurrence) || occurrence.churchId !== churchId || before.churchId !== churchId || before.occurrenceId !== occurrence.id
+    || !integer(before.revision) || before.revision !== occurrence.revision) throw new Error('Recarregue o rascunho antes de configurar o espaço.')
+  const v = await client.request<unknown>(`${path}/space`, { method: 'PUT', signal,
+    headers: { 'Content-Type': 'application/json', 'X-Expected-Revision': String(before.revision) }, body: JSON.stringify(body) })
+  if (!record(v)) throw invalid()
+  const space = parseSpace(v.space, churchId, occurrence.id)
+  const changed = before.code !== body.code || before.name !== body.name
+  if (space.code !== body.code || space.name !== body.name || space.revision !== before.revision + (changed ? 1 : 0)) throw invalid()
+  const conflicts = v.conflicts == null ? null : parsePlanningPage(v.conflicts, occurrence.id, 0)
+  return { space, conflicts }
 }

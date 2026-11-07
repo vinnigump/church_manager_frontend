@@ -7,6 +7,7 @@ import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import OccurrencePages from './events/OccurrencePages'
 import PlanningPage from './events/PlanningPage'
+import SpaceEditorPage from './events/SpaceEditorPage'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
 import SecurityPages from './security/SecurityPages'
@@ -53,6 +54,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId" element={<OccurrencePages view="detail" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/editar" element={<OccurrencePages view="edit" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
     <Route path="eventos/igrejas/:churchId/calendarios" element={<AnnualCalendarPage />}/>
     <Route path="eventos/igrejas/:churchId/calendarios/:year" element={<AnnualCalendarPage />}/>
     <Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/>
