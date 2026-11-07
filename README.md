@@ -75,6 +75,9 @@ Minha conta oferece `/conta/senha`, com senha atual, confirmação e limites rea
 de caracteres/UTF-8. POST usa CSRF da sessão; sucesso encerra a sessão local e
 solicita novo login. Resultado incerto bloqueia repetição até verificar novamente
 as credenciais. [Contrato, testes e limites](docs/fe-01-own-password.md).
+A revogação central está disponível pelo detalhe, com confirmação, revisão lógica
+e reconsulta de permissão/dados. Falhas bloqueiam repetição até atualização.
+Concessão permanece em incremento próprio. [Revogação](docs/fe-01-assignment-revoke.md).
 
 1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.
 2. #2 Acesso público/Minha Jornada: aguarda contratos OTP, sessão e backend #14/#15.
