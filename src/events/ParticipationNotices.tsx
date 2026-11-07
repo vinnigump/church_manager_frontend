@@ -3,7 +3,7 @@ import type { ChurchContext } from './presentation'
 import './events.css'
 
 // Projeção interna de apresentação. Não é contrato HTTP nem decisão de acesso.
-export type AuthorizationNotice = 'notRequired' | 'unknown' | 'pending' | 'recorded' | 'revoked'
+export type AuthorizationNotice = 'notRequired' | 'unknown' | 'pending' | 'recorded' | 'rejected' | 'revoked'
 export type AttendanceNotice = 'notRecorded' | 'validated' | 'invalidated' | 'noShow'
 export type ParticipationSnapshot = {
   churchId: string
@@ -29,6 +29,7 @@ function AuthorizationMessage({ authorization }: { authorization: AuthorizationN
     case 'unknown': return <p role="alert">Não foi possível confirmar a autorização exigida. A participação não está liberada.</p>
     case 'pending': return <p role="alert">Autorização pendente: a participação está bloqueada. A pendência não cancela uma inscrição confirmada nem libera sua vaga.</p>
     case 'revoked': return <p role="alert">Autorização revogada: a participação está bloqueada. A revogação não cancela a inscrição automaticamente.</p>
+    case 'rejected': return <p role="alert">Autorização rejeitada: a participação está bloqueada. Consulte as orientações da organização.</p>
     case 'recorded': return <p>Autorização registrada. O servidor deve confirmar sua validade e a permissão para participar em cada operação.</p>
     case 'notRequired': return <p>Autorização de responsável não exigida pela política informada. Isso não concede permissão para participar.</p>
   }
