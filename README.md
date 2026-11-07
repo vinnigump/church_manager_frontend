@@ -44,6 +44,11 @@ O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs
 
 ## Consultas administrativas de segurança — FE-01
 
+A auditoria integra `audit-query-v1` 1.2.0 com filtro explícito de recusas
+administrativas tipadas. A consulta padrão preserva os sete tipos de domínio;
+ausência de registros não comprova ausência de tentativas.
+[Relatório FE-01](docs/fe-01-audit-denials.md).
+
 `/seguranca/denominacoes/:denominationId/perfis` lista os perfis; o detalhe em
 `/perfis/:profileId` apresenta estado, escopo e histórico, com acesso a
 `/versoes/:versionId`. `/seguranca/denominacoes/:denominationId/permissoes` consulta
