@@ -159,6 +159,10 @@ Contratos inspecionados, bloqueios de integração, resultados e parecer dos pap
 
 ## Menores e presença — preparação da #6
 
+A fatia UI-RIO-07 separa autorização e presença em regiões acessíveis do componente
+isolado, com hierarquia de avisos. Não habilita operação nem monta fluxo em produção.
+[Escopo e prévia de desenvolvimento](docs/design/ui-rio-07-participation.md).
+
 `src/events/ParticipationNotices.tsx` contém avisos isolados de inscrição, autorização e presença. Não está montado em rotas, não coleta evidências e não executa check-in ou qualquer decisão de autorização. Exemplos sintéticos ficam somente em testes: `npm test -- src/events/ParticipationNotices.test.tsx`.
 
 Evidências atuais do backend, bloqueios e parecer dos papéis: [relatório FE-06](docs/events/fe-06-report.md). Os relatórios FE-04/05 registram suas respectivas entregas anteriores; nenhuma das preparações equivale a integração funcional com as APIs de Eventos.
