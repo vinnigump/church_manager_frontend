@@ -73,6 +73,12 @@ describe('contratos de escrita local', () => {
     expect(url).toBe(`/api/v1/events/churches/${churchId}/types/${local.id}/enabled`)
     expect(JSON.parse(init.body)).toEqual({ enabled: false })
   })
+  it.each(['Outro encontro', ''])('não confirma criação com nome retornado divergente %j', async name => {
+    const fetcher = server({ post: async () => json({ ...local, name }, 201) })
+    await api.login('ana', 'test-password')
+    await expect(createLocalType(churchId, 'Novo encontro')).rejects.toThrow('confirmar a criação local')
+    expect(writes(fetcher)).toHaveLength(1)
+  })
   it('não envia escrita sem CSRF', async () => {
     const fetcher = server()
     await expect(createLocalType(churchId, 'Teste', undefined, new ApiClient())).rejects.toMatchObject({ status: 403 })
@@ -176,6 +182,7 @@ describe('gestão local na tela de catálogo', () => {
   it.each([
     () => Promise.resolve(new Response('falha privada', { status: 500 })),
     () => Promise.resolve(json({ invalid: true }, 201)),
+    () => Promise.resolve(json({ ...local, name: 'Nome diferente do solicitado' }, 201)),
   ])('500 ou resposta inválida não são confirmação de criação', async post => {
     const fetcher = server({ post })
     await show()
@@ -183,6 +190,7 @@ describe('gestão local na tela de catálogo', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('resultado da alteração não pôde ser confirmado')
     expect(screen.queryByText(/Tipo local criado/)).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(1)
+    expect(screen.getByLabelText('Nome do tipo de evento')).toHaveValue('Novo encontro')
   })
   it('resposta de escrita antiga não aparece na igreja nova', async () => {
     let finish!: (response: Response) => void

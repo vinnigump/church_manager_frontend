@@ -34,7 +34,7 @@ export async function createLocalType(churchId: string, name: string, signal?: A
   const result = parseEventType(await client.request<unknown>(`/events/churches/${churchId}/types`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim() }), signal,
   }))
-  if (result.scopeType !== 'CHURCH' || result.mandatory || !result.enabled) throw new Error('Não foi possível confirmar a criação local.')
+  if (result.scopeType !== 'CHURCH' || result.mandatory || !result.enabled || result.name !== name.trim()) throw new Error('Não foi possível confirmar a criação local.')
   return result
 }
 
