@@ -5,6 +5,7 @@ import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
+import OccurrencePages from './events/OccurrencePages'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
 import SecurityPages from './security/SecurityPages'
@@ -46,6 +47,10 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="eventos" element={<EventsPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias" element={<OccurrencePages view="list" />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/nova" element={<OccurrencePages view="create" />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId" element={<OccurrencePages view="detail" />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/editar" element={<OccurrencePages view="edit" />}/>
     <Route path="eventos/igrejas/:churchId/calendarios" element={<AnnualCalendarPage />}/>
     <Route path="eventos/igrejas/:churchId/calendarios/:year" element={<AnnualCalendarPage />}/>
     <Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/>

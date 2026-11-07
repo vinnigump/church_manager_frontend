@@ -28,12 +28,12 @@ export function useRead<T>(context: string, load: (signal: AbortSignal) => Promi
 }
 export function ReadResult<T>({ query, label, children }: { query: ReturnType<typeof useRead<T>>; label: string; children: (data: T) => ReactNode }) {
   if (query.state.kind === 'loading') return <p role="status" aria-busy="true">Carregando {label}…</p>
-  return <><button onClick={query.refresh}>Atualizar {label}</button>{query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}</>
+  return <><button type="button" onClick={query.refresh}>Atualizar {label}</button>{query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}</>
 }
 export function Pagination({ page, total, setPage, label }: { page: number; total: number; setPage: (page: number) => void; label: string }) {
   return <nav className="security-actions" aria-label={label}>
-    <button disabled={page === 0} onClick={() => setPage(page - 1)}>Página anterior</button>
-    <button disabled={page >= 100000 || (page + 1) * 20 >= total} onClick={() => setPage(page + 1)}>Próxima página</button>
+    <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>Página anterior</button>
+    <button type="button" disabled={page >= 100000 || (page + 1) * 20 >= total} onClick={() => setPage(page + 1)}>Próxima página</button>
   </nav>
 }
 function PermissionCatalog({ denominationId }: { denominationId: string }) {
