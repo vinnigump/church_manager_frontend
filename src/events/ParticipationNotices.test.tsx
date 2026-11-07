@@ -21,6 +21,19 @@ describe('avisos isolados de autorização e presença', () => {
     expect(screen.getByText('Inscrição confirmada.')).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('não cancela a inscrição automaticamente')
   })
+  it.each(['confirmed', 'waiting', 'cancelled', 'unknown'] as const)('exibe rejeição sem substituir a situação de inscrição %s', registration => {
+    show({ kind: 'ready', snapshot: { ...snapshot, registration, authorization: 'rejected' } })
+    expect(screen.getByRole('alert')).toHaveTextContent('Autorização rejeitada: a participação está bloqueada')
+    const messages = { confirmed: 'Inscrição confirmada.', waiting: 'Na lista de espera; sem vaga confirmada.', cancelled: 'Inscrição cancelada.', unknown: 'Situação da inscrição não confirmada.' }
+    expect(screen.getByText(messages[registration])).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
+  it('não expõe rejeição de outro sujeito', () => {
+    show({ kind: 'ready', snapshot: { ...snapshot, subjectId: 'other', authorization: 'rejected' } })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('não estão disponíveis')
+  })
   it.each([
     ['unknown', 'A participação não está liberada'],
     ['recorded', 'O servidor deve confirmar sua validade'],
