@@ -48,6 +48,7 @@ function CatalogRecords({ churchId, mutation }: { churchId: string; mutation: Lo
 function CatalogWorkspace({ churchId }: { churchId: string }) {
   const mutation = useLocalTypeMutation(churchId)
   return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
+    <ResourceAccess permissionCode="EVENT_CALENDAR_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><Link to={`/eventos/igrejas/${churchId}/calendarios`}>Calendário anual administrativo</Link></ResourceAccess>
     <LocalMutationResult churchId={churchId} mutation={mutation}/>
     <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><CreateLocalTypeForm mutation={mutation}/></ActionAccess>
     <CatalogRecords churchId={churchId} mutation={mutation}/>
