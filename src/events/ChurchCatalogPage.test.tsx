@@ -22,7 +22,7 @@ function LoginThenOpen() {
   return <button onClick={async () => { await login('ana', 'test-password'); navigate(route(churchA)) }}>Abrir catálogo após login</button>
 }
 function mockCatalog(value: unknown = page, allowed = true) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => json(url.includes('/authorization?') ? { allowed } : value))
+  const fetcher = vi.fn().mockImplementation(async (url: string) => json(url.includes('/authorization?') ? { allowed: allowed && new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'EVENT_VIEW' } : value))
   vi.stubGlobal('fetch', fetcher)
   return fetcher
 }

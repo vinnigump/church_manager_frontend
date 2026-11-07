@@ -23,7 +23,7 @@ interface CheckedDecision { account: Account; key: string; attempt: number; deci
 
 // Guarda de UX. Cada operação do backend deve autorizar novamente o recurso real.
 // Não substitui descoberta de contextos nem concede acesso por vínculo familiar.
-export function ResourceAccess({ permissionCode, resourceType, resourceId, children }: AuthorizationQuery & { children: ReactNode }) {
+export function ResourceAccess({ permissionCode, resourceType, resourceId, children, optional = false, fallback = null }: AuthorizationQuery & { children: ReactNode; optional?: boolean; fallback?: ReactNode }) {
   const { account } = useAuth()
   const [checked, setChecked] = useState<CheckedDecision | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -46,9 +46,10 @@ export function ResourceAccess({ permissionCode, resourceType, resourceId, child
   if (!account) return <Navigate to="/entrar" replace />
   // Comparação durante o render evita um quadro com concessão do contexto anterior.
   if (!checked || checked.account !== account || checked.key !== key || checked.attempt !== attempt) {
+    if (optional) return <>{fallback}</>
     return <p role="status" aria-busy="true">Verificando permissão…</p>
   }
-  if (checked.decision === 'error') return <><p role="alert">Não foi possível confirmar sua permissão. O acesso permanece bloqueado.</p><button onClick={() => setAttempt(value => value + 1)}>Verificar novamente</button></>
-  if (checked.decision === 'denied') return <p role="alert">Acesso não autorizado para este recurso.</p>
+  if (checked.decision === 'error') return optional ? <>{fallback}</> : <><p role="alert">Não foi possível confirmar sua permissão. O acesso permanece bloqueado.</p><button onClick={() => setAttempt(value => value + 1)}>Verificar novamente</button></>
+  if (checked.decision === 'denied') return optional ? <>{fallback}</> : <p role="alert">Acesso não autorizado para este recurso.</p>
   return <>{children}</>
 }
