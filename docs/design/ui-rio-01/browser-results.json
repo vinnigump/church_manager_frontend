@@ -1,0 +1,192 @@
+{
+  "browser": "156.0.8078.80",
+  "environment": "Chrome headless, APIs GET interceptadas com fixtures sintéticas, sem backend real",
+  "results": [
+    {
+      "width": 320,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 320,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 320,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 360,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 360,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 360,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 390,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 390,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 390,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1942857142857144,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 768,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 768,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 768,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 1024,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 1024,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 1024,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 1440,
+      "page": "login",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": "16px",
+      "sectionRestriction": false
+    },
+    {
+      "width": 1440,
+      "page": "catalog",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    },
+    {
+      "width": 1440,
+      "page": "security",
+      "overflow": false,
+      "logoLoaded": true,
+      "logoRatio": 2.1945137157107233,
+      "radius": "17px",
+      "fieldSize": null,
+      "sectionRestriction": false
+    }
+  ],
+  "skipFocus": {
+    "text": "Ir para o conteúdo",
+    "style": "solid"
+  },
+  "cssZoom200Overflow": false,
+  "pageErrors": []
+}

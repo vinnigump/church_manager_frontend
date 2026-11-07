@@ -5,6 +5,7 @@ import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
 import SecurityPages from './security/SecurityPages'
+import Brand from './components/Brand'
 import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplatePages'
 
 function Layout() {
@@ -17,7 +18,7 @@ function Layout() {
     document.title = `${pageTitle ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
     main.current?.focus()
   }, [pathname])
-  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header><Link to="/">Church Manager</Link><nav aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>
+  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header className="app-header"><Link className="app-home-link" to="/"><Brand /></Link><nav className="app-navigation" aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main className="app-content" ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>
 }
 function Login() {
   const { account, login, expired } = useAuth()
@@ -34,7 +35,7 @@ function Login() {
     catch (error) { setError(error instanceof Error ? error.message : 'Não foi possível entrar.') }
     finally { form.reset(); setBusy(false) }
   }
-  return <section><h1>Entrar</h1>{expired && <p role="status">Sua sessão expirou. Entre novamente.</p>}<p>Use sua conta cadastrada para acessar.</p><form onSubmit={submit} aria-busy={busy}><label htmlFor="login">Login</label><input id="login" name="login" autoComplete="username" required disabled={busy}/><label htmlFor="password">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required disabled={busy}/>{error && <p role="alert">{error}</p>}<button disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}</button></form></section>
+  return <section className="access-panel"><h1>Entrar</h1>{expired && <p role="status">Sua sessão expirou. Entre novamente.</p>}<p>Use sua conta cadastrada para acessar.</p><form onSubmit={submit} aria-busy={busy}><label htmlFor="login">Login</label><input id="login" name="login" autoComplete="username" required disabled={busy}/><label htmlFor="password">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required disabled={busy}/>{error && <p role="alert">{error}</p>}<button disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}</button></form></section>
 }
 function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p></> }
 export default function App() {

@@ -1,0 +1,24 @@
+:root {
+  color-scheme: light;
+  --rio-font-family: 'Segoe UI', system-ui, sans-serif;
+  --rio-color-background: #f4f7f6;
+  --rio-color-surface: #ffffff;
+  --rio-color-text: #213c35;
+  --rio-color-muted: #61756c;
+  --rio-color-primary: #155c50;
+  --rio-color-on-primary: #ffffff;
+  --rio-color-primary-hover: #10483e;
+  --rio-color-soft: #e8f3ed;
+  --rio-color-border: #d9e5de;
+  --rio-color-input-border: #647c78;
+  --rio-color-focus: #976000;
+  --rio-color-error: #9b2424;
+  --rio-space-1: .25rem;
+  --rio-space-2: .5rem;
+  --rio-space-3: .75rem;
+  --rio-space-4: 1rem;
+  --rio-space-5: 1.5rem;
+  --rio-space-6: 2rem;
+  --rio-radius-control: 8px;
+  --rio-radius-card: 17px;
+}
