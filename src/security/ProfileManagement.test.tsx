@@ -134,6 +134,103 @@ describe('comandos administrativos de perfis publicados', () => {
 })
 
 describe('gestão de perfil com decisões atuais', () => {
+  it('criação conserva código, escopo, nome e seleção de permissões durante foco', async () => {
+    const fetcher = server(); await show(`${root}/novo`)
+    fireEvent.change(await screen.findByLabelText('Código do perfil'), { target: { value: 'NEW' } })
+    fireEvent.change(screen.getByLabelText('Escopo do perfil'), { target: { value: 'DENOMINATION' } })
+    fireEvent.change(screen.getByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome não enviado' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'security:profile:manage' }))
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Código do perfil')).toHaveValue('NEW')
+    expect(screen.getByLabelText('Escopo do perfil')).toHaveValue('DENOMINATION')
+    expect(screen.getByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome não enviado')
+    expect(screen.getByRole('checkbox', { name: 'security:profile:manage' })).toBeChecked()
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('edição preserva alterações de nome/permissões e bloqueio de publicar após foco', async () => {
+    const fetcher = server(); await show()
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome local')
+    expect(screen.getByRole('checkbox', { name: 'EVENT_VIEW' })).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'Publicar versão do perfil' })).toBeDisabled()
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('nova leitura do catálogo não remove silenciosamente seleção que ficou indisponível', async () => {
+    const fetcher = server({ initialDraft: { ...draft, permissionCodes: [] } })
+    const handler = fetcher.getMockImplementation()!
+    let retired = false
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => retired && url.endsWith('/permission-catalog')
+      ? json({ catalogVersion: 'changed', permissions: [{ code: 'EVENT_VIEW', introducedIn: 'events-1', resourceType: 'CHURCH', scopeTypes: ['CHURCH'], available: false }] }) : handler(url, init))
+    await show()
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'EVENT_VIEW' }))
+    retired = true; fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('indisponíveis ou incompatíveis')
+    const choice = screen.getByRole('checkbox', { name: /^EVENT_VIEW/ })
+    expect(choice).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Salvar rascunho do perfil' })).toBeDisabled()
+    fireEvent.click(choice)
+    expect(screen.getByRole('button', { name: 'Publicar versão do perfil' })).toBeEnabled()
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it.each([
+    { p: profile, d: { ...draft, revision: 3, name: 'Nome externo' } },
+    { p: { ...profile, revision: 8, status: 'DISABLED' }, d: draft },
+  ])('revisão concorrente não rebaseia campos locais para sobrescrever dados', async changed => {
+    const fetcher = server()
+    const handler = fetcher.getMockImplementation()!
+    let current = { p: profile, d: draft }
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => !init?.method && url.endsWith(`/profiles/${profileId}/draft`)
+      ? json(current.d) : !init?.method && url.endsWith(`/profiles/${profileId}`) ? json(current.p) : handler(url, init))
+    await show()
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local' } })
+    current = changed; fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('perfil mudou')
+    expect(screen.getByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome local')
+    expect(screen.getByRole('button', { name: 'Salvar rascunho do perfil' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Publicar versão do perfil' })).toBeDisabled()
+    fireEvent.submit(screen.getByLabelText('Nome do rascunho do perfil').closest('form')!)
+    expect(writes(fetcher)).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar alterações locais e atualizar gestão' }))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue(changed.d.name)
+    expect(screen.getByRole('button', { name: 'Publicar versão do perfil' })).toBeEnabled()
+  })
+  it('campos preservados não são expostos enquanto a permissão estiver negada', async () => {
+    const fetcher = server(); const handler = fetcher.getMockImplementation()!
+    let allowed = true
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes('/authorization?') ? json({ allowed }) : handler(url, init))
+    await show()
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local protegido' } })
+    allowed = false; fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
+    expect(screen.queryByDisplayValue('Nome local protegido')).not.toBeInTheDocument()
+    allowed = true; fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome local protegido')
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('nome e escolhas não salvos não passam para outra denominação', async () => {
+    const fetcher = server(); await show(route(), true)
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome A' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue(draft.name)
+    expect(screen.getByRole('checkbox', { name: 'EVENT_VIEW' })).toBeChecked()
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('erro e foco não apagam campos nem liberam repetição sem leitura explícita', async () => {
+    const fetcher = server({ write: async () => new Response(null, { status: 500 }) })
+    await show(); await save('Nome não confirmado')
+    await screen.findByRole('alert')
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome não confirmado')
+    expect(screen.getByRole('button', { name: 'Salvar rascunho do perfil' })).toBeDisabled()
+    expect(writes(fetcher)).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar dados de gestão' }))
+    expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome não confirmado')
+    expect(screen.getByRole('button', { name: 'Salvar rascunho do perfil' })).toBeEnabled()
+    expect(writes(fetcher)).toHaveLength(1)
+  })
   it('copia, edita, publica, desativa e reativa com leituras de reconciliação', async () => {
     const fetcher = server({ initialDraft: null })
     await show()
