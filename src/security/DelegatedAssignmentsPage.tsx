@@ -28,7 +28,9 @@ function Detail({ denominationId, delegationId, assignmentId }: { denominationId
   const { refresh } = query
   useEffect(() => { window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [refresh])
   return <><Link to={route(denominationId, delegationId)}>Voltar às atribuições desta fonte</Link>
-    <ReadResult query={query} label="atribuição da fonte">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/></>}</ReadResult>
+    <ReadResult query={query} label="atribuição da fonte">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
+      {data.status === 'ACTIVE' && <Link to={`${route(denominationId, delegationId)}/${data.id}/revogar`}>Revogar atribuição desta fonte</Link>}
+    </>}</ReadResult>
   </>
 }
 export default function DelegatedAssignmentsPage() {
