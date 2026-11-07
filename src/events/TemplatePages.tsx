@@ -65,6 +65,7 @@ function VersionDetails({ version }: { version: TemplateVersion }) {
 function DenominationCatalogWorkspace({ denominationId }: { denominationId: string }) {
   const creation = useTemplateCreation(denominationId)
   return <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
+    <ResourceAccess permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId} optional><Link to={`${securityRoute(denominationId)}/atribuicoes`}>Atribuições de acesso da denominação</Link></ResourceAccess>
     <ResourceAccess permissionCode="security:profile:manage" resourceType="DENOMINATION" resourceId={denominationId} optional><Link to={`${securityRoute(denominationId)}/perfis`}>Perfis de acesso da denominação</Link></ResourceAccess>
     <TemplateCreationResult denominationId={denominationId} creation={creation}/>
     <TemplateCreationForm creation={creation}/>

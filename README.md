@@ -61,6 +61,12 @@ a própria permissão é reconsultada. Rede/5xx/schema não geram retry de escri
 necessário reconciliar os dados antes de nova tentativa. [Relatório de gestão](docs/fe-01-profile-management.md).
 ## Ordem das atividades
 
+Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
+e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
+da gestão de perfis. Exibem identificadores, estado registrado e vigência UTC;
+não representam autorização efetiva. Concessão/revogação ficam em incremento
+próprio. [Contrato, testes e limites](docs/fe-01-assignment-read.md).
+
 1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.
 2. #2 Acesso público/Minha Jornada: aguarda contratos OTP, sessão e backend #14/#15.
 3. #3 Trilhas e migração: depende de backend #14.
