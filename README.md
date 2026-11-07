@@ -45,7 +45,7 @@ Atualização posterior com contrato real, testes e limites: [autorização por 
 
 ## Eventos — preparação da #4
 
-`/eventos` exige autenticação. O calendário/programação ainda não está integrado; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
+`/eventos` exige autenticação. A agenda detalhada de ocorrências ainda não está integrada; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
 
 `/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. EVENT_CREATE libera criação local e EVENT_EDIT libera habilitação/desabilitação local, sempre com nova autorização no backend e CSRF. Templates obrigatórios não têm controles de alteração.
 
@@ -67,6 +67,21 @@ a publicação é uma ação posterior. Após confirmação, o catálogo é atua
 link abre o detalhe do novo template. Não há publicação implícita nem alteração local
 do vínculo obrigatório. Falhas não repetem o POST; a criação fica bloqueada até uma
 nova consulta bem-sucedida ao catálogo. Relatório: [criação FE-04](docs/events/fe-04-template-creation.md).
+## Calendário anual administrativo — FE-04
+
+`/eventos/igrejas/:churchId/calendarios` permite selecionar o ano (1–9999);
+`/eventos/igrejas/:churchId/calendarios/:year` consulta os metadados administrativos
+com EVENT_CALENDAR_MANAGE/CHURCH. O catálogo da igreja oferece o acesso somente
+quando essa permissão for confirmada. Não há entrada de UUID ou contexto fictício.
+
+GET confirmado como 404 oferece criação explícita. Publicar ou retirar a publicação
+exige confirmação e X-Expected-Revision da resposta atual. ETag não é convertido em
+revisão. Alterar o planejamento não publica ocorrências, abre inscrições ou inicia
+check-in. Projeção pública, agenda/entradas detalhadas e cópia anual ainda não estão
+neste contrato. Datas dos metadados são exibidas explicitamente em UTC.
+
+Sem sucesso otimista ou retry automático; falhas exigem atualizar o calendário antes
+de nova escrita. Mais detalhes: [relatório de calendário FE-04](docs/events/fe-04-annual-calendar.md).
 ## Inscrições — preparação da #5
 
 `src/events/RegistrationViews.tsx` oferece resumos isolados de capacidade, situação individual e posição na espera. Não está conectado às rotas ou APIs, não permite gravação e não carrega dados fictícios em produção. Execute `npm test -- src/events/RegistrationViews.test.tsx` para os exemplos sintéticos de teste.
