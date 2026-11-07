@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
-import { Guard, useAuth } from './auth'
+import { Guard, loginDestination, useAuth } from './auth'
 import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplatePages'
@@ -19,9 +19,10 @@ function Layout() {
 }
 function Login() {
   const { account, login, expired } = useAuth()
+  const { state } = useLocation()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  if (account) return <Navigate to="/conta" replace />
+  if (account) return <Navigate to={loginDestination(state)} replace />
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = event.currentTarget

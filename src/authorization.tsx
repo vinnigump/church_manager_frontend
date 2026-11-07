@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
 import { api, type Account, type ApiClient } from './api'
-import { useAuth } from './auth'
+import { LoginRedirect, useAuth } from './auth'
 
 // docs/api/self-authorization-v1.openapi.json 1.0.0 do backend.
 export interface AuthorizationQuery {
@@ -43,7 +42,7 @@ export function ResourceAccess({ permissionCode, resourceType, resourceId, child
     return () => { active = false; controller.abort() }
   }, [account, permissionCode, resourceType, resourceId, key, attempt])
 
-  if (!account) return <Navigate to="/entrar" replace />
+  if (!account) return <LoginRedirect />
   // Comparação durante o render evita um quadro com concessão do contexto anterior.
   if (!checked || checked.account !== account || checked.key !== key || checked.attempt !== attempt) {
     if (optional) return <>{fallback}</>
