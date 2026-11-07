@@ -1,0 +1,6 @@
+.planning { min-width: 0; overflow-wrap: anywhere; }
+.planning section { margin-block: 1.5rem; padding: clamp(1rem, 3vw, 1.5rem); background: var(--rio-color-surface); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); }
+.planning dd { margin-inline-start: 0; margin-block-end: 1rem; }
+.planning dt { font-weight: 700; }
+.planning-outcome { font-weight: 700; }
+.planning [data-outcome='CRITICAL'] { color: var(--rio-color-error); }
