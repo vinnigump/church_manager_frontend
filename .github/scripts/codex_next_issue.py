@@ -4,6 +4,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 
 REPO = os.environ["GITHUB_REPOSITORY"]
 ISSUES = [4, 5, 6]
@@ -29,17 +30,17 @@ for index, number in enumerate(ISSUES):
     current = issue(REPO, number)
     if current["state"] == "closed":
         if not merged(REPO, number):
-            print(f"::warning::Issue #{number} closed without merged PR; stop")
+            print(f"::warning::Issue #{number} closed without merged PR; stop", file=sys.stderr)
             break
         continue
     if open_pr(REPO, number):
-        print(f"::notice::Issue #{number} has open PR")
+        print(f"::notice::Issue #{number} has open PR", file=sys.stderr)
         break
     if index and not merged(REPO, ISSUES[index - 1]):
-        print("::notice::Previous frontend issue has no verified merged PR")
+        print("::notice::Previous frontend issue has no verified merged PR", file=sys.stderr)
         break
     if not os.environ.get("BACKEND_READ_TOKEN"):
-        print("::warning::BACKEND_READ_TOKEN missing; cannot verify private backend")
+        print("::warning::BACKEND_READ_TOKEN missing; cannot verify private backend", file=sys.stderr)
         break
     previous = os.environ["GH_TOKEN"]
     os.environ["GH_TOKEN"] = os.environ["BACKEND_READ_TOKEN"]
@@ -50,10 +51,10 @@ for index, number in enumerate(ISSUES):
     finally:
         os.environ["GH_TOKEN"] = previous
     if not ready:
-        print(f"::notice::Backend #{backend_number} not merged; frontend #{number} blocked")
+        print(f"::notice::Backend #{backend_number} not merged; frontend #{number} blocked", file=sys.stderr)
         break
     print(f"issue={number}")
     print("title=" + current["title"].replace("\n", " ").replace("\r", " "))
     break
 else:
-    print("::notice::All frontend issues completed")
+    print("::notice::All frontend issues completed", file=sys.stderr)
