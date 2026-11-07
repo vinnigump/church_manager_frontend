@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AuthContext } from './auth'
 import LoginPage from './LoginPage'
 import AccountPage from './AccountPage'
+import SignOutPage from './SignOutPage'
 
 function showLogin(login = vi.fn().mockResolvedValue(undefined), notice?: 'changed' | 'uncertain') {
   render(<MemoryRouter><AuthContext.Provider value={{ account: null, grants: [], expired: false, passwordNotice: notice, login, logout: vi.fn() }}><LoginPage /></AuthContext.Provider></MemoryRouter>)
@@ -49,7 +50,7 @@ describe('acesso aprovado UI-RIO-03', () => {
   })
   it('apresenta conta real e preserva alteração de senha e saída sem argumentos', () => {
     const logout = vi.fn()
-    render(<MemoryRouter><AuthContext.Provider value={{ account: { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'conta.real', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout }}><AccountPage /></AuthContext.Provider></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/conta']}><AuthContext.Provider value={{ account: { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'conta.real', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout }}><Routes><Route path="conta" element={<AccountPage />} /><Route path="sair" element={<SignOutPage />} /><Route path="/" element={<p>Home pública</p>} /></Routes></AuthContext.Provider></MemoryRouter>)
     expect(screen.getByText('Conectado como conta.real.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Alterar minha senha' })).toHaveAttribute('href', '/conta/senha')
     fireEvent.click(screen.getByRole('button', { name: 'Sair da conta' }))

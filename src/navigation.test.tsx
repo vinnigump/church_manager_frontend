@@ -28,7 +28,7 @@ describe('orientação após navegação', () => {
     expect(screen.getByRole('main')).toHaveFocus()
     expect(document.title).not.toMatch(/private-token|valor-privado/)
     fireEvent.click(screen.getByRole('link', { name: 'Voltar ao início' }))
-    expect(document.title).toBe('Início | Church Manager')
+    expect(document.title).toBe('Entrar | Church Manager')
     expect(screen.getByRole('main')).toHaveFocus()
   })
   it('não rouba foco durante edição de formulário sem troca de rota', () => {

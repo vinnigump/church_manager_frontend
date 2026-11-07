@@ -241,6 +241,7 @@ describe('consulta de template e histórico', () => {
     })
     render(<MemoryRouter><AuthProvider><Open/><App/></AuthProvider></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: 'Abrir após login' }))
+    await screen.findByText('Sua sessão expirou. Entre novamente.')
     expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Sua sessão expirou')
     expect(screen.queryByText('Estado do template: Publicado')).not.toBeInTheDocument()

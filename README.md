@@ -23,7 +23,7 @@ Ao abrir uma rota protegida sem sessão, o login preserva somente o caminho inte
 no estado da navegação e retorna a ele após autenticar. Query e fragmento são
 descartados; não usamos parâmetro de redirecionamento na URL nem storage.
 O retorno não concede acesso: guardas e backend reavaliam permissões. Login direto
-ou destino inválido usa Minha conta. [Relatório FE-01](docs/fe-01-login-return.md).
+ou destino inválido usa a Home logada (`/`). A Home sem sessão exibe o login sem menus; a saída explícita retorna a essa Home pública. [Relatório FE-01](docs/fe-01-login-return.md).
 O backend já publica a consulta pontual `GET /api/v1/accounts/me/authorization` (OpenAPI 1.0.0), por `permissionCode`, `resourceType` e `resourceId`, retornando `{ allowed: boolean }`. `src/authorization.tsx` integra esse contrato e oferece `ResourceAccess` para futuras rotas com recurso e operação definidos. Não enumera igrejas/concessões nem substitui autorização de cada operação no servidor. A guarda reconsulta em mudança de contexto/sessão, foco e retry; não é uma assinatura em tempo real.
 
 **Bloqueio parcial da #1:** a descoberta de contextos autorizados e a sessão administrativa técnica continuam pendentes. `/admin` permanece negado por padrão; a nova guarda não foi ligada a uma operação inexistente. Não inferimos concessões a partir de login/status. O administrador técnico não possui `identity:self`; `/accounts/me` não é um endpoint de descoberta para esse perfil.

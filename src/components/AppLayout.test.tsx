@@ -46,13 +46,14 @@ describe('shell RIO e navegação real', () => {
     expect(screen.getByRole('link', { name: 'Eventos' })).toHaveAttribute('aria-current', 'page')
     expect(document.title).toBe('Eventos | Church Manager')
   })
-  it('visitante mantém entrada real, sem Eventos nem saída', () => {
+  it('visitante acessa o login na Home sem navegação interna nem saída', () => {
     render(<MemoryRouter initialEntries={['/']}><AuthProvider><App/></AuthProvider></MemoryRouter>)
     expect(screen.queryByRole('link', { name: 'Eventos' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('link', { name: 'Minha conta' }))
+    expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Minha conta' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('link', { name: 'Entrar' })).not.toBeInTheDocument()
   })
   it('rota desconhecida não marca destino incorreto e preserva skip link', () => {
     show('/inexistente')
