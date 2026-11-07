@@ -1,0 +1,11 @@
+.participation-panel { min-width: 0; padding: clamp(1rem, 3vw, 1.375rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); overflow-wrap: anywhere; }
+.participation-panel > h2 { margin-top: 0; }
+.participation-registration { font-weight: 600; }
+.participation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--rio-space-4); }
+.participation-group { min-width: 0; border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); padding: var(--rio-space-4); }
+.participation-group > h3 { margin-top: 0; margin-bottom: var(--rio-space-3); }
+.participation-message { padding: var(--rio-space-4); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-control); background: var(--rio-color-background); color: var(--rio-color-text); overflow-wrap: anywhere; }
+.participation-message.participation-message--attention { background: #fff4dc; color: #77510b; border-color: currentColor; }
+.participation-message.participation-message--error { background: var(--rio-color-surface); color: var(--rio-color-error); border-color: currentColor; }
+.participation-message--recorded { background: var(--rio-color-soft); color: var(--rio-color-primary); }
+.participation-hint { color: var(--rio-color-muted); margin-bottom: 0; }
