@@ -117,6 +117,7 @@ function CalendarWorkspace({ churchId, year }: { churchId: string; year?: string
   const mutation = useCalendarMutation(churchId, Number(year))
   return <ResourceAccess permissionCode="EVENT_CALENDAR_MANAGE" resourceType="CHURCH" resourceId={churchId}>
     <YearNavigation churchId={churchId} year={year}/>
+    <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`/eventos/igrejas/${churchId}/ocorrencias`}>Ocorrências administrativas de todos os períodos</Link></p></ResourceAccess>
     {mutation.message && <p role={mutation.failed ? 'alert' : 'status'}>{mutation.message}</p>}
     {mutation.busy && <p role="status">Salvando calendário…</p>}
     {year && <CalendarRecords churchId={churchId} year={Number(year)} mutation={mutation}/>}

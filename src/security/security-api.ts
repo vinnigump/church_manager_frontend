@@ -1,5 +1,7 @@
 import { api, type ApiClient } from '../api'
 import { isUuid } from '../events/catalog-api'
+import { isInstant as instant } from '../validation'
+export { isInstant as instant } from '../validation'
 
 // permission-catalog-v1 1.0.0 e profile-read-v1 1.2.0 integrados no backend.
 export type SecurityScope = 'CHURCH' | 'DENOMINATION'
@@ -15,11 +17,6 @@ const uuid = (value: unknown): value is string => typeof value === 'string' && i
 const integer = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) >= 0
 const scope = (value: unknown): value is SecurityScope => value === 'CHURCH' || value === 'DENOMINATION'
 const invalid = () => new Error('Não foi possível validar os dados administrativos de segurança.')
-export function instant(value: unknown): value is string {
-  if (typeof value !== 'string') return false
-  const match = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(value)
-  return Boolean(match && Number.isFinite(Date.parse(value)) && new Date(`${match[1]}T00:00:00Z`).toISOString().slice(0, 10) === match[1])
-}
 function base(denominationId: string, profileId?: string, versionId?: string) {
   if (![denominationId, profileId, versionId].filter(value => value !== undefined).every(value => isUuid(value!))) throw new Error('Contexto administrativo inválido.')
   return `/security/denominations/${denominationId}${profileId ? `/profiles/${profileId}` : ''}${versionId ? `/versions/${versionId}` : ''}`

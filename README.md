@@ -13,6 +13,12 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+Ocorrências administrativas da igreja: lista/detalhe e criação/edição explícita
+de rascunhos integradas ao contrato `event-occurrences-v1` 1.0.0, com permissões
+próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autorizado;
+não representa agenda pública, publicação ou inscrições.
+[Relatório FE-04](docs/events/fe-04-occurrences.md).
+
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
 O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).

@@ -1,0 +1,8 @@
+.occurrences { min-width: 0; overflow-wrap: anywhere; }
+.occurrences nav { display: flex; flex-wrap: wrap; gap: 1rem; margin-block: 1rem; }
+.occurrences form, .occurrences .event-list > li { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); }
+.occurrences fieldset { min-width: 0; }
+.occurrences label { display: grid; gap: .4rem; margin-block: 1rem; }
+.occurrences select, .occurrences input { width: 100%; min-width: 0; box-sizing: border-box; }
+.occurrences dd { margin-inline-start: 0; margin-block-end: 1rem; }
+.occurrences dt { font-weight: 700; }
