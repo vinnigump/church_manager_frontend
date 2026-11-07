@@ -13,14 +13,14 @@ const assignment = { id, userId: id, profileId: denomination, organizationUnitId
 const route = `/seguranca/denominacoes/${denomination}/atribuicoes/${id}/revogar`
 const json = (value: unknown) => new Response(JSON.stringify(value))
 afterEach(() => api.clear())
-async function server() {
+async function server(delegationId: string | null = null) {
   let revoked = false
   const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CUSTOM-CSRF', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed: true })
     if (init?.method === 'POST') { revoked = true; return json({ id, status: 'REVOKED', revision: 8 }) }
-    return json({ ...assignment, status: revoked ? 'REVOKED' : 'ACTIVE', revision: revoked ? 8 : 7 })
+    return json({ ...assignment, delegationId, status: revoked ? 'REVOKED' : 'ACTIVE', revision: revoked ? 8 : 7 })
   })
   vi.stubGlobal('fetch', fetcher)
   await api.login('ana', 'test-password')
@@ -104,5 +104,78 @@ describe('revogação central de atribuição', () => {
     await expect(revokeAssignment(denomination, { ...assignment, status: 'REVOKED' })).rejects.toThrow('validar')
     await expect(revokeAssignment(denomination, { ...assignment, revision: Number.MAX_SAFE_INTEGER })).rejects.toThrow('validar')
     expect(fetcher).not.toHaveBeenCalled()
+  })
+})
+
+const sourceId = '00000000-0000-0000-0000-000000000003'
+const localDetail = `/seguranca/denominacoes/${denomination}/delegacoes/${sourceId}/atribuicoes/${id}`
+const localRoute = `${localDetail}/revogar`
+describe('revogação pelo contexto de fonte', () => {
+  it('navega do detalhe e revoga sem exigir gestão central fictícia', async () => {
+    const fetcher = await server(sourceId)
+    show(localDetail)
+    fireEvent.click(await screen.findByRole('link', { name: 'Revogar atribuição desta fonte' }))
+    expect(await screen.findByRole('button', { name: 'Revogar atribuição' })).toBeInTheDocument()
+    expect(screen.getByText(/exige fonte própria válida/)).toBeInTheDocument()
+    await confirm()
+    expect(await screen.findByText('Estado registrado: REVOKED')).toBeInTheDocument()
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/authorization?'))).toBe(false)
+    const [, init] = fetcher.mock.calls.find(([, init]) => init?.method === 'POST')!
+    expect(new Headers(init?.headers).get('X-Expected-Revision')).toBe('7')
+    expect(init?.body).toBeUndefined()
+  })
+  it.each([403, 404])('política de leitura %s não oferece comando', async status => {
+    const fetcher = await server(sourceId); fetcher.mockImplementation(async () => new Response(null, { status }))
+    show(localRoute)
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Revogar atribuição' })).not.toBeInTheDocument()
+    expect(fetcher.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
+  })
+  it('fonte divergente no DTO não recebe comando', async () => {
+    await server(); show(localRoute)
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Revogar atribuição' })).not.toBeInTheDocument()
+  })
+  it('foco durante comando não libera envio duplicado', async () => {
+    const fetcher = await server(sourceId); const handler = fetcher.getMockImplementation()!
+    let finish!: (response: Response) => void
+    fetcher.mockImplementation(async (url, init) => init?.method === 'POST' ? new Promise(resolve => { finish = resolve }) : handler(url, init))
+    show(localRoute); await confirm()
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('button', { name: 'Revogar atribuição' })).toBeDisabled()
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
+    await act(async () => finish(json({ id, status: 'REVOKED', revision: 8 })))
+  })
+  it('falha mantém bloqueio após foco e só atualização explícita permite nova tentativa', async () => {
+    const fetcher = await server(sourceId); const handler = fetcher.getMockImplementation()!
+    fetcher.mockImplementation(async (url, init) => init?.method === 'POST' ? new Response(null, { status: 403 }) : handler(url, init))
+    show(localRoute); await confirm()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Atualize a atribuição')
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('button', { name: 'Revogar atribuição' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar atribuição e permissão' }))
+    expect(await screen.findByRole('button', { name: 'Revogar atribuição' })).toBeEnabled()
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
+  })
+  it('fonte perde validade após comando: releitura nega os dados', async () => {
+    const fetcher = await server(sourceId); const handler = fetcher.getMockImplementation()!
+    let changed = false
+    fetcher.mockImplementation(async (url, init) => {
+      if (init?.method === 'POST') { changed = true; return handler(url, init) }
+      return changed ? new Response(null, { status: 403 }) : handler(url, init)
+    })
+    show(localRoute); await confirm()
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Revogar atribuição' })).not.toBeInTheDocument()
+  })
+  it('sair da tela descarta resposta tardia sem alterar a nova página', async () => {
+    const fetcher = await server(sourceId); const handler = fetcher.getMockImplementation()!
+    let finish!: (response: Response) => void
+    fetcher.mockImplementation(async (url, init) => init?.method === 'POST' ? new Promise(resolve => { finish = resolve }) : handler(url, init))
+    show(localRoute); await confirm()
+    fireEvent.click(screen.getByRole('link', { name: 'Minha conta' }))
+    await act(async () => finish(json({ id, status: 'REVOKED', revision: 8 })))
+    expect(screen.getByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
+    expect(screen.queryByText(/Revogação confirmada/)).not.toBeInTheDocument()
   })
 })

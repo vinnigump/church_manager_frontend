@@ -57,6 +57,7 @@ export default function App() {
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria/:resourceType/:resourceId" element={<AuditPage />}/>
+    <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/atribuicoes/:assignmentId/revogar" element={<AssignmentRevokePage delegated />}/>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes" element={<DelegationsPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId" element={<DelegationsPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/atribuicoes/:assignmentId/revogar" element={<AssignmentRevokePage />}/>
