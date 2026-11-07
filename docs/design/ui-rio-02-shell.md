@@ -36,9 +36,19 @@ incluem login, retorno, expiração/saída, permissões e concorrência dos mód
 Lint/typecheck/547 testes (7 novos sobre base540)/build/diff --check passaram.
 Após integração externa de #46, rebase em ca29aff preservou rotas e links de
 auditoria; lint/typecheck/565 testes/build/diff --check passaram na base combinada.
+Após integração externa de #47, rebase em 29cb852 preservou revogação por fonte;
+lint/typecheck/573 testes/build/diff --check passaram. Limite visual abaixo permanece.
 npm ci nesta sessão, lockfile intacto. Não foram criados testes que espelham CSS.
 
 Homologação pendente: Browser Use recusou a origem local 127.0.0.1:5317 nesta sessão.
+Em 07/11/2026, o usuário autorizou explicitamente nova tentativa nessa mesma origem.
+Vite iniciado na branch do shell, porta 5317 strictPort; nova navegação pelo Browser
+Use foi negada antes de abrir a página: permissão salva ou política gerenciada
+bloqueia a origem. A autorização no chat não removeu esse bloqueio de ambiente.
+Servidor de teste encerrado. Nenhum estado renderizado ou captura foi obtido.
+Revisão externa do PR #48 pede evidência visual/matriz/teclado: pendência mantida,
+sem substituir navegador por jsdom nem declarar a revisão atendida. Desbloqueio
+requer liberação efetiva da origem no ambiente ou validação humana autorizada.
 Não foi contornada a recusa por browser alternativo, script ou outro transporte.
 Matriz 320/360/390/768/1024/1440, zoom 200%, desktop/mobile, safe-area, teclado real,
 orientação e leitor de tela não executada neste incremento. Capturas de #40 são
