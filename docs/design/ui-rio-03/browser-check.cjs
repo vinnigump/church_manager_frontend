@@ -28,7 +28,8 @@ const account = { id: '10000000-0000-0000-0000-000000000001', personId: '1000000
         const card = document.querySelector('.access-panel').getBoundingClientRect();
         const main = document.querySelector('main').getBoundingClientRect();
         const header = document.querySelector('.app-header').getBoundingClientRect();
-        return { groupCenterError: Math.abs(group.x + group.width / 2 - document.documentElement.clientWidth / 2), cardCenterError: Math.abs(card.x + card.width / 2 - document.documentElement.clientWidth / 2), verticalCenterError: Math.abs(group.y + group.height / 2 - (main.y + main.height / 2)), overlap: card.y < header.bottom, overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, fieldSize: getComputedStyle(document.querySelector('#password')).fontSize, introVisible: getComputedStyle(document.querySelector('.access-intro')).display !== 'none' };
+        const mainCenter = main.x + main.width / 2;
+        return { groupCenterError: Math.abs(group.x + group.width / 2 - mainCenter), cardCenterError: Math.abs(card.x + card.width / 2 - mainCenter), verticalCenterError: Math.abs(group.y + group.height / 2 - (main.y + main.height / 2)), overlap: card.y < header.bottom, overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, fieldSize: getComputedStyle(document.querySelector('#password')).fontSize, introVisible: getComputedStyle(document.querySelector('.access-intro')).display !== 'none' };
       });
       if (geometry.groupCenterError > 1 || geometry.verticalCenterError > 1 || geometry.overflow || geometry.overlap) throw Error(JSON.stringify({ width, ...geometry }));
       if (width <= 768 && (geometry.cardCenterError > 1 || geometry.introVisible)) throw Error('Cartão mobile não centralizado');

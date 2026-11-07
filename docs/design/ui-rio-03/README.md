@@ -4,6 +4,8 @@ Refs #30. Base: main `ca29aff` (após auditoria #46). O usuário apontou que o l
 
 Antes do PR, integrada main `29cb852` (revogação delegada #47), sem conflitos. Rotas e funcionalidades dessa entrega preservadas. Verificações completas repetidas após a integração.
 
+Durante a revisão, main avançou para `96e9558`, integrando o shell da #29/PR #48. Conflitos de App.tsx/style.css resolvidos preservando AppLayout e seus menus, retirando o shell antigo e mantendo as páginas extraídas. A classe de centralização passou ao main de AppLayout. O acesso ocupa toda a altura disponível da célula do conteúdo (`align-self: stretch`), e o conjunto é centralizado na área útil à direita da navegação desktop; no celular fica entre cabeçalho e navegação inferior. O novo shell não é removido nem duplicado. Capturas e ensaio repetidos nessa composição. A menção ao shell anterior nas seções abaixo descreve a fase inicial da implementação.
+
 ## Implementador
 
 O cartão herdava o posicionamento à esquerda do conteúdo e não existia um contêiner que centralizasse a composição. Agora `/entrar` recebe `app-content--access`, com espaço flexível abaixo do cabeçalho e uma grade centralizada. Desktop tem texto de apresentação e cartão nas duas colunas aprovadas; até 768 px mostra somente o cartão, centralizado horizontal e verticalmente no espaço disponível. Em telas baixas o conteúdo cresce com a página, sem ficar atrás do cabeçalho. `min-height: 100svh` permite rolagem quando necessária.
@@ -24,7 +26,7 @@ Windows, Node 24.22.1 e npm 12.2.2 externo temporário. `npm ci` reproduzido nes
 
 - `npm run lint`: aprovado.
 - `npm run typecheck`: aprovado.
-- `npm test`: 28 arquivos, **571 testes aprovados** após integração de #47, incluindo cinco novos casos desta demanda (rodada inicial: 563 testes).
+- `npm test`: 29 arquivos, **578 testes aprovados** após integração de #48, incluindo cinco novos casos desta demanda (rodadas anteriores: 563 e 571 testes).
 - `npm run build`: aprovado.
 - `git diff --check`: aprovado.
 
@@ -34,7 +36,7 @@ Inicialmente typecheck/build apontaram opção `exact` incompatível em dois sel
 
 Chrome headless, Playwright externo ao aplicativo; API GET interceptada com fixtures sintéticas. Nenhuma escrita ou backend real. Sete larguras: 320, 360, 390, 768, 1024, 1440 e 1920 px.
 
-- Centro horizontal do conjunto a até 1 px do centro da página; centro vertical a até 1 px do centro da área disponível do main.
+- Centro horizontal do conjunto a até 1 px do centro da área útil do main, considerando o menu lateral; centro vertical a até 1 px do centro da área disponível do main.
 - Até 768 px, cartão centralizado e coluna de apresentação oculta; campos de 16 px ou mais; sem overflow horizontal.
 - Entrada por Enter leva ao destino protegido original; mostrar/ocultar senha preserva valor e não envia.
 - Minha conta, link Alterar minha senha e saída reais testados em todas as larguras, sem perda de rotas.

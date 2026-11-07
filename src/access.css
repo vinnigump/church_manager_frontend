@@ -1,5 +1,5 @@
 #root { min-height: 100svh; display: flex; flex-direction: column; }
-.app-content.app-content--access { flex: 1; display: grid; place-items: center; max-width: none; padding: clamp(1.5rem, 5vw, 4rem) 1rem; }
+.app-content.app-content--access { align-self: stretch; display: grid; place-items: center; max-width: none; padding: clamp(1.5rem, 5vw, 4rem) 1rem; }
 .access-layout { width: min(100%, 60rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: clamp(2rem, 5vw, 4rem); margin-inline: auto; }
 .access-intro { min-width: 0; padding-block: 1rem; }
 .access-eyebrow { margin: 0 0 .75rem; font-size: .75rem; font-weight: 600; letter-spacing: .09em; color: var(--rio-color-primary); }
