@@ -42,7 +42,8 @@ function OccurrenceDetails({ churchId, id }: { churchId: string; id: string }) {
   const load = useCallback((signal: AbortSignal) => readOccurrence(churchId, id, signal), [churchId, id])
   const query = useRead(`${churchId}:${id}`, load)
   return <ReadResult query={query} label="ocorrência">{value => <><h2>Ocorrência {value.id}</h2><Details value={value}/>
-    {editableOccurrence(value) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional><Link to={`${occurrenceRoute(churchId)}/${id}/editar`}>Editar rascunho</Link></ResourceAccess>
+    <p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento`}>Consultar espaço e sobreposições</Link></p>
+    {editableOccurrence(value) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento/espaco`}>Configurar espaço do rascunho</Link></p><Link to={`${occurrenceRoute(churchId)}/${id}/editar`}>Editar rascunho</Link></ResourceAccess>
       : <p>A edição aceita somente rascunhos sem marco de primeira publicação.</p>}
   </>}</ReadResult>
 }
