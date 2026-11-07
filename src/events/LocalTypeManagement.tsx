@@ -82,8 +82,8 @@ export function CreateLocalTypeForm({ mutation }: { mutation: LocalTypeMutation 
 
 export function CatalogCards({ items, mutation }: { items: readonly EventTypeView[]; mutation?: LocalTypeMutation }) {
   return <ul className="event-list">{items.map(item => <li key={item.id}>
-    <h2>{item.name}</h2><p>{item.scopeType === 'DENOMINATION' ? 'Origem denominacional' : 'Origem local'}</p>
-    <p>{item.mandatory ? 'Obrigatório no catálogo' : 'Não obrigatório'}</p><p>{item.enabled ? 'Habilitado' : 'Desabilitado'}</p>
+    <h2>{item.name}</h2><p className="event-origin">{item.scopeType === 'DENOMINATION' ? 'Origem denominacional' : 'Origem local'}</p>
+    <p>{item.mandatory ? 'Obrigatório no catálogo' : 'Não obrigatório'}</p><p className="event-state" data-enabled={item.enabled}>{item.enabled ? 'Habilitado' : 'Desabilitado'}</p>
     {mutation && item.scopeType === 'CHURCH' && !item.mandatory && <LocalTypeToggle item={item} mutation={mutation}/>}
   </li>)}</ul>
 }

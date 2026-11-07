@@ -6,6 +6,7 @@ import { isUuid, listChurchCatalog, type EventTypePage } from './catalog-api'
 import { useAuth } from '../auth'
 import { ActionAccess, CatalogCards, CreateLocalTypeForm, LocalMutationResult, useLocalTypeMutation, type LocalTypeMutation } from './LocalTypeManagement'
 import './events.css'
+import './event-admin.css'
 
 type CatalogLoad = { key: string } & ({ kind: 'ready'; data: EventTypePage } | { kind: 'error'; message: string })
 
@@ -58,8 +59,8 @@ function CatalogWorkspace({ churchId }: { churchId: string }) {
 export default function ChurchCatalogPage() {
   const { churchId = '' } = useParams()
   const { account } = useAuth()
-  return <><h1 data-page-title="Catálogo de eventos">Catálogo de eventos da igreja</h1><Link to="/eventos">Voltar a Eventos</Link>
+  return <div className="event-admin"><h1 data-page-title="Catálogo de eventos">Catálogo de eventos da igreja</h1><Link to="/eventos">Voltar a Eventos</Link>
     {!isUuid(churchId) ? <p role="alert">O acesso ao catálogo é inválido. Abra novamente o acesso da sua igreja.</p>
       : <CatalogWorkspace key={`${account?.id}:${churchId}`} churchId={churchId}/>}
-  </>
+  </div>
 }
