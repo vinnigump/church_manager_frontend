@@ -65,6 +65,9 @@ Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` list
 com gestão central; o detalhe `/:delegationId` também permite o próprio delegado
 conforme autorização do GET no servidor. Histórico consultável não comprova fonte
 operacional nem autoriza concessão. [Contrato e testes](docs/fe-01-delegation-read.md).
+A gestão central pode revogar a fonte pelo detalhe, com confirmação, revisão
+lógica e nova consulta de permissão/dados. O delegado não recebe essa ação só por
+consultar a fonte própria. [Revogação de fonte](docs/fe-01-delegation-revoke.md).
 
 Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
 e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
