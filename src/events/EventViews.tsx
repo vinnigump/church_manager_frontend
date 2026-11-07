@@ -59,5 +59,5 @@ export function EventAgenda({ church, timeZone, state }: { church: ChurchContext
 }
 
 export default function EventsPage() {
-  return <><h1>Eventos</h1><p role="status">O catálogo e o calendário ainda não estão disponíveis.</p><p>Quando o acesso estiver disponível, você poderá consultar os eventos autorizados para sua igreja.</p></>
+  return <><h1>Eventos</h1><p role="status">O calendário e a programação ainda não estão disponíveis.</p><p>Para consultar o catálogo autorizado, abra o acesso da sua igreja.</p></>
 }

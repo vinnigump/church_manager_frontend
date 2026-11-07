@@ -9,3 +9,4 @@
 .event-summary { display: flex; flex-wrap: wrap; gap: 1.5rem; }
 .event-summary dt { font-weight: 600; }
 .event-summary dd { margin: 0; }
+.catalog-pagination { display: flex; flex-wrap: wrap; gap: 1rem; }

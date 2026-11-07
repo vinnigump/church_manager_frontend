@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Guard, useAuth } from './auth'
 import EventsPage from './events/EventViews'
+import ChurchCatalogPage from './events/ChurchCatalogPage'
 
 function Layout() {
   const { account, logout } = useAuth()
@@ -32,5 +33,5 @@ function Login() {
 }
 function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p></> }
 export default function App() {
-  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
+  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
