@@ -1,0 +1,98 @@
+name: Codex continuous after merge
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [backend-events-merged]
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+concurrency:
+  group: codex-continuous-frontend
+  cancel-in-progress: false
+jobs:
+  next-issue:
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Select eligible issue
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BACKEND_READ_TOKEN: ${{ secrets.BACKEND_READ_TOKEN }}
+        run: python3 .github/scripts/codex_next_issue.py frontend >> "$GITHUB_OUTPUT"
+      - name: Check Codex secret
+        if: steps.select.outputs.issue != ''
+        env:
+          CODEX_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$CODEX_KEY" ]; then
+            echo "::error::Configure repository secret OPENAI_API_KEY"
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.select.outputs.issue != ''
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies and Codex
+        if: steps.select.outputs.issue != ''
+        run: |
+          npm ci
+          npm install -g @openai/codex
+      - name: Create work branch
+        if: steps.select.outputs.issue != ''
+        env:
+          ISSUE: ${{ steps.select.outputs.issue }}
+        run: |
+          git switch -c "codex/events-frontend-issue-$ISSUE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Implement, test and review with Codex
+        if: steps.select.outputs.issue != ''
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ISSUE: ${{ steps.select.outputs.issue }}
+          ISSUE_TITLE: ${{ steps.select.outputs.title }}
+        run: |
+          cat > /tmp/codex-task.txt <<EOF
+          Work only on frontend issue #$ISSUE ($ISSUE_TITLE).
+          Read AGENTS.md, .github/agents/implementador.md, testador.md, revisor.md and docs/events/codex-frontend-execution.md.
+          Respect real backend contracts, authorization, CSRF and accessibility. Implement, add tests and review the diff.
+          Do not invent endpoints or authentication. Do not merge, deploy, push, or start another issue. Do not claim unexecuted tests passed. If blocked, document it and stop.
+          EOF
+          codex exec --full-auto - < /tmp/codex-task.txt
+      - name: Verify frontend
+        if: steps.select.outputs.issue != ''
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Create draft PR
+        if: steps.select.outputs.issue != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.select.outputs.issue }}
+          ISSUE_TITLE: ${{ steps.select.outputs.title }}
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::No changes produced; no PR opened"
+            exit 0
+          fi
+          git commit -m "feat(events): frontend issue #$ISSUE with Codex"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin "HEAD:refs/heads/codex/events-frontend-issue-$ISSUE"
+          gh pr create --draft --base main --head "codex/events-frontend-issue-$ISSUE" \
+            --title "Codex: frontend issue #$ISSUE — $ISSUE_TITLE" \
+            --body "Closes #$ISSUE
+
+          Automated implementation and checks for frontend issue #$ISSUE. Human review and merge required. See Actions logs for test results."
