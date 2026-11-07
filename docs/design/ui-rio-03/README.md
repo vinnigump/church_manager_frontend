@@ -2,6 +2,8 @@
 
 Refs #30. Base: main `ca29aff` (após auditoria #46). O usuário apontou que o login estava à esquerda e autorizou continuar o desenvolvimento. Identidade e composições de acesso já estavam aprovadas na #30. A #28 está integrada nesta base. Por prioridade expressa do usuário, esta entrega aplica o acesso sobre o shell atual; a reorganização geral dos menus da #29 permanece separada.
 
+Antes do PR, integrada main `29cb852` (revogação delegada #47), sem conflitos. Rotas e funcionalidades dessa entrega preservadas. Verificações completas repetidas após a integração.
+
 ## Implementador
 
 O cartão herdava o posicionamento à esquerda do conteúdo e não existia um contêiner que centralizasse a composição. Agora `/entrar` recebe `app-content--access`, com espaço flexível abaixo do cabeçalho e uma grade centralizada. Desktop tem texto de apresentação e cartão nas duas colunas aprovadas; até 768 px mostra somente o cartão, centralizado horizontal e verticalmente no espaço disponível. Em telas baixas o conteúdo cresce com a página, sem ficar atrás do cabeçalho. `min-height: 100svh` permite rolagem quando necessária.
@@ -22,7 +24,7 @@ Windows, Node 24.22.1 e npm 12.2.2 externo temporário. `npm ci` reproduzido nes
 
 - `npm run lint`: aprovado.
 - `npm run typecheck`: aprovado.
-- `npm test`: 28 arquivos, 563 testes aprovados, incluindo cinco novos casos.
+- `npm test`: 28 arquivos, **571 testes aprovados** após integração de #47, incluindo cinco novos casos desta demanda (rodada inicial: 563 testes).
 - `npm run build`: aprovado.
 - `git diff --check`: aprovado.
 
