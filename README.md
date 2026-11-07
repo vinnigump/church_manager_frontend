@@ -82,9 +82,12 @@ A versão publicada de referência é a da última consulta do template, e pode 
 atualizada com Atualizar template. Datas são apresentadas explicitamente em UTC.
 
 Os acessos recebem o contexto da denominação; descoberta automática de contextos
-continua pendente. Nenhum UUID é solicitado por formulário. Nesta entrega as
-consultas são somente leitura: edição/publicação/descontinuação ficam para
-incremento próprio com o protocolo X-Expected-Revision. Credenciais e decisões
+continua pendente. Nenhum UUID é solicitado por formulário. A gestão do template permite criar e editar rascunho, publicar e descontinuar
+com o protocolo X-Expected-Revision real. Publicação e descontinuação exigem
+confirmação. Falhas bloqueiam novas escritas até atualizar o template; não há retry
+automático. Alterações do nome devem ser salvas antes da publicação. Credenciais e decisões
 continuam somente em memória, com nova autorização em cada operação no servidor.
 
 Evidências e limites: [consulta de versões FE-04](docs/events/fe-04-template-history.md).
+
+Gestão de versões: [relatório FE-04](docs/events/fe-04-template-lifecycle.md).

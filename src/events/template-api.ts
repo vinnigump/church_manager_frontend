@@ -1,7 +1,7 @@
 import { api, type ApiClient } from '../api'
 import { isUuid } from './catalog-api'
 
-// event-template-version-v1.openapi.json 1.0.0 (EVT-006), consultas somente.
+// event-template-version-v1.openapi.json 1.0.0 (EVT-006).
 export interface TemplateVersion {
   id: string
   number: number
@@ -43,6 +43,9 @@ function templatePath(denominationId: string, typeId: string) {
 }
 export async function readTemplate(denominationId: string, typeId: string, signal?: AbortSignal, client: ApiClient = api): Promise<EventTemplate> {
   const value = await client.request<unknown>(templatePath(denominationId, typeId), { signal })
+  return parseTemplate(value, typeId)
+}
+function parseTemplate(value: unknown, typeId: string): EventTemplate {
   if (!record(value) || value.id !== typeId || !nonnegative(value.revision)
     || !['DRAFT', 'PUBLISHED', 'DISCONTINUED'].includes(String(value.status))
     || (value.publishedVersionId !== null && !uuid(value.publishedVersionId))) throw invalid()
@@ -50,6 +53,32 @@ export async function readTemplate(denominationId: string, typeId: string, signa
   if (draft && (draft.status !== 'DRAFT' || draft.id === value.publishedVersionId)) throw invalid()
   return { id: typeId, status: value.status as EventTemplate['status'], revision: value.revision,
     publishedVersionId: value.publishedVersionId as string | null, draft }
+}
+
+export type TemplateCommand = 'createDraft' | 'editDraft' | 'publish' | 'discontinue'
+export async function changeTemplate(denominationId: string, template: EventTemplate, command: TemplateCommand, name?: string, signal?: AbortSignal, client: ApiClient = api): Promise<EventTemplate> {
+  const path = templatePath(denominationId, template.id)
+  const current = parseTemplate(template, template.id)
+  if (current.status === 'DISCONTINUED'
+    || (command === 'createDraft' && (current.status !== 'PUBLISHED' || current.draft))
+    || ((command === 'editDraft' || command === 'publish') && !current.draft)
+    || (command === 'discontinue' && current.status !== 'PUBLISHED')) throw new Error('Atualize o template antes de alterar seu estado.')
+  const editing = command === 'editDraft'
+  if (editing && (!name?.trim() || name.trim().length > 180)) throw new Error('Informe um nome de até 180 caracteres.')
+  const suffix = { createDraft: 'draft', editDraft: 'draft', publish: 'publish', discontinue: 'discontinue' }[command]
+  if (!suffix) throw new Error('Operação de template inválida.')
+  const body = editing ? { name: name!.trim() } : command === 'publish'
+    ? { draftVersionId: current.draft!.id, expectedDraftRevision: current.draft!.revision } : undefined
+  const result = parseTemplate(await client.request<unknown>(`${path}/${suffix}`, {
+    method: editing ? 'PUT' : 'POST',
+    headers: { 'X-Expected-Revision': String(editing ? current.draft!.revision : current.revision), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {}), signal,
+  }), current.id)
+  if ((command === 'createDraft' && (!result.draft || result.status !== 'PUBLISHED'))
+    || (editing && (!result.draft || result.draft.id !== current.draft!.id || result.draft.name !== name!.trim()))
+    || (command === 'publish' && (result.status !== 'PUBLISHED' || result.publishedVersionId !== current.draft!.id || result.draft !== null))
+    || (command === 'discontinue' && result.status !== 'DISCONTINUED')) throw new Error('Não foi possível confirmar a alteração do template.')
+  return result
 }
 export async function listTemplateHistory(denominationId: string, typeId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<TemplateHistory> {
   const path = templatePath(denominationId, typeId)
