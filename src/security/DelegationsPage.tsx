@@ -32,6 +32,7 @@ function Detail({ denominationId, delegationId }: { denominationId: string; dele
     {data.status === 'ACTIVE' && <ResourceAccess permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId} optional>
       <Link to={`${securityRoute(denominationId)}/delegacoes/${data.id}/revogar`}>Revogar fonte de delegação</Link>
     </ResourceAccess>}
+    <Link to={`${securityRoute(denominationId)}/delegacoes/${data.id}/atribuicoes`}>Consultar atribuições desta fonte</Link>
   </>}</ReadResult>
 }
 export default function DelegationsPage() {

@@ -31,6 +31,7 @@ function Detail({ denominationId, assignmentId }: { denominationId: string; assi
   const query = useRead(JSON.stringify([denominationId, assignmentId]), load)
   return <ReadResult query={query} label="atribuição">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
     {data.status === 'ACTIVE' && <Link to={`${securityRoute(denominationId)}/atribuicoes/${data.id}/revogar`}>Revogar atribuição</Link>}
+    {data.delegationId && <Link to={`${securityRoute(denominationId)}/delegacoes/${data.delegationId}/atribuicoes`}>Consultar atribuições desta fonte</Link>}
   </>}</ReadResult>
 }
 export default function AssignmentsPage() {

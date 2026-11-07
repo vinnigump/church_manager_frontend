@@ -68,6 +68,11 @@ operacional nem autoriza concessão. [Contrato e testes](docs/fe-01-delegation-r
 A gestão central pode revogar a fonte pelo detalhe, com confirmação, revisão
 lógica e nova consulta de permissão/dados. O delegado não recebe essa ação só por
 consultar a fonte própria. [Revogação de fonte](docs/fe-01-delegation-revoke.md).
+O contrato assignments-v1 1.2 permite consultar atribuições por fonte delegada em
+`/seguranca/denominacoes/:denominationId/delegacoes/:delegationId/atribuicoes`.
+O GET valida origem, autoria e fonte vigente; a fonte é obrigatória no caminho
+delegado e a tela reconsulta ao foco. Gestão central permanece separada.
+[Contrato, testes e limites](docs/fe-01-delegated-assignment-read.md).
 
 Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
 e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
