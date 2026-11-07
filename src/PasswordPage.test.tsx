@@ -42,7 +42,7 @@ describe('alteração da própria senha', () => {
     expect(new Headers(init.headers).get('X-CUSTOM-CSRF')).toBe('controlled-token')
     expect(init.credentials).toBe('same-origin')
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument()
-    expect(document.title).toBe('Entrar | Church Manager')
+    await waitFor(() => expect(document.title).toBe('Entrar | Church Manager'))
   })
   it.each(['short', 'é'.repeat(37), ' '.repeat(12)])('valida limite e bytes da nova senha', async password => {
     const fetcher = server(); await show(); submit(password)

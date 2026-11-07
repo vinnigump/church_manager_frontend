@@ -30,6 +30,11 @@ corpo, CSRF, autorizações separadas, trava, reconciliação e mensagens sem co
 bruto. Lint/typecheck/485 testes (13 novos sobre base 472)/build/diff --check passaram.
 Após merge externo de #41, rebase em 67f431c preservou rotas e relatórios de ambos;
 lint/typecheck/500 testes/build/diff --check passaram na base combinada.
+Revisão humana apontou corrida na asserção de título do teste de senha no CI.
+A mesma falha foi reproduzida durante a integração 1.2; a asserção passa a aguardar
+o efeito de navegação, sem mudar o valor esperado ou regra de produto.
+Rebase em 11b458a após integração externa de #43; lint/typecheck/514 testes/build/
+diff --check passaram, preservando os fluxos de delegação e senha integrados.
 npm ci já executado nesta sessão, dependências intactas. Testes controlados;
 backend vivo e ensaio visual/AT não executados. Origem local recusada pelo Browser
 Use, sem contorno. Não homologa UI-RIO. Sem merge/deploy/infraestrutura.
