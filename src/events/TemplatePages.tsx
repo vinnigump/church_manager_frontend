@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
+import { securityRoute } from '../security/SecurityPages'
 import { isUuid, listDenominationCatalog, type EventTypePage } from './catalog-api'
 import { listTemplateHistory, readTemplate, type EventTemplate, type TemplateHistory, type TemplateVersion } from './template-api'
 import { TemplateActions, useTemplateMutation, type TemplateMutation } from './TemplateManagement'
@@ -64,6 +65,7 @@ function VersionDetails({ version }: { version: TemplateVersion }) {
 function DenominationCatalogWorkspace({ denominationId }: { denominationId: string }) {
   const creation = useTemplateCreation(denominationId)
   return <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
+    <ResourceAccess permissionCode="security:profile:manage" resourceType="DENOMINATION" resourceId={denominationId} optional><Link to={`${securityRoute(denominationId)}/perfis`}>Perfis de acesso da denominação</Link></ResourceAccess>
     <TemplateCreationResult denominationId={denominationId} creation={creation}/>
     <TemplateCreationForm creation={creation}/>
     <DenominationCatalog denominationId={denominationId} creation={creation}/>
