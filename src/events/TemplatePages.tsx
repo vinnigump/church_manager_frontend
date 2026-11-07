@@ -5,6 +5,7 @@ import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
 import { isUuid, listDenominationCatalog, type EventTypePage } from './catalog-api'
 import { listTemplateHistory, readTemplate, type EventTemplate, type TemplateHistory, type TemplateVersion } from './template-api'
+import { TemplateActions, useTemplateMutation, type TemplateMutation } from './TemplateManagement'
 import './events.css'
 
 type Result<T> = { key: string } & ({ kind: 'ready'; data: T } | { kind: 'error'; message: string })
@@ -85,10 +86,11 @@ function VersionHistory({ denominationId, typeId, publishedVersionId }: { denomi
   </section>
 }
 
-function TemplateDetails({ denominationId, typeId }: { denominationId: string; typeId: string }) {
+function TemplateDetails({ denominationId, typeId, mutation }: { denominationId: string; typeId: string; mutation: TemplateMutation }) {
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<Result<EventTemplate> | null>(null)
-  const key = JSON.stringify([denominationId, typeId, attempt])
+  const { revision } = mutation
+  const key = JSON.stringify([denominationId, typeId, attempt, revision])
   useEffect(() => {
     let active = true
     const controller = new AbortController()
@@ -96,17 +98,18 @@ function TemplateDetails({ denominationId, typeId }: { denominationId: string; t
       .then(data => { if (active) setResult({ key, kind: 'ready', data }) })
       .catch(error => { if (active) setResult({ key, kind: 'error', message: message(error) }) })
     return () => { active = false; controller.abort() }
-  }, [denominationId, typeId, attempt, key])
+  }, [denominationId, typeId, attempt, revision, key])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando template…</p>
   return <>
-    <button onClick={() => setAttempt(value => value + 1)}>Atualizar template</button>
+    <button disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <h2>Estado do template: {statusLabel[result.data.status]}</h2>
       {result.data.status === 'DISCONTINUED' && <p>Este template não está disponível para novas ocorrências. Seu histórico foi preservado.</p>}
       <section className="events-panel" aria-labelledby="template-draft-title"><h2 id="template-draft-title">Rascunho atual</h2>
         {result.data.draft ? <VersionDetails version={result.data.draft}/> : <p>Não há rascunho atual.</p>}
       </section>
-      <VersionHistory key={attempt} denominationId={denominationId} typeId={typeId} publishedVersionId={result.data.publishedVersionId}/>
+      <TemplateActions key={`${result.data.revision}:${result.data.draft?.id}:${result.data.draft?.revision}`} template={result.data} mutation={mutation}/>
+      <VersionHistory key={`${attempt}:${revision}`} denominationId={denominationId} typeId={typeId} publishedVersionId={result.data.publishedVersionId}/>
     </>}
   </>
 }
@@ -128,9 +131,15 @@ export function TemplateHistoryPage() {
   return <><h1 data-page-title="Versões do template">Versões do template de evento</h1>
     {!isUuid(denominationId) || !isUuid(typeId) ? <p role="alert">O acesso ao template é inválido. Abra novamente o catálogo da sua denominação.</p> : <>
       <Link to={catalogRoute(denominationId)}>Voltar ao catálogo denominacional</Link>
-      <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
-        <TemplateDetails key={`${account?.id}:${denominationId}:${typeId}`} denominationId={denominationId} typeId={typeId}/>
-      </ResourceAccess>
+      <TemplateWorkspace key={`${account?.id}:${denominationId}:${typeId}`} denominationId={denominationId} typeId={typeId}/>
     </>}
   </>
+}
+
+function TemplateWorkspace({ denominationId, typeId }: { denominationId: string; typeId: string }) {
+  const mutation = useTemplateMutation(denominationId)
+  return <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
+    {mutation.message && <p role={mutation.failed ? 'alert' : 'status'}>{mutation.message}</p>}
+    <TemplateDetails denominationId={denominationId} typeId={typeId} mutation={mutation}/>
+  </ResourceAccess>
 }

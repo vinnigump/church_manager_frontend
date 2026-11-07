@@ -142,7 +142,7 @@ describe('catálogo denominacional autorizado', () => {
 })
 
 describe('consulta de template e histórico', () => {
-  it('separa rascunho do histórico publicado, sem controles de escrita', async () => {
+  it('separa rascunho do histórico publicado, sem escritas automáticas', async () => {
     const fetcher = server()
     show(detailRoute())
     const draftRegion = await screen.findByRole('region', { name: 'Rascunho atual' })
@@ -152,7 +152,7 @@ describe('consulta de template e histórico', () => {
     expect(within(historyRegion).getByText('Versão publicada de referência na última consulta do template.')).toBeInTheDocument()
     expect(within(historyRegion).queryByText(/Novo nome/)).not.toBeInTheDocument()
     expect(within(historyRegion).getByText(/12:30:00 UTC/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /publicar|editar|descontinuar|criar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeInTheDocument()
     expect(fetcher.mock.calls.every(([, init]) => !init.method || init.method === 'GET')).toBe(true)
   })
   it('apresenta descontinuado com histórico preservado', async () => {
