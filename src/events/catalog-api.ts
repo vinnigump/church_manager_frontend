@@ -37,11 +37,21 @@ export async function setLocalTypeEnabled(churchId: string, type: EventTypeView,
   return result
 }
 
-export async function listChurchCatalog(churchId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<EventTypePage> {
-  if (!isUuid(churchId) || !Number.isSafeInteger(page) || page < 0 || page > 100000) throw new Error('Contexto de catálogo inválido.')
+export function listChurchCatalog(churchId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<EventTypePage> {
+  return listCatalog('churches', churchId, page, signal, client)
+}
+
+export async function listDenominationCatalog(denominationId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<EventTypePage> {
+  const result = await listCatalog('denominations', denominationId, page, signal, client)
+  if (result.items.some(item => item.scopeType !== 'DENOMINATION' || !item.mandatory)) throw new Error('Não foi possível validar os dados do catálogo.')
+  return result
+}
+
+async function listCatalog(scope: 'churches' | 'denominations', resourceId: string, page: number, signal: AbortSignal | undefined, client: ApiClient): Promise<EventTypePage> {
+  if (!isUuid(resourceId) || !Number.isSafeInteger(page) || page < 0 || page > 100000) throw new Error('Contexto de catálogo inválido.')
   const size = 20
   const params = new URLSearchParams({ page: String(page), size: String(size) })
-  const result = await client.request<unknown>(`/events/churches/${churchId}/types?${params}`, { signal })
+  const result = await client.request<unknown>(`/events/${scope}/${resourceId}/types?${params}`, { signal })
   const invalid = () => new Error('Não foi possível validar os dados do catálogo.')
   if (!record(result) || !Array.isArray(result.items) || result.page !== page || result.size !== size
     || !Number.isSafeInteger(result.total) || (result.total as number) < 0

@@ -65,3 +65,21 @@ Contratos inspecionados, bloqueios de integração, resultados e parecer dos pap
 `src/events/ParticipationNotices.tsx` contém avisos isolados de inscrição, autorização e presença. Não está montado em rotas, não coleta evidências e não executa check-in ou qualquer decisão de autorização. Exemplos sintéticos ficam somente em testes: `npm test -- src/events/ParticipationNotices.test.tsx`.
 
 Evidências atuais do backend, bloqueios e parecer dos papéis: [relatório FE-06](docs/events/fe-06-report.md). Os relatórios FE-04/05 registram suas respectivas entregas anteriores; nenhuma das preparações equivale a integração funcional com as APIs de Eventos.
+
+## Catálogo denominacional e versões — FE-04
+
+`/eventos/denominacoes/:denominationId/catalogo` lista os templates da denominação
+com EVENT_TEMPLATE_MANAGE/DENOMINATION. Cada item abre
+`/eventos/denominacoes/:denominationId/templates/:typeId`, que consulta estado,
+rascunho atual e histórico paginado usando os contratos EVT-005/006 publicados.
+O catálogo não infere lifecycle pelo campo enabled; o estado vem do detalhe real.
+A versão publicada de referência é a da última consulta do template, e pode ser
+atualizada com Atualizar template. Datas são apresentadas explicitamente em UTC.
+
+Os acessos recebem o contexto da denominação; descoberta automática de contextos
+continua pendente. Nenhum UUID é solicitado por formulário. Nesta entrega as
+consultas são somente leitura: edição/publicação/descontinuação ficam para
+incremento próprio com o protocolo X-Expected-Revision. Credenciais e decisões
+continuam somente em memória, com nova autorização em cada operação no servidor.
+
+Evidências e limites: [consulta de versões FE-04](docs/events/fe-04-template-history.md).
