@@ -15,6 +15,8 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
+O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).
+
 Login consulta `GET /api/v1/accounts/me` (`id`, `personId`, `login`, `status`) e `GET /api/v1/csrf` (`headerName`, `token`). Escritas exigem o token e cookie JSESSIONID da mesma sessão. A saída limpa a memória do frontend; não há contrato verificado de logout/invalidação remota. Não prometemos invalidar a sessão no servidor.
 
 Ao abrir uma rota protegida sem sessão, o login preserva somente o caminho interno
