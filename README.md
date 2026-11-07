@@ -161,6 +161,10 @@ neste contrato. Datas dos metadados são exibidas explicitamente em UTC.
 
 Sem sucesso otimista ou retry automático; falhas exigem atualizar o calendário antes
 de nova escrita. Mais detalhes: [relatório de calendário FE-04](docs/events/fe-04-annual-calendar.md).
+
+A confirmação das escritas confere revisão inicial0, incremento exato e
+metadados preservados em no-op, sem perder precisão temporal.
+[Correção de confirmação FE-04](docs/events/fe-04-calendar-confirmation.md).
 ## Inscrições — preparação da #5
 
 A fatia UI-RIO-07 aplica cartões e hierarquia de avisos ao componente isolado de

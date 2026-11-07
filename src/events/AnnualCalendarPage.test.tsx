@@ -21,7 +21,7 @@ function server({ initial = calendar, allowed = true, post }: { initial?: Annual
     if (url.includes('/authorization?')) return json({ allowed })
     if (init.method === 'POST') {
       if (post) return post()
-      if (url.endsWith('/2026')) { if (value) return json({}, 409); value = structuredClone(calendar); return json(value, 201) }
+      if (url.endsWith('/2026')) { if (value) return json({}, 409); value = { ...structuredClone(calendar), revision: 0 }; return json(value, 201) }
       if (new Headers(init.headers).get('X-Expected-Revision') !== String(value?.revision)) return json({}, 409)
       const published = url.endsWith('/publish')
       value = { ...value!, status: published ? 'PUBLISHED' : 'DRAFT', revision: value!.revision + 1, publishedAt: published ? '2026-11-07T12:30:00Z' : null }
@@ -227,6 +227,7 @@ describe('calendário anual administrativo', () => {
   it.each([
     async () => { throw new TypeError('network') },
     async () => json({ invalid: true }),
+    async () => json({ ...calendar, status: 'PUBLISHED', revision: 4, publishedAt: '2026-11-07T12:30:00Z' }),
   ])('resultado incerto de publicação não vira sucesso ou retry', async post => {
     const fetcher = server({ post })
     await show()
