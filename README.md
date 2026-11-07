@@ -61,6 +61,11 @@ a própria permissão é reconsultada. Rede/5xx/schema não geram retry de escri
 necessário reconciliar os dados antes de nova tentativa. [Relatório de gestão](docs/fe-01-profile-management.md).
 ## Ordem das atividades
 
+Auditoria estruturada em `/seguranca/denominacoes/:denominationId/auditoria`
+exige security:audit:read/DENOMINATION. Filtros por tipo/período UTC e links
+contextuais usam apenas os metadados publicados; tentativa de leitura registrada
+não comprova recebimento. [Contrato e testes](docs/fe-01-security-audit.md).
+
 Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` lista
 com gestão central; o detalhe `/:delegationId` também permite o próprio delegado
 conforme autorização do GET no servidor. Histórico consultável não comprova fonte

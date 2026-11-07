@@ -5,6 +5,7 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { listDelegations, readDelegation, type Delegation } from './delegations-api'
 import { Pagination, ReadResult, securityRoute, useRead } from './SecurityPages'
+import AuditLink from './AuditLink'
 
 export function DelegationMetadata({ value }: { value: Delegation }) {
   return <><h2>Fonte de delegação {value.id}</h2><p>Identificador do delegado: {value.delegateeUserId}</p>
@@ -29,6 +30,7 @@ function Detail({ denominationId, delegationId }: { denominationId: string; dele
   const load = useCallback((signal: AbortSignal) => readDelegation(denominationId, delegationId, signal), [denominationId, delegationId])
   const query = useRead(JSON.stringify([denominationId, delegationId]), load)
   return <ReadResult query={query} label="fonte de delegação">{data => <><DelegationMetadata value={data}/>
+    <AuditLink denominationId={denominationId} resourceType="ACCESS_ROLE_DELEGATION" resourceId={data.id}/>
     {data.status === 'ACTIVE' && <ResourceAccess permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId} optional>
       <Link to={`${securityRoute(denominationId)}/delegacoes/${data.id}/revogar`}>Revogar fonte de delegação</Link>
     </ResourceAccess>}

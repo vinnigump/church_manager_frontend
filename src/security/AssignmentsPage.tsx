@@ -5,6 +5,7 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { listAssignments, readAssignment, type Assignment } from './assignments-api'
 import { Pagination, ReadResult, securityRoute, useRead } from './SecurityPages'
+import AuditLink from './AuditLink'
 
 export function AssignmentMetadata({ value }: { value: Assignment }) {
   return <><p>Identificador da conta: {value.userId}</p><p>Identificador do perfil: {value.profileId}</p>
@@ -30,6 +31,7 @@ function Detail({ denominationId, assignmentId }: { denominationId: string; assi
   const load = useCallback((signal: AbortSignal) => readAssignment(denominationId, assignmentId, signal), [denominationId, assignmentId])
   const query = useRead(JSON.stringify([denominationId, assignmentId]), load)
   return <ReadResult query={query} label="atribuição">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
+    <AuditLink denominationId={denominationId} resourceType="USER_ROLE_ASSIGNMENT" resourceId={data.id}/>
     {data.status === 'ACTIVE' && <Link to={`${securityRoute(denominationId)}/atribuicoes/${data.id}/revogar`}>Revogar atribuição</Link>}
     {data.delegationId && <Link to={`${securityRoute(denominationId)}/delegacoes/${data.delegationId}/atribuicoes`}>Consultar atribuições desta fonte</Link>}
   </>}</ReadResult>
