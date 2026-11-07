@@ -20,3 +20,8 @@ Backend: `vinnigump/church_manager`, backlog EVT-001..EVT-032 e PRs #55/#56 (em 
 
 ## Fluxo
 Implementador -> Testador -> Revisor -> aprovação humana. Não iniciar o próximo incremento automaticamente.
+
+
+## Continuidade automática após merge (quando o workflow estiver habilitado)
+
+Após a aprovação humana e o **merge efetivo** de um PR, o GitHub Actions `.github/workflows/codex-continuous.yml` pode selecionar a próxima issue desbloqueada e iniciar outra execução Codex, **sem solicitar nova autorização para começar a tarefa**. A autorização humana continua obrigatória **para cada merge**; não fazer merge, deploy ou push direto na branch principal. Se a issue estiver bloqueada, testes falharem, faltarem credenciais ou houver PR pendente, parar e reportar. Não contornar dependências. Consulte `docs/events/codex-continuous.md`.
