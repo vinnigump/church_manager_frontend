@@ -1,0 +1,41 @@
+#root { min-height: 100svh; display: flex; flex-direction: column; }
+.app-content.app-content--access { flex: 1; display: grid; place-items: center; max-width: none; padding: clamp(1.5rem, 5vw, 4rem) 1rem; }
+.access-layout { width: min(100%, 60rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: clamp(2rem, 5vw, 4rem); margin-inline: auto; }
+.access-intro { min-width: 0; padding-block: 1rem; }
+.access-eyebrow { margin: 0 0 .75rem; font-size: .75rem; font-weight: 600; letter-spacing: .09em; color: var(--rio-color-primary); }
+.access-intro-title { font-size: clamp(2rem, 3.5vw, 2.75rem); line-height: 1.15; font-weight: 600; letter-spacing: -.04em; color: var(--rio-color-text); margin: 1rem 0; }
+.access-intro > p:last-child { max-width: 32ch; color: var(--rio-color-muted); }
+.access-layout .access-panel { width: 100%; max-width: 28rem; margin-inline: auto; padding: clamp(1.25rem, 3vw, 2rem); }
+.access-panel h1, .account-page h1 { margin: 0 0 .5rem; font-size: 1.75rem; line-height: 1.3; letter-spacing: -.025em; }
+.access-description, .account-description { margin: 0; color: var(--rio-color-muted); }
+.app-content .access-form { gap: 1.25rem; margin-top: 1.75rem; }
+.access-field { display: grid; gap: .5rem; min-width: 0; }
+.access-field label { font-weight: 600; }
+.access-field input { width: 100%; }
+.access-password { display: flex; gap: .5rem; align-items: stretch; min-width: 0; }
+.access-password input { flex: 1; min-width: 0; width: 0; }
+.app-content .access-reveal { background: var(--rio-color-soft); color: var(--rio-color-primary); border-color: var(--rio-color-input-border); flex-shrink: 0; min-width: 5rem; }
+.app-content .access-reveal:hover:not(:disabled) { background: var(--rio-color-soft); text-decoration: underline; }
+.access-submit { width: 100%; font-weight: 600; }
+.access-notice, .access-error { margin: 1rem 0 0; padding: .875rem; background: var(--rio-color-soft); border-radius: var(--rio-radius-control); color: var(--rio-color-primary); }
+.access-error { margin: 0; background: var(--rio-color-error-background); color: var(--rio-color-error); }
+.account-page { width: min(100%, 44rem); margin-inline: auto; }
+.account-card { margin-top: 1.75rem; padding: clamp(1.25rem, 3vw, 2rem); background: var(--rio-color-surface); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); }
+.account-identity { display: flex; align-items: center; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rio-color-border); }
+.account-identity > div { min-width: 0; }
+.account-identity strong { display: block; overflow-wrap: anywhere; }
+.account-label { color: var(--rio-color-muted); font-size: .875rem; }
+.account-symbol { width: 3rem; height: 3rem; border-radius: 50%; display: grid; place-items: center; background: var(--rio-color-soft); color: var(--rio-color-primary); flex-shrink: 0; }
+.account-symbol svg { width: 1.5rem; height: 1.5rem; }
+.account-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding-top: 1.5rem; }
+.account-actions a { display: inline-flex; align-items: center; min-height: 44px; }
+.app-content .account-signout { background: var(--rio-color-surface); color: var(--rio-color-text); border-color: var(--rio-color-input-border); }
+.app-content .account-signout:hover:not(:disabled) { background: var(--rio-color-soft); }
+@media (max-width: 48rem) {
+  .access-layout { grid-template-columns: minmax(0, 1fr); }
+  .access-intro { display: none; }
+  .app-content.app-content--access { padding: 1.5rem 1rem; }
+  .access-field input { font-size: 1rem; }
+  .account-actions { align-items: stretch; flex-direction: column; }
+  .account-actions button { width: 100%; }
+}

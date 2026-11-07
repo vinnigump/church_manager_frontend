@@ -10,7 +10,7 @@ body { margin: 0; }
 .app-brand-name { font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
 .app-navigation { display: flex; align-items: center; gap: var(--rio-space-5); flex-wrap: wrap; }
 .app-navigation a { display: inline-flex; align-items: center; min-height: 44px; }
-.app-content { max-width: 64rem; margin: auto; padding: var(--rio-space-6) var(--rio-space-4); overflow-wrap: anywhere; }
+.app-content { width: 100%; max-width: 64rem; margin: 0 auto; padding: var(--rio-space-6) var(--rio-space-4); overflow-wrap: anywhere; }
 .access-panel { max-width: 28rem; background: var(--rio-color-surface); padding: var(--rio-space-5); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); }
 .app-content form { display: grid; gap: var(--rio-space-3); }
 .app-content input:not([type="checkbox"]):not([type="radio"]), .app-content select, .app-content textarea, .app-content button, .app-navigation button { font: inherit; padding: var(--rio-space-3); border: 1px solid var(--rio-color-input-border); border-radius: var(--rio-radius-control); min-height: 44px; max-width: 100%; }
