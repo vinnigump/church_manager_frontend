@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
-import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { Guard, loginDestination, useAuth } from './auth'
+import { Link, Route, Routes } from 'react-router-dom'
+import { Guard } from './auth'
+import LoginPage from './LoginPage'
+import AccountPage from './AccountPage'
 import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
@@ -16,31 +17,11 @@ import AssignmentRevokePage from './security/AssignmentRevokePage'
 import ProfileManagementPage from './security/ProfileManagementPage'
 import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplatePages'
 
-function Login() {
-  const { account, login, expired, passwordNotice: notice } = useAuth()
-  const { state } = useLocation()
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  const passwordNotice = notice === 'changed' ? 'Senha alterada. Entre novamente com a nova senha.'
-    : notice === 'uncertain' ? 'Resultado da alteração não confirmado. Entre com a senha válida para continuar.' : null
-  if (account) return <Navigate to={loginDestination(state)} replace />
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = event.currentTarget
-    const data = new FormData(form)
-    setBusy(true); setError('')
-    try { await login(String(data.get('login')), String(data.get('password'))) }
-    catch (error) { setError(error instanceof Error ? error.message : 'Não foi possível entrar.') }
-    finally { form.reset(); setBusy(false) }
-  }
-  return <section className="access-panel"><h1>Entrar</h1>{passwordNotice && <p role="status">{passwordNotice}</p>}{expired && <p role="status">Sua sessão expirou. Entre novamente.</p>}<p>Use sua conta cadastrada para acessar.</p><form onSubmit={submit} aria-busy={busy}><label htmlFor="login">Login</label><input id="login" name="login" autoComplete="username" required disabled={busy}/><label htmlFor="password">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required disabled={busy}/>{error && <p role="alert">{error}</p>}<button disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}</button></form></section>
-}
-function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p><Link to="/conta/senha">Alterar minha senha</Link></> }
 export default function App() {
   return <Routes>
     <Route element={<AppLayout />}>
     <Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/>
-    <Route path="entrar" element={<Login />}/>
+    <Route path="entrar" element={<LoginPage />}/>
     <Route element={<Guard />}>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>

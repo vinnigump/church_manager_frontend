@@ -1,0 +1,101 @@
+{
+  "browser": "156.0.8078.80",
+  "api": "GETs interceptados com dados sintéticos, sem backend real",
+  "results": [
+    {
+      "width": 320,
+      "groupCenterError": 0,
+      "cardCenterError": 0,
+      "verticalCenterError": 0,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": false,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 360,
+      "groupCenterError": 0,
+      "cardCenterError": 0,
+      "verticalCenterError": 0,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": false,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 390,
+      "groupCenterError": 0,
+      "cardCenterError": 0,
+      "verticalCenterError": 0,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": false,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 768,
+      "groupCenterError": 0,
+      "cardCenterError": 0,
+      "verticalCenterError": 0.0078125,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": false,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 1024,
+      "groupCenterError": 0,
+      "cardCenterError": 212.796875,
+      "verticalCenterError": 0.0078125,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": true,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 1440,
+      "groupCenterError": 0,
+      "cardCenterError": 256,
+      "verticalCenterError": 0.0078125,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": true,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    },
+    {
+      "width": 1920,
+      "groupCenterError": 0,
+      "cardCenterError": 256,
+      "verticalCenterError": 0.0078125,
+      "overlap": false,
+      "overflow": false,
+      "fieldSize": "16px",
+      "introVisible": true,
+      "enterLogin": true,
+      "passwordLink": true,
+      "accountSignout": true
+    }
+  ],
+  "lowHeight": "390x500 sem sobreposição",
+  "errorClearsPassword": true,
+  "cssZoom200": "sem overflow",
+  "errors": []
+}

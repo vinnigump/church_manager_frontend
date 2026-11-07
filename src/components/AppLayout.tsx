@@ -30,6 +30,6 @@ export default function AppLayout() {
       <NavLink to="/conta"><NavigationIcon kind="account"/><span>Minha conta</span></NavLink>
       {!account && <NavLink to="/entrar"><NavigationIcon kind="login"/><span>Entrar</span></NavLink>}
     </nav>
-    <main className="app-content" ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
+    <main className={`app-content${pathname === '/entrar' ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
   </div></>
 }
