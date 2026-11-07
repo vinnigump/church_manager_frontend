@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { TemplateCreationForm, TemplateCreationResult, useTemplateCreation, type TemplateCreation } from './TemplateCreation'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
@@ -13,39 +14,42 @@ const catalogRoute = (id: string) => `/eventos/denominacoes/${id}/catalogo`
 const statusLabel = { DRAFT: 'Rascunho', PUBLISHED: 'Publicado', DISCONTINUED: 'Descontinuado' }
 const message = (error: unknown) => error instanceof ApiError ? error.message : 'Não foi possível carregar os dados. Tente novamente.'
 
-function Pagination({ page, size, total, onChange, label }: { page: number; size: number; total: number; onChange: (page: number) => void; label: string }) {
+function Pagination({ page, size, total, onChange, label, disabled = false }: { page: number; size: number; total: number; onChange: (page: number) => void; label: string; disabled?: boolean }) {
   return <nav className="catalog-pagination" aria-label={label}>
-    <button disabled={page === 0} onClick={() => onChange(page - 1)}>Página anterior</button>
-    <button disabled={page >= 100000 || (page + 1) * size >= total} onClick={() => onChange(page + 1)}>Próxima página</button>
+    <button disabled={disabled || page === 0} onClick={() => onChange(page - 1)}>Página anterior</button>
+    <button disabled={disabled || page >= 100000 || (page + 1) * size >= total} onClick={() => onChange(page + 1)}>Próxima página</button>
   </nav>
 }
 
-function DenominationCatalog({ denominationId }: { denominationId: string }) {
+function DenominationCatalog({ denominationId, creation }: { denominationId: string; creation: TemplateCreation }) {
   const [page, setPage] = useState(0)
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<Result<EventTypePage> | null>(null)
-  const key = JSON.stringify([denominationId, page, attempt])
+  const { revision, acknowledgeRead, failureGeneration } = creation
+  const key = JSON.stringify([denominationId, page, attempt, revision])
   useEffect(() => {
     let active = true
     const controller = new AbortController()
+    const generation = failureGeneration.current
     listDenominationCatalog(denominationId, page, controller.signal).then(data => {
       if (!active) return
       const lastPage = Math.max(0, Math.ceil(data.total / data.size) - 1)
       if (page > lastPage) { setPage(lastPage); return }
+      acknowledgeRead(generation)
       setResult({ key, kind: 'ready', data })
     }).catch(error => { if (active) setResult({ key, kind: 'error', message: message(error) }) })
     return () => { active = false; controller.abort() }
-  }, [denominationId, page, attempt, key])
+  }, [denominationId, page, attempt, revision, key, acknowledgeRead, failureGeneration])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando templates…</p>
   return <>
-    <button onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
+    <button disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <p role="status">Página {page + 1} · {result.data.total} templates no catálogo.</p>
       {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id}>
         <h2>{item.name}</h2><p>Origem denominacional · obrigatório para as igrejas vinculadas</p>
         <Link to={`/eventos/denominacoes/${denominationId}/templates/${item.id}`}>Consultar versões de {item.name}</Link>
       </li>)}</ul>}
-      <Pagination page={page} size={result.data.size} total={result.data.total} onChange={setPage} label="Páginas do catálogo denominacional"/>
+      <Pagination page={page} size={result.data.size} total={result.data.total} onChange={setPage} label="Páginas do catálogo denominacional" disabled={creation.busy}/>
     </>}
   </>
 }
@@ -55,6 +59,15 @@ function VersionDetails({ version }: { version: TemplateVersion }) {
     <p>Criada em <time dateTime={version.createdAt}>{new Date(version.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
     {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{new Date(version.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
   </>
+}
+
+function DenominationCatalogWorkspace({ denominationId }: { denominationId: string }) {
+  const creation = useTemplateCreation(denominationId)
+  return <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
+    <TemplateCreationResult denominationId={denominationId} creation={creation}/>
+    <TemplateCreationForm creation={creation}/>
+    <DenominationCatalog denominationId={denominationId} creation={creation}/>
+  </ResourceAccess>
 }
 
 function VersionHistory({ denominationId, typeId, publishedVersionId }: { denominationId: string; typeId: string; publishedVersionId: string | null }) {
@@ -119,9 +132,7 @@ export function DenominationCatalogPage() {
   const { account } = useAuth()
   return <><h1 data-page-title="Catálogo denominacional">Catálogo denominacional de eventos</h1><Link to="/eventos">Voltar a Eventos</Link>
     {!isUuid(denominationId) ? <p role="alert">O acesso ao catálogo é inválido. Abra novamente o acesso da sua denominação.</p> :
-      <ResourceAccess permissionCode="EVENT_TEMPLATE_MANAGE" resourceType="DENOMINATION" resourceId={denominationId}>
-        <DenominationCatalog key={`${account?.id}:${denominationId}`} denominationId={denominationId}/>
-      </ResourceAccess>}
+      <DenominationCatalogWorkspace key={`${account?.id}:${denominationId}`} denominationId={denominationId}/>}
   </>
 }
 

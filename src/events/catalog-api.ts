@@ -19,6 +19,15 @@ export function parseEventType(item: unknown): EventTypeView {
   return { id: item.id, scopeType: item.scopeType as EventTypeView['scopeType'], name: item.name, mandatory: item.mandatory, enabled: item.enabled }
 }
 
+export async function createDenominationalType(denominationId: string, name: string, signal?: AbortSignal, client: ApiClient = api) {
+  if (!isUuid(denominationId) || !name.trim() || name.trim().length > 180) throw new Error('Informe um nome de até 180 caracteres.')
+  const result = parseEventType(await client.request<unknown>(`/events/denominations/${denominationId}/types`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim() }), signal,
+  }))
+  if (result.scopeType !== 'DENOMINATION' || !result.mandatory || result.enabled || result.name !== name.trim()) throw new Error('Não foi possível confirmar a criação do template.')
+  return result
+}
+
 export async function createLocalType(churchId: string, name: string, signal?: AbortSignal, client: ApiClient = api) {
   if (!isUuid(churchId) || !name.trim() || name.trim().length > 180) throw new Error('Informe um nome de até 180 caracteres.')
   const result = parseEventType(await client.request<unknown>(`/events/churches/${churchId}/types`, {

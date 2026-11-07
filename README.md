@@ -59,6 +59,14 @@ Atualização com contrato de consulta real e limites de validação: [catálogo
 
 Criação e habilitação local: [gestão local FE-04](docs/events/fe-04-local-type-management.md).
 
+## Criação de templates denominacionais — FE-04
+
+O catálogo denominacional permite criar um template com nome de até 180 caracteres,
+mediante EVENT_TEMPLATE_MANAGE/DENOMINATION e CSRF. O backend cria o rascunho inicial;
+a publicação é uma ação posterior. Após confirmação, o catálogo é atualizado e um
+link abre o detalhe do novo template. Não há publicação implícita nem alteração local
+do vínculo obrigatório. Falhas não repetem o POST; a criação fica bloqueada até uma
+nova consulta bem-sucedida ao catálogo. Relatório: [criação FE-04](docs/events/fe-04-template-creation.md).
 ## Inscrições — preparação da #5
 
 `src/events/RegistrationViews.tsx` oferece resumos isolados de capacidade, situação individual e posição na espera. Não está conectado às rotas ou APIs, não permite gravação e não carrega dados fictícios em produção. Execute `npm test -- src/events/RegistrationViews.test.tsx` para os exemplos sintéticos de teste.
