@@ -13,8 +13,8 @@ body { margin: 0; }
 .app-content { max-width: 64rem; margin: auto; padding: var(--rio-space-6) var(--rio-space-4); overflow-wrap: anywhere; }
 .access-panel { max-width: 28rem; background: var(--rio-color-surface); padding: var(--rio-space-5); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); }
 .app-content form { display: grid; gap: var(--rio-space-3); }
-.app-content input, .app-content select, .app-content textarea, .app-content button, .app-navigation button { font: inherit; padding: var(--rio-space-3); border: 1px solid var(--rio-color-input-border); border-radius: var(--rio-radius-control); min-height: 44px; max-width: 100%; }
-.app-content input, .app-content select, .app-content textarea { background: var(--rio-color-surface); color: var(--rio-color-text); min-width: 0; }
+.app-content input:not([type="checkbox"]):not([type="radio"]), .app-content select, .app-content textarea, .app-content button, .app-navigation button { font: inherit; padding: var(--rio-space-3); border: 1px solid var(--rio-color-input-border); border-radius: var(--rio-radius-control); min-height: 44px; max-width: 100%; }
+.app-content input:not([type="checkbox"]):not([type="radio"]), .app-content select, .app-content textarea { background: var(--rio-color-surface); color: var(--rio-color-text); min-width: 0; }
 .app-content button, .app-navigation button { background: var(--rio-color-primary); color: var(--rio-color-on-primary); cursor: pointer; border-color: var(--rio-color-primary); }
 .app-content button:hover:not(:disabled), .app-navigation button:hover:not(:disabled) { background: var(--rio-color-primary-hover); }
 .app-content button:disabled, .app-navigation button:disabled { opacity: .7; cursor: not-allowed; }
@@ -26,7 +26,7 @@ a { color: var(--rio-color-primary); }
 .skip:focus { top: .5rem; }
 [role=alert] { color: var(--rio-color-error); }
 @media (max-width: 40rem) {
-  .app-content input, .app-content select, .app-content textarea { font-size: 1rem; }
+  .app-content input:not([type="checkbox"]):not([type="radio"]), .app-content select, .app-content textarea { font-size: 1rem; }
   .app-navigation { column-gap: var(--rio-space-4); }
   .app-brand img { width: 96px; }
 }

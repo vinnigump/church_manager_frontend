@@ -69,8 +69,11 @@ export async function listProfileVersions(denominationId: string, profileId: str
 }
 export async function readProfileVersion(denominationId: string, profileId: string, versionId: string, signal?: AbortSignal, client: ApiClient = api): Promise<ProfileVersionDetail> {
   const raw = await client.request<unknown>(base(denominationId, profileId, versionId), { signal })
+  return parseProfileVersionDetail(raw, versionId)
+}
+export function parseProfileVersionDetail(raw: unknown, expectedId?: string): ProfileVersionDetail {
   const value = parseVersion(raw)
-  if (value.id !== versionId || !record(raw) || !Array.isArray(raw.permissionCodes) || !raw.permissionCodes.every(text)
+  if ((expectedId !== undefined && value.id !== expectedId) || !record(raw) || !Array.isArray(raw.permissionCodes) || !raw.permissionCodes.every(text)
     || new Set(raw.permissionCodes).size !== raw.permissionCodes.length) throw invalid()
   return { ...value, permissionCodes: raw.permissionCodes }
 }

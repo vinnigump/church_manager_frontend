@@ -41,10 +41,24 @@ acesso quando essa permissão própria for confirmada. O contexto vem de acesso
 já autorizado; não há descoberta fictícia ou formulário de UUID.
 
 Disponibilidade técnica não concede permissão; snapshots de versões preservam
-códigos retirados e não representam autorização efetiva. Estas telas são somente
-leitura. Não implementam ainda comandos de perfis ou atribuições. `/admin` continua
+códigos retirados e não representam autorização efetiva. A gestão em /perfis/novo e /perfis/:profileId/gerenciar permite criar e editar
+rascunhos, publicar, desativar e reativar conforme os contratos reais. Atribuições
+a pessoas continuam em incremento próprio. `/admin` continua
 negado por padrão para a sessão técnica sem contrato; conta denominacional real
 usa as novas rotas contextuais. [Relatório FE-01](docs/fe-01-security-read.md).
+## Gestão de perfis — FE-01
+
+Criação usa código, escopo e conjunto explícito de permissões disponíveis/compatíveis.
+Mudança de escopo não descarta seleções silenciosamente. Permissões retiradas de um
+rascunho devem ser removidas explicitamente antes de salvar/publicar. Conjunto vazio
+não é proibido no frontend quando aceito pelo contrato. Nome e permissões não salvos
+bloqueiam publicação, que exige confirmação com a versão do rascunho.
+
+Comandos usam X-Expected-Revision lógico, e PUT draft inclui ID/revisão do rascunho.
+Publicar perfil desativado mantém DISABLED; reativação é explícita. O servidor protege
+o último acesso administrativo de recuperação. Após comandos e atualização manual,
+a própria permissão é reconsultada. Rede/5xx/schema não geram retry de escrita; é
+necessário reconciliar os dados antes de nova tentativa. [Relatório de gestão](docs/fe-01-profile-management.md).
 ## Ordem das atividades
 
 1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.
