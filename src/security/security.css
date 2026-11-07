@@ -4,3 +4,6 @@
 .security-list > li { min-width: 0; overflow-wrap: anywhere; border: 1px solid #ccd8d5; border-radius: .5rem; padding: 1rem; background: white; }
 .security-list h2, .security-list h3 { margin-top: 0; }
 .security-codes { overflow-wrap: anywhere; }
+.security-permissions label { display: flex; align-items: flex-start; gap: .75rem; padding-block: .75rem; overflow-wrap: anywhere; }
+.security-permissions input { flex-shrink: 0; width: 1.25rem; height: 1.25rem; margin: .25rem 0; }
+.security-panel select { font: inherit; padding: .75rem; max-width: 100%; }
