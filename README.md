@@ -153,11 +153,19 @@ Sem sucesso otimista ou retry automático; falhas exigem atualizar o calendário
 de nova escrita. Mais detalhes: [relatório de calendário FE-04](docs/events/fe-04-annual-calendar.md).
 ## Inscrições — preparação da #5
 
+A fatia UI-RIO-07 aplica cartões e hierarquia de avisos ao componente isolado de
+inscrição. Não adiciona rotas, API ou ações. Homologação visual pendente.
+[Apresentação UI-RIO-07](docs/design/ui-rio-07-registration.md).
+
 `src/events/RegistrationViews.tsx` oferece resumos isolados de capacidade, situação individual e posição na espera. Não está conectado às rotas ou APIs, não permite gravação e não carrega dados fictícios em produção. Execute `npm test -- src/events/RegistrationViews.test.tsx` para os exemplos sintéticos de teste.
 
 Contratos inspecionados, bloqueios de integração, resultados e parecer dos papéis: [relatório FE-05](docs/events/fe-05-report.md). Essa entrega não inclui os fluxos da issue #6.
 
 ## Menores e presença — preparação da #6
+
+A fatia UI-RIO-07 separa autorização e presença em regiões acessíveis do componente
+isolado, com hierarquia de avisos. Não habilita operação nem monta fluxo em produção.
+[Escopo e prévia de desenvolvimento](docs/design/ui-rio-07-participation.md).
 
 `src/events/ParticipationNotices.tsx` contém avisos isolados de inscrição, autorização e presença. Não está montado em rotas, não coleta evidências e não executa check-in ou qualquer decisão de autorização. Exemplos sintéticos ficam somente em testes: `npm test -- src/events/ParticipationNotices.test.tsx`.
 
