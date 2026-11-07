@@ -2,6 +2,8 @@
 
 Complemento de #29/#30, solicitado expressamente pelo usuário em 07/11/2026: a tela de acesso deve ser a Home sem sessão, sem menu lateral; após login, menu e Home logada. Essa decisão posterior substitui a composição anterior que exibia navegação anônima e usava Minha conta como destino padrão. Não altera as regras de autenticação ou autorização.
 
+Base final: main `02617b1`, com #50/#51 de apresentação de participação integradas sem conflitos. Checks finais locais: npm ci nesta sessão, lint, typecheck, **588 testes em 30 arquivos**, build e diff --check aprovados. Oito casos novos de Home; casos existentes atualizados para a mudança expressa de comportamento. Suíte inicial antes da atualização da base: 586 testes.
+
 ## Implementador
 
 - `/` renderiza LoginPage quando não há conta. `/entrar` e `/entrar/` continuam como entradas compatíveis para guardas, marcadores e avisos existentes.
