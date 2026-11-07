@@ -1,0 +1,12 @@
+.registration-panel { min-width: 0; padding: clamp(1rem, 3vw, 1.375rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); overflow-wrap: anywhere; }
+.registration-panel > h2 { margin-top: 0; margin-bottom: var(--rio-space-2); }
+.registration-panel > h3 { margin-top: var(--rio-space-5); }
+.registration-context, .registration-hint { color: var(--rio-color-muted); }
+.registration-capacity { min-width: 0; gap: var(--rio-space-5); margin-block: var(--rio-space-5); padding-top: var(--rio-space-4); border-top: 1px solid var(--rio-color-border); }
+.registration-capacity > div { flex: 1 1 7rem; min-width: 0; }
+.registration-capacity dt { font-size: .875rem; font-weight: 400; color: var(--rio-color-muted); }
+.registration-capacity dd { font-size: 1.5rem; font-weight: 650; color: var(--rio-color-text); overflow-wrap: anywhere; }
+.registration-notice { padding: var(--rio-space-4); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-control); background: var(--rio-color-background); color: var(--rio-color-text); overflow-wrap: anywhere; }
+.registration-notice--confirmed { background: var(--rio-color-soft); color: var(--rio-color-primary); }
+.registration-notice.registration-notice--attention { background: #fff4dc; color: #77510b; border-color: currentColor; }
+.registration-notice.registration-notice--error { background: var(--rio-color-surface); color: var(--rio-color-error); border-color: currentColor; }
