@@ -28,7 +28,11 @@ function List({ denominationId }: { denominationId: string }) {
 function Detail({ denominationId, delegationId }: { denominationId: string; delegationId: string }) {
   const load = useCallback((signal: AbortSignal) => readDelegation(denominationId, delegationId, signal), [denominationId, delegationId])
   const query = useRead(JSON.stringify([denominationId, delegationId]), load)
-  return <ReadResult query={query} label="fonte de delegação">{data => <DelegationMetadata value={data}/>}</ReadResult>
+  return <ReadResult query={query} label="fonte de delegação">{data => <><DelegationMetadata value={data}/>
+    {data.status === 'ACTIVE' && <ResourceAccess permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId} optional>
+      <Link to={`${securityRoute(denominationId)}/delegacoes/${data.id}/revogar`}>Revogar fonte de delegação</Link>
+    </ResourceAccess>}
+  </>}</ReadResult>
 }
 export default function DelegationsPage() {
   const { denominationId = '', delegationId } = useParams()

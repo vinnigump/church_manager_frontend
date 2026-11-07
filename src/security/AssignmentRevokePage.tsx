@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ApiError } from '../api'
 import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { readAssignment, revokeAssignment, type Assignment } from './assignments-api'
 import { AssignmentMetadata } from './AssignmentsPage'
 import { securityRoute, useRead } from './SecurityPages'
+import { useSecurityCommand } from './useSecurityCommand'
 
 function Confirmation({ value, disabled, execute }: { value: Assignment; disabled: boolean; execute: () => void }) {
   const [confirm, setConfirm] = useState(false)
@@ -27,44 +27,13 @@ function Loaded({ denominationId, assignmentId, busy, blocked, execute }: { deno
   </>
 }
 function Workspace({ denominationId, assignmentId }: { denominationId: string; assignmentId: string }) {
-  const [busy, setBusy] = useState(false)
-  const [blocked, setBlocked] = useState(false)
-  const [message, setMessage] = useState('')
-  const [failed, setFailed] = useState(false)
-  const [revision, setRevision] = useState(0)
-  const pending = useRef<AbortController | null>(null)
-  const refreshRequired = useRef(false)
-  const alive = useRef(false)
-  useEffect(() => { alive.current = true; return () => { alive.current = false; pending.current?.abort() } }, [])
-  async function execute(current: Assignment) {
-    if (pending.current || refreshRequired.current) return
-    const controller = new AbortController()
-    pending.current = controller; setBusy(true); setMessage(''); setFailed(false)
-    try {
-      await revokeAssignment(denominationId, current, controller.signal)
-      if (alive.current) {
-        setMessage('Revogação confirmada pelo servidor. A permissão e os dados serão consultados novamente.')
-        setRevision(value => value + 1)
-      }
-    } catch (error) {
-      if (alive.current) {
-        refreshRequired.current = true; setBlocked(true); setFailed(true)
-        setMessage(error instanceof ApiError && error.status >= 400 && error.status < 500
-          ? `${error.message} O servidor também protege o último acesso administrativo. Atualize a atribuição antes de tentar novamente.`
-          : 'O resultado da revogação não pôde ser confirmado. Atualize a atribuição antes de tentar novamente.')
-      }
-    } finally { pending.current = null; if (alive.current) setBusy(false) }
-  }
-  function refresh() {
-    if (pending.current) return
-    refreshRequired.current = false; setBlocked(false); setMessage(''); setFailed(false); setRevision(value => value + 1)
-  }
+  const { busy, blocked, message, failed, revision, run, refresh } = useSecurityCommand('Atualize a atribuição antes de tentar novamente.')
   return <>
     <Link to={`${securityRoute(denominationId)}/atribuicoes/${assignmentId}`}>Voltar à atribuição</Link>
     {message && <p role={failed ? 'alert' : 'status'}>{message}</p>}
     <button disabled={busy} onClick={refresh}>Atualizar atribuição e permissão</button>
     <ResourceAccess key={revision} permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId}>
-      <Loaded denominationId={denominationId} assignmentId={assignmentId} busy={busy} blocked={blocked} execute={current => { void execute(current) }}/>
+      <Loaded denominationId={denominationId} assignmentId={assignmentId} busy={busy} blocked={blocked} execute={current => { void run(signal => revokeAssignment(denominationId, current, signal), 'Revogação confirmada pelo servidor. A permissão e os dados serão consultados novamente.') }}/>
     </ResourceAccess>
   </>
 }
