@@ -5,7 +5,7 @@ Refs #28. Base inspecionada: `2778d57` (main após #37). Autorização de execu�
 ## Implementador
 
 - `src/components/Brand.tsx`: imagem original RIO e nome do produto no link de início. Dimensões intrínsecas e `height: auto` preservam proporção; alt `RIO` compõe o nome acessível do link.
-- `src/assets/rio-logo.png`: cópia sem transformação do `src/main/resources/static/assets/logo.png` do anexo `dia-de-servico-rio-main.zip`. PNG 1108×505, 24.803 bytes. SHA-256 `c44a519471819da30ff4bc0bebe63a9b6007aaacc5dcf7f708bc7febdfd17789`.
+- `src/assets/rio-logo.png`: cópia sem transformação do `src/main/resources/static/assets/logo.png` do anexo `dia-de-servico-rio-main.zip`. PNG 1108×505, 24.796 bytes. SHA-256 `c44a519471819da30ff4bc0bebe63a9b6007aaacc5dcf7f708bc7febdfd17789`.
 - `src/styles/tokens.css`: fonte Segoe UI/system-ui, superfícies claras, verde escuro de ação, bordas, erro/foco, espaçamento, raios de controles 8 px e cartões 17 px. O verde claro da marca permanece no ativo original; texto de ação usa verde escuro com contraste.
 - Classes `app-header`, `app-navigation`, `app-content` e `access-panel` delimitam estilos. O limite genérico de largura de `section` foi substituído pelo painel de acesso; header/nav/main internos não herdam o layout do shell.
 - Eventos e Segurança reutilizam tokens nas superfícies, bordas e cartões existentes, mantendo grids, rotas, paginação e controles reais.
