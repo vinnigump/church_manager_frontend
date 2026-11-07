@@ -66,3 +66,14 @@ proxima_acao: Conferir CI e revisao do head final
 pode_concluir: false
 aceite_humano: PENDENTE
 ```
+
+## Atualização da base — 2026-11-07 UTC
+
+PR #61 / issue #4. Base f72b9fec225c4ca0a41401f2bceb13330b63d6de incorporada
+sem conflito, preservando planejamento e auditoria. Diff funcional próprio permanece
+na confirmação de nome. Lint, typecheck, 741 testes/35 arquivos, build e diff --check
+passaram novamente. Sem alterações de dependências, lockfile ou timeout.
+Revisão estática sequencial sem críticos/altos; revisão independente/aceite humano
+pendentes. CI novo head registrado no PR. Validação visual dispensada pelo usuário
+como requisito dos PRs; registros anteriores são históricos, não PASSOU.
+Backend vivo não ensaiado. Sem merge em main, deploy ou infraestrutura.
