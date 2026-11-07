@@ -3,18 +3,20 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { api, type Account } from './api'
 
 export interface Grant { permission: string; scope: string }
-interface Auth { account: Account | null; grants: Grant[]; expired: boolean; login: (name: string, password: string) => Promise<void>; logout: () => void }
+export type PasswordNotice = 'changed' | 'uncertain'
+interface Auth { account: Account | null; grants: Grant[]; expired: boolean; passwordNotice?: PasswordNotice; login: (name: string, password: string) => Promise<void>; logout: (notice?: PasswordNotice) => void }
 export const AuthContext = createContext<Auth | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null)
   const [expired, setExpired] = useState(false)
+  const [passwordNotice, setPasswordNotice] = useState<PasswordNotice>()
   useEffect(() => {
     api.onUnauthorized = () => { setAccount(null); setExpired(true) }
     return () => { api.onUnauthorized = undefined; api.clear() }
   }, [])
-  return <AuthContext.Provider value={{ account, grants: [], expired,
-    login: async (name, password) => { const result = await api.login(name, password); setAccount(result); setExpired(false) },
-    logout: () => { api.clear(); setAccount(null); setExpired(false) },
+  return <AuthContext.Provider value={{ account, grants: [], expired, passwordNotice,
+    login: async (name, password) => { const result = await api.login(name, password); setAccount(result); setExpired(false); setPasswordNotice(undefined) },
+    logout: notice => { api.clear(); setAccount(null); setExpired(false); setPasswordNotice(notice) },
   }}>{children}</AuthContext.Provider>
 }
 export function useAuth() { const value = useContext(AuthContext); if (!value) throw new Error('AuthProvider ausente'); return value }

@@ -11,7 +11,7 @@ export const securityRoute = (denominationId: string) => `/seguranca/denominacoe
 const scopeName = (scope: string) => ({ CHURCH: 'Igreja', DENOMINATION: 'Denominação' }[scope] ?? scope)
 const statusName = (status: string) => ({ ACTIVE: 'Ativo', ENABLED: 'Ativo', DISABLED: 'Desativado', LEGACY_REVIEW: 'Legado em revisão', DRAFT: 'Rascunho', PUBLISHED: 'Publicada', LEGACY_SNAPSHOT: 'Registro legado' }[status] ?? status)
 type State<T> = { kind: 'loading' } | { kind: 'ready'; data: T } | { kind: 'error'; message: string }
-function useRead<T>(context: string, load: (signal: AbortSignal) => Promise<T>) {
+export function useRead<T>(context: string, load: (signal: AbortSignal) => Promise<T>) {
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<{ key: string; state: State<T> } | null>(null)
   const key = JSON.stringify([context, attempt])
@@ -25,11 +25,11 @@ function useRead<T>(context: string, load: (signal: AbortSignal) => Promise<T>) 
   }, [key, load])
   return { state: result?.key === key ? result.state : { kind: 'loading' } as State<T>, refresh: () => setAttempt(value => value + 1) }
 }
-function ReadResult<T>({ query, label, children }: { query: ReturnType<typeof useRead<T>>; label: string; children: (data: T) => ReactNode }) {
+export function ReadResult<T>({ query, label, children }: { query: ReturnType<typeof useRead<T>>; label: string; children: (data: T) => ReactNode }) {
   if (query.state.kind === 'loading') return <p role="status" aria-busy="true">Carregando {label}…</p>
   return <><button onClick={query.refresh}>Atualizar {label}</button>{query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}</>
 }
-function Pagination({ page, total, setPage, label }: { page: number; total: number; setPage: (page: number) => void; label: string }) {
+export function Pagination({ page, total, setPage, label }: { page: number; total: number; setPage: (page: number) => void; label: string }) {
   return <nav className="security-actions" aria-label={label}>
     <button disabled={page === 0} onClick={() => setPage(page - 1)}>Página anterior</button>
     <button disabled={page >= 100000 || (page + 1) * 20 >= total} onClick={() => setPage(page + 1)}>Próxima página</button>

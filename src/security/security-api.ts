@@ -15,7 +15,7 @@ const uuid = (value: unknown): value is string => typeof value === 'string' && i
 const integer = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) >= 0
 const scope = (value: unknown): value is SecurityScope => value === 'CHURCH' || value === 'DENOMINATION'
 const invalid = () => new Error('Não foi possível validar os dados administrativos de segurança.')
-function instant(value: unknown): value is string {
+export function instant(value: unknown): value is string {
   if (typeof value !== 'string') return false
   const match = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(value)
   return Boolean(match && Number.isFinite(Date.parse(value)) && new Date(`${match[1]}T00:00:00Z`).toISOString().slice(0, 10) === match[1])

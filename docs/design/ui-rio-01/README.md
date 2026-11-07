@@ -1,5 +1,13 @@
 # UI-RIO-01 — Identidade RIO e estilos comuns
 
+## Reconciliação do PR #40 com main — 07/11/2026
+
+A pedido do usuário, incorporada main `dce6cd7` à branch desta tarefa. O conflito estava em `src/App.tsx`: imports, shell e painel de acesso compartilhados com as entregas de atribuições, delegações, revogação e alteração da própria senha. A resolução parte da versão de main e reaplica apenas Brand e classes visuais da #28.
+
+Preservados todos os imports/rotas de main, o link de alteração de senha, mensagens de senha alterada/resultado incerto e o callback `onClick={() => logout()}` (evita passar o evento como argumento da nova assinatura de saída). Contra main, o diff de App.tsx continua limitado à marca e classes de apresentação.
+
+Verificação após resolução: lint, typecheck, build e **514 testes em 24 arquivos** aprovados; diff --check sem problemas e nenhum arquivo em conflito. Ensaio Chrome headless repetido: 18 combinações de tela/largura, criação de perfil mobile, logo/proporção, cartões, campos, checkbox, foco e zoom CSS. Dados sintéticos; não é validação de backend real ou dispositivos físicos. CI do novo commit deve ser consultada no PR. Sem merge na main ou deploy.
+
 Refs #28. Base inicial `2778d57` (após #37); atualização integrada de main `ff55dcb` (após #38) durante esta tarefa. Autorização de execução: resposta “sim” do usuário em 07/11/2026 à pergunta explícita de iniciar #28.
 
 ## Implementador

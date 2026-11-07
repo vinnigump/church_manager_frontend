@@ -61,6 +61,24 @@ a própria permissão é reconsultada. Rede/5xx/schema não geram retry de escri
 necessário reconciliar os dados antes de nova tentativa. [Relatório de gestão](docs/fe-01-profile-management.md).
 ## Ordem das atividades
 
+Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` lista
+com gestão central; o detalhe `/:delegationId` também permite o próprio delegado
+conforme autorização do GET no servidor. Histórico consultável não comprova fonte
+operacional nem autoriza concessão. [Contrato e testes](docs/fe-01-delegation-read.md).
+
+Consulta de atribuições: `/seguranca/denominacoes/:denominationId/atribuicoes`
+e `/:assignmentId` usam security:assignment:manage/DENOMINATION, independente
+da gestão de perfis. Exibem identificadores, estado registrado e vigência UTC;
+não representam autorização efetiva. Concessão/revogação ficam em incremento
+próprio. [Contrato, testes e limites](docs/fe-01-assignment-read.md).
+Minha conta oferece `/conta/senha`, com senha atual, confirmação e limites reais
+de caracteres/UTF-8. POST usa CSRF da sessão; sucesso encerra a sessão local e
+solicita novo login. Resultado incerto bloqueia repetição até verificar novamente
+as credenciais. [Contrato, testes e limites](docs/fe-01-own-password.md).
+A revogação central está disponível pelo detalhe, com confirmação, revisão lógica
+e reconsulta de permissão/dados. Falhas bloqueiam repetição até atualização.
+Concessão permanece em incremento próprio. [Revogação](docs/fe-01-assignment-revoke.md).
+
 1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.
 2. #2 Acesso público/Minha Jornada: aguarda contratos OTP, sessão e backend #14/#15.
 3. #3 Trilhas e migração: depende de backend #14.
