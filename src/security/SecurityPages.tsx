@@ -6,6 +6,7 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from '../events/catalog-api'
 import { listProfiles, listProfileVersions, readPermissionCatalog, readProfile, readProfileVersion } from './security-api'
 import './security.css'
+import AuditLink from './AuditLink'
 
 export const securityRoute = (denominationId: string) => `/seguranca/denominacoes/${denominationId}`
 const scopeName = (scope: string) => ({ CHURCH: 'Igreja', DENOMINATION: 'Denominação' }[scope] ?? scope)
@@ -81,6 +82,7 @@ function ProfileDetails({ denominationId, profileId }: { denominationId: string;
   return <ReadResult query={query} label="perfil">{profile => <>
     <h2>{profile.name}</h2><p>Código: {profile.code}</p><p>Escopo: {scopeName(profile.scopeType)}</p><p>Estado: {statusName(profile.status)}</p>
     <p><Link to={`${securityRoute(denominationId)}/perfis/${profile.id}/gerenciar`}>Gerenciar perfil</Link></p>
+    <AuditLink denominationId={denominationId} resourceType="ACCESS_ROLE" resourceId={profile.id}/>
     {profile.publishedVersionId ? <p><Link to={`${securityRoute(denominationId)}/perfis/${profile.id}/versoes/${profile.publishedVersionId}`}>Consultar versão publicada de referência</Link></p> : <p>Este perfil não possui versão publicada de referência.</p>}
     <p>Consultar ou publicar um perfil não o atribui a nenhuma pessoa.</p>
     <VersionHistory denominationId={denominationId} profileId={profileId}/>
