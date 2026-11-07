@@ -26,7 +26,7 @@ describe('consultas reais de templates EVT-005/006', () => {
     await expect(listDenominationCatalog(denomination)).rejects.toThrow('validar')
   })
   it('consulta template com Basic e política de mesma origem sem armazenamento', async () => {
-    const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(url.endsWith('/accounts/me') ? { id: 'a' } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : { ...template, privateUrl: 'segredo' })))
+    const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(url.endsWith('/accounts/me') ? { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : { ...template, privateUrl: 'segredo' })))
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     await client.login('ana', 'test-password')

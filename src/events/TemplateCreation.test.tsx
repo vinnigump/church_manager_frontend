@@ -9,7 +9,7 @@ import { createDenominationalType } from './catalog-api'
 const denomination = '00000000-0000-0000-0000-000000000001'
 const other = '00000000-0000-0000-0000-000000000002'
 const created = { id: '00000000-0000-0000-0000-000000000003', name: 'Novo template', scopeType: 'DENOMINATION', mandatory: true, enabled: false }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const route = (id = denomination) => `/eventos/denominacoes/${id}/catalogo`
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 afterEach(() => api.clear())

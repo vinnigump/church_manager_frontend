@@ -12,7 +12,7 @@ const typeId = '00000000-0000-0000-0000-000000000003'
 const draft = { id: '00000000-0000-0000-0000-000000000004', number: 2, name: 'Nome salvo', status: 'DRAFT' as const, revision: 3, createdAt: '2026-11-07T12:00:00Z', publishedAt: null }
 const published: EventTemplate = { id: typeId, status: 'PUBLISHED', revision: 7, publishedVersionId: other, draft: null }
 const editing: EventTemplate = { ...published, draft }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const route = (id = denomination) => `/eventos/denominacoes/${id}/templates/${typeId}`
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 afterEach(() => api.clear())

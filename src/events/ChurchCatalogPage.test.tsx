@@ -9,7 +9,7 @@ const churchA = '00000000-0000-0000-0000-000000000001'
 const churchB = '00000000-0000-0000-0000-000000000002'
 const item = { id: '00000000-0000-0000-0000-000000000003', scopeType: 'DENOMINATION', name: 'Encontro denominacional', mandatory: true, enabled: true }
 const page = { items: [item], page: 0, size: 20, total: 1 }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 const route = (id: string) => `/eventos/igrejas/${id}/catalogo`
 function show(id = churchA, controls = false) {

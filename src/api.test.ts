@@ -20,7 +20,7 @@ describe('HTTP', () => {
     const fetcher = vi.fn().mockImplementationOnce(() => new Promise<Response>(resolve => { finish = resolve }))
       .mockImplementation(async (url: string) => new Response(JSON.stringify(url.endsWith('/csrf')
         ? { headerName: 'X-CSRF-TOKEN', token: 'new-token' }
-        : { id: '2', personId: '3', login: 'bia', status: 'ACTIVE' })))
+        : { id: '10000000-0000-0000-0000-000000000003', personId: '10000000-0000-0000-0000-000000000002', login: 'bia', status: 'ACTIVE' })))
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient(); client.onUnauthorized = vi.fn()
     const old = client.login('ana', 'old-password')
@@ -56,7 +56,7 @@ describe('HTTP', () => {
   })
   it('envia Basic e CSRF somente em memória e limpa ao sair', async () => {
     const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(
-      url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'csrf-test' } : { id: '1', personId: '2', login: 'ana', status: 'ACTIVE' }), { status: 200 }))
+      url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'csrf-test' } : { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }), { status: 200 }))
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     await client.login('ana', 'password-test')

@@ -9,7 +9,7 @@ import { createCalendar, readCalendar, setCalendarPublished, type AnnualCalendar
 const church = '00000000-0000-0000-0000-000000000001'
 const other = '00000000-0000-0000-0000-000000000002'
 const calendar: AnnualCalendar = { id: '00000000-0000-0000-0000-000000000003', churchId: church, year: 2026, status: 'DRAFT', revision: 4, createdAt: '2026-11-07T12:00:00Z', publishedAt: null }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 const route = (churchId = church, year = '2026') => `/eventos/igrejas/${churchId}/calendarios${year ? `/${year}` : ''}`
 afterEach(() => api.clear())

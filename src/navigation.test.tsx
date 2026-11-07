@@ -6,7 +6,7 @@ import { AuthContext, AuthProvider } from './auth'
 
 describe('orientação após navegação', () => {
   it('atualiza foco e título ao navegar entre páginas autenticadas', () => {
-    render(<MemoryRouter initialEntries={['/conta']}><AuthContext.Provider value={{ account: { id: 'a', personId: 'p', login: 'nome-privado', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/conta']}><AuthContext.Provider value={{ account: { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'nome-privado', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
     expect(document.title).toBe('Minha conta | Church Manager')
     expect(screen.getByRole('main')).toHaveFocus()
     const link = screen.getByRole('link', { name: 'Eventos' })

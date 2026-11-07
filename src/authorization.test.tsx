@@ -6,7 +6,7 @@ import { AuthContext, AuthProvider, useAuth } from './auth'
 import { consultAuthorization, ResourceAccess, type AuthorizationQuery } from './authorization'
 
 const query: AuthorizationQuery = { permissionCode: 'EVENT_VIEW', resourceType: 'CHURCH', resourceId: '00000000-0000-0000-0000-000000000001' }
-const account = { id: 'account-a', personId: 'person-a', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 function response(allowed: boolean) { return new Response(JSON.stringify({ allowed })) }
 function tree(current: typeof account | null = account, resourceId = query.resourceId) {
   return <MemoryRouter><AuthContext.Provider value={{ account: current, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><Routes><Route path="/" element={<ResourceAccess {...query} resourceId={resourceId}><h1>Conteúdo protegido</h1></ResourceAccess>}/><Route path="/entrar" element={<h1>Entrar</h1>}/></Routes></AuthContext.Provider></MemoryRouter>
