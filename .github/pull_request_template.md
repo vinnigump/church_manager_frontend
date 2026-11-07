@@ -34,3 +34,10 @@ Pode concluir issue? NÃO
 Aceite humano: PENDENTE
 
 > Seguir `docs/governance/development-reporting.md`. PR merged não conclui automaticamente a issue. Não fazer merge/deploy sem autorização.
+
+## Validação visual (responsabilidade humana)
+Status: PENDENTE_VALIDACAO_MANUAL / APROVADA_MANUALMENTE / REPROVADA_MANUALMENTE / NAO_APLICAVEL
+Rota/tela, pré-requisitos e passos para validação manual:
+Resultado esperado:
+
+> Screenshots, vídeos e outras evidências visuais **não são exigidos do agente**. O usuário fará a validação visual. Não afirmar que foi aprovada sem registro humano.
