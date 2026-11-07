@@ -24,3 +24,6 @@ Implementador -> Testador -> Revisor -> aprovação humana. Não iniciar o próx
 ## Prestação de contas e rastreabilidade (obrigatório)
 
 Antes de iniciar, em cada handoff e antes de declarar conclusão, seguir `docs/governance/development-reporting.md`. Todo PR deve preencher `.github/pull_request_template.md` com issue canônica, critérios de aceite individualizados, evidências de testes/CI/SHA, riscos, bloqueios e próxima ação. Implementador, Testador e Revisor devem produzir suas próprias evidências; o Coordenador apenas consolida. Não classificar uma issue como CONCLUIDA pelo simples merge de um PR; exigir critérios comprovados e aceite humano conforme fluxo vigente. Não encerrar issues, realizar merge ou deploy automaticamente.
+
+## Validação visual
+Evidência visual não é obrigatória para os agentes. Não gerar capturas fictícias nem bloquear PR por ausência de screenshot/vídeo. Fornecer passos, rotas e resultado esperado para a validação manual pelo usuário; registrar status visual como pendente até aprovação humana. Consultar `docs/governance/development-reporting.md`.
