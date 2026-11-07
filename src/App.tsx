@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Guard, useAuth } from './auth'
 import EventsPage from './events/EventViews'
+import ChurchCatalogPage from './events/ChurchCatalogPage'
 
 function Layout() {
   const { account, logout } = useAuth()
@@ -9,7 +10,8 @@ function Layout() {
   const main = useRef<HTMLElement>(null)
   useEffect(() => {
     const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
-    document.title = `${titles[pathname] ?? 'Página não encontrada'} | Church Manager`
+    const pageTitle = main.current?.querySelector('h1[data-page-title]')?.getAttribute('data-page-title')
+    document.title = `${pageTitle ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
     main.current?.focus()
   }, [pathname])
   return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header><Link to="/">Church Manager</Link><nav aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={logout}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>
@@ -32,5 +34,5 @@ function Login() {
 }
 function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p></> }
 export default function App() {
-  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
+  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
