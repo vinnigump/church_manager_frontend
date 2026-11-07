@@ -22,6 +22,7 @@ const results = [];
       if (url.pathname.endsWith('/accounts/me')) value = account;
       else if (url.pathname.endsWith('/csrf')) value = { headerName: 'X-CSRF-TOKEN', token: 'synthetic-csrf' };
       else if (url.pathname.endsWith('/authorization')) value = { allowed: ['EVENT_VIEW', 'security:profile:manage'].includes(url.searchParams.get('permissionCode')) };
+      else if (url.pathname.endsWith('/permission-catalog')) value = { catalogVersion: 'sha256:synthetic', permissions: [{ code: 'PERMISSION_READ', introducedIn: 'events-1', resourceType: 'CHURCH', scopeTypes: ['CHURCH'], available: true }] };
       else if (url.pathname.endsWith('/types')) value = { items: [{ id: '00000000-0000-0000-0000-000000000003', scopeType: 'DENOMINATION', name: 'Encontro denominacional com título longo para verificar quebra de texto no celular', mandatory: true, enabled: true }], page: 0, size: 20, total: 1 };
       else if (url.pathname.endsWith('/profiles')) value = { items: [{ id: '00000000-0000-0000-0000-000000000003', code: 'READER', name: 'Consulta autorizada de demonstração com título longo', scopeType: 'CHURCH', status: 'ENABLED', revision: 4, publishedVersionId: '00000000-0000-0000-0000-000000000004' }], page: 0, size: 20, total: 1 };
       else throw Error('Consulta inesperada: ' + url.pathname);
@@ -57,6 +58,16 @@ const results = [];
         if ([390, 1440].includes(width)) await page.screenshot({ path: path.join(out, `${name}-${width}.png`), fullPage: true });
       }
     }
+    await page.setViewportSize({ width: 390, height: 1000 });
+    await page.goto(`http://127.0.0.1:4188/seguranca/denominacoes/${id}/perfis/novo`);
+    await page.getByLabel('Login', { exact: true }).fill('synthetic');
+    await page.getByLabel('Senha', { exact: true }).fill('synthetic');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await page.locator('.security-permissions input').first().waitFor();
+    const checkbox = await page.locator('.security-permissions input').first().evaluate(el => ({ width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height, padding: getComputedStyle(el).padding }));
+    if (checkbox.width !== 20 || checkbox.height !== 20 || checkbox.padding !== '0px') throw Error('Checkbox deformado: ' + JSON.stringify(checkbox));
+    await page.screenshot({ path: path.join(out, 'profile-create-390.png'), fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto('http://127.0.0.1:4188/entrar');
     await page.getByRole('heading', { name: 'Entrar', exact: true }).waitFor();
     // O roteador posiciona o foco no main ao carregar: voltar pelo tab order até o skip link.
@@ -70,7 +81,7 @@ const results = [];
     const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     if (zoomOverflow) throw Error('Overflow com zoom CSS 200%');
     if (errors.length) throw Error(errors.join('\n'));
-    fs.writeFileSync(path.join(out, 'browser-results.json'), JSON.stringify({ browser: browser.version(), environment: 'Chrome headless, APIs GET interceptadas com fixtures sintéticas, sem backend real', results, skipFocus: focus, cssZoom200Overflow: zoomOverflow, pageErrors: errors }, null, 2));
+    fs.writeFileSync(path.join(out, 'browser-results.json'), JSON.stringify({ browser: browser.version(), environment: 'Chrome headless, APIs GET interceptadas com fixtures sintéticas, sem backend real', results, checkbox, skipFocus: focus, cssZoom200Overflow: zoomOverflow, pageErrors: errors }, null, 2));
     console.log('PASS: 18 combinações de tela/largura; logo, raios, campos, ausência de overflow, foco e zoom CSS 200%.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

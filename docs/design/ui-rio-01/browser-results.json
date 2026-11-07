@@ -183,6 +183,11 @@
       "sectionRestriction": false
     }
   ],
+  "checkbox": {
+    "width": 20,
+    "height": 20,
+    "padding": "0px"
+  },
   "skipFocus": {
     "text": "Ir para o conteúdo",
     "style": "solid"

@@ -1,6 +1,6 @@
 # UI-RIO-01 — Identidade RIO e estilos comuns
 
-Refs #28. Base inspecionada: `2778d57` (main após #37). Autorização de execução: resposta “sim” do usuário em 07/11/2026 à pergunta explícita de iniciar #28.
+Refs #28. Base inicial `2778d57` (após #37); atualização integrada de main `ff55dcb` (após #38) durante esta tarefa. Autorização de execução: resposta “sim” do usuário em 07/11/2026 à pergunta explícita de iniciar #28.
 
 ## Implementador
 
@@ -24,7 +24,7 @@ Ambiente: Windows, Node 24.22.1. npm 12.2.2 obtido em pasta temporária porque n
 | `npm ci` | 246 pacotes instalados; sete alertas moderados já presentes; lockfile intacto |
 | `npm run lint` | Aprovado |
 | `npm run typecheck` | Aprovado |
-| `npm test` | 19 arquivos, 422 testes aprovados |
+| `npm test` | Após integração de #38: 20 arquivos, 457 testes aprovados (rodada inicial: 19 arquivos/422 testes) |
 | `npm run build` | Aprovado; logo emitido em `dist/assets/rio-logo-*.png` |
 | `git diff --check` | Aprovado |
 
@@ -39,6 +39,8 @@ Foco/skip link percorridos pelo teclado; foco no main ao navegar preservado. Zoo
 Contraste calculado pela luminância relativa: ação branco/verde `#155c50` 7,84:1; texto/fundo 11,05:1; secundário/branco 4,92:1; borda de campo/branco 4,47:1; foco/branco 5,26:1. Marca gráfica preserva a cor original. Controles desabilitados permanecem distinguíveis e usam a exceção de contraste de controles inativos.
 
 As APIs GET foram interceptadas com fixtures sintéticas de contratos existentes; nenhuma escrita ou contato com backend/produção. Não alegar integração real. Resultado detalhado: [browser-results.json](browser-results.json).
+
+Após o merge externo de #38, preservados imports/rotas de gestão de perfis. O conflito de import foi resolvido mantendo Brand e ProfileManagementPage. Campos checkbox/radio foram excluídos do estilo de campos textuais para preservar os controles nativos da seleção de permissões. Lint/typecheck/test/build repetidos e aprovados; matriz de navegador repetida, incluindo criação de perfil a 390 px: checkbox 20×20 px, padding zero, [captura adicional](profile-create-390.png). Nenhum comando de gestão foi enviado.
 
 Ensaio reproduzível opcional: ter Playwright disponível externamente, Chrome instalado e Vite na porta 4188; executar `node docs/design/ui-rio-01/browser-check.cjs`. Se Playwright não estiver na resolução do projeto, configurar `RIO_PLAYWRIGHT_PATH` para o módulo instalado. Script não adiciona dependência ao aplicativo. A saída sobrescreve apenas as evidências desta pasta.
 
