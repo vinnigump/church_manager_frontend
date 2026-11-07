@@ -58,11 +58,13 @@ describe('retorno após autenticação', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso indisponível')
     expect(screen.queryByRole('heading', { name: 'Administração' })).not.toBeInTheDocument()
   })
-  it('login direto sem destino usa Minha conta', async () => {
+  it('login direto sem destino usa Home logada', async () => {
     server()
     show('/entrar')
     signIn()
     expect(await screen.findByText('Conectado como ana.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Bem-vindo' })).toBeInTheDocument()
+    expect(JSON.parse(screen.getByTestId('location').textContent!).pathname).toBe('/')
   })
   it('login inválido preserva o destino para nova tentativa', async () => {
     const fetcher = server()
@@ -102,11 +104,11 @@ describe('retorno após autenticação', () => {
     { returnTo: '/eventos?token=privado' }, { returnTo: '/eventos#privado' },
     { returnTo: '/entrar' }, { returnTo: '/entrar/' }, { returnTo: '/eventos\n' },
     { returnTo: '/a/../entrar' }, { returnTo: 123 }, [], 'invalid',
-  ])('destino inválido %j recai em Minha conta sem loop', async state => {
+  ])('destino inválido %j recai em Home logada sem loop', async state => {
     server()
     show('/entrar', state)
     signIn()
     await screen.findByText('Conectado como ana.')
-    await waitFor(() => expect(JSON.parse(screen.getByTestId('location').textContent!).pathname).toBe('/conta'))
+    await waitFor(() => expect(JSON.parse(screen.getByTestId('location').textContent!).pathname).toBe('/'))
   })
 })

@@ -97,6 +97,7 @@ describe('consulta paginada do catálogo autorizada', () => {
     }))
     render(<MemoryRouter><AuthProvider><LoginThenOpen/><App/></AuthProvider></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: 'Abrir catálogo após login' }))
+    await screen.findByText('Sua sessão expirou. Entre novamente.')
     expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Sua sessão expirou')
     expect(screen.queryByText(item.name)).not.toBeInTheDocument()

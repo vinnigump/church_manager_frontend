@@ -34,7 +34,7 @@ export default function LoginPage() {
     </div>
     <section className="access-panel" aria-labelledby="access-title">
       <p className="access-eyebrow">BEM-VINDO DE VOLTA</p>
-      <h1 id="access-title">Entrar</h1>
+      <h1 id="access-title" data-page-title="Entrar">Entrar</h1>
       <p className="access-description">Use sua conta cadastrada para acessar.</p>
       {passwordNotice && <p className="access-notice" role="status">{passwordNotice}</p>}
       {expired && <p className="access-notice" role="status">Sua sessão expirou. Entre novamente.</p>}

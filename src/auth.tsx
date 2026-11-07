@@ -32,7 +32,7 @@ export function loginDestination(state: unknown): string {
   const path = typeof state === 'object' && state !== null && 'returnTo' in state ? state.returnTo : null
   // Caminhos relativos à origem, sem esquemas, escapes, query ou ciclo no login.
   return typeof path === 'string' && path.trim() === path && /^\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]*$/.test(path)
-    && path.replace(/\/$/, '') !== '/entrar' ? path : '/conta'
+    && path.replace(/\/$/, '') !== '/entrar' ? path : '/'
 }
 export function Guard({ permission, scope }: { permission?: string; scope?: string }) {
   const { account, grants } = useAuth()

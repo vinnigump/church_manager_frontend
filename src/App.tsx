@@ -2,6 +2,8 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { Guard } from './auth'
 import LoginPage from './LoginPage'
 import AccountPage from './AccountPage'
+import HomePage from './HomePage'
+import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
@@ -20,8 +22,9 @@ import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplateP
 export default function App() {
   return <Routes>
     <Route element={<AppLayout />}>
-    <Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/>
+    <Route index element={<HomePage />}/>
     <Route path="entrar" element={<LoginPage />}/>
+    <Route path="sair" element={<SignOutPage />}/>
     <Route element={<Guard />}>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>

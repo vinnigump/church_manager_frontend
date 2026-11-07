@@ -10,6 +10,8 @@
 .app-navigation svg { width: 20px; height: 20px; flex: 0 0 20px; }
 .app-content { grid-column: 2; grid-row: 2; align-self: start; width: 100%; min-width: 0; max-width: 64rem; margin: 0 auto; padding: var(--rio-space-6) var(--rio-space-5); overflow-wrap: anywhere; }
 .skip { z-index: 10; min-height: 44px; }
+.app-shell.app-shell--guest { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+.app-shell--guest .app-content { grid-column: 1; }
 @media (max-width: 47.99rem) {
   .app-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
   .app-header { grid-column: 1; padding: var(--rio-space-4); }

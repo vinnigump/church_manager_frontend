@@ -1,0 +1,84 @@
+{
+  "browser": "156.0.8078.80",
+  "environment": "Chrome headless com GETs sintéticos, sem backend real",
+  "results": [
+    {
+      "width": 320,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 360,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 390,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 768,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 1024,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 1440,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    },
+    {
+      "width": 1920,
+      "centerError": 0,
+      "verticalError": 0.0078125,
+      "overflow": false,
+      "publicNoNavigation": true,
+      "defaultLoginHome": true,
+      "authenticatedNavigation": true,
+      "protectedReturn": true,
+      "bothSignoutsHome": true
+    }
+  ],
+  "errors": []
+}

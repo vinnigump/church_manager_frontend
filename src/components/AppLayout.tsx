@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
+import { useSignOut } from '../useSignOut'
 import Brand from './Brand'
 import './app-shell.css'
 
@@ -11,25 +12,27 @@ function NavigationIcon({ kind }: { kind: 'home' | 'events' | 'account' | 'login
 }
 
 export default function AppLayout() {
-  const { account, logout } = useAuth()
+  const { account } = useAuth()
   const { pathname } = useLocation()
+  const signOut = useSignOut()
+  const guest = !account
+  const accessPage = guest && (pathname === '/' || /^\/entrar\/?$/.test(pathname))
   const main = useRef<HTMLElement>(null)
   useEffect(() => {
-    const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
+    const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/sair': 'Sair', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
     const title = main.current?.querySelector('h1[data-page-title]')?.getAttribute('data-page-title')
     document.title = `${title ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
     main.current?.focus()
-  }, [pathname])
-  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><div className="app-shell">
+  }, [pathname, guest])
+  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><div className={`app-shell${guest ? ' app-shell--guest' : ''}`}>
     <header className="app-header"><Link className="app-home-link" to="/"><Brand/></Link>
-      {account && <button className="app-session-button" onClick={() => logout()}>Sair</button>}
+      {account && <button className="app-session-button" onClick={signOut}>Sair</button>}
     </header>
-    <nav className="app-navigation" aria-label="Principal">
+    {account && <nav className="app-navigation" aria-label="Principal">
       <NavLink to="/" end><NavigationIcon kind="home"/><span>Início</span></NavLink>
       {account && <NavLink to="/eventos"><NavigationIcon kind="events"/><span>Eventos</span></NavLink>}
       <NavLink to="/conta"><NavigationIcon kind="account"/><span>Minha conta</span></NavLink>
-      {!account && <NavLink to="/entrar"><NavigationIcon kind="login"/><span>Entrar</span></NavLink>}
-    </nav>
-    <main className={`app-content${pathname === '/entrar' ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
+    </nav>}
+    <main className={`app-content${accessPage ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
   </div></>
 }
