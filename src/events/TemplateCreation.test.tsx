@@ -75,6 +75,20 @@ describe('criação pelo contrato denominacional EVT-005/006', () => {
 })
 
 describe('formulário autorizado de criação denominacional', () => {
+  it('preserva o nome não enviado durante a reautorização por foco', async () => {
+    const fetcher = server(); await show()
+    fireEvent.change(await screen.findByLabelText('Nome do novo template'), { target: { value: 'Rascunho em preparação' } })
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do novo template')).toHaveValue('Rascunho em preparação')
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('não leva nome não enviado para outra denominação', async () => {
+    const fetcher = server(); await show(true)
+    fireEvent.change(await screen.findByLabelText('Nome do novo template'), { target: { value: 'Nome da denominação A' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
+    expect(await screen.findByLabelText('Nome do novo template')).toHaveValue('')
+    expect(writes(fetcher)).toHaveLength(0)
+  })
   it('valida nome, cria e reconcilia catálogo com link para o detalhe', async () => {
     const fetcher = server()
     await show()

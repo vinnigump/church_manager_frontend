@@ -120,6 +120,7 @@ function TemplateDetails({ denominationId, typeId, mutation }: { denominationId:
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando template…</p>
   return <>
     <button disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
+    {mutation.editor && <button disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh(); setAttempt(value => value + 1) }}>Descartar alterações locais e atualizar template</button>}
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <h2 className="event-template-state" data-state={result.data.status}>Estado do template: {statusLabel[result.data.status]}</h2>
       {result.data.status === 'DISCONTINUED' && <p>Este template não está disponível para novas ocorrências. Seu histórico foi preservado.</p>}
