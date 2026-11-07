@@ -93,3 +93,14 @@ proxima_acao: Abrir PR e conferir CI e revisao do head final
 pode_concluir: false
 aceite_humano: PENDENTE
 ```
+
+## Atualização da base — 2026-11-07 UTC
+
+PR #60 / issue #4. Base f72b9fec225c4ca0a41401f2bceb13330b63d6de incorporada
+sem conflito, preservando planejamento e auditoria integrados. Lint, typecheck,
+753 testes/36 arquivos, build e diff --check passaram novamente. Sem dependências,
+lockfile ou timeouts alterados. Revisão estática sequencial sem críticos/altos;
+revisão independente/aceite humano pendentes. CI novo head registrado no PR.
+Validação visual dispensada pelo usuário como requisito dos PRs; registros anteriores
+são históricos e não se convertem em PASSOU. Backend vivo não ensaiado.
+Sem merge em main, deploy ou alterações de infraestrutura.
