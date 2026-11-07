@@ -120,6 +120,10 @@ Atualização posterior com contrato real, testes e limites: [autorização por 
 
 ## Eventos — preparação da #4
 
+Apresentação administrativa UI-RIO-04 aplica cartões, estados textuais e hierarquia
+aos catálogos, versões e planejamento anual existentes, sem mudar os contratos.
+Homologação visual pendente. [Escopo e verificação](docs/design/ui-rio-04-event-admin.md).
+
 `/eventos` exige autenticação. A agenda detalhada de ocorrências ainda não está integrada; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
 
 `/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. EVENT_CREATE libera criação local e EVENT_EDIT libera habilitação/desabilitação local, sempre com nova autorização no backend e CSRF. Templates obrigatórios não têm controles de alteração.
