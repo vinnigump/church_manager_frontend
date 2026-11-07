@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ParticipationNotices, type ParticipationSnapshot, type ParticipationState } from './ParticipationNotices'
 
@@ -9,6 +9,17 @@ function show(state: ParticipationState = { kind: 'ready', snapshot }) {
   return render(<ParticipationNotices church={church} occurrenceId="occurrence-a" subjectId="subject-a" state={state}/> )
 }
 describe('avisos isolados de autorização e presença', () => {
+  it('separa autorização de presença em regiões nomeadas sem conceder ações', () => {
+    show()
+    expect(within(screen.getByRole('region', { name: /^Autorização$/ })).getByRole('alert')).toHaveTextContent('Autorização pendente')
+    expect(within(screen.getByRole('region', { name: /^Presença$/ })).getByText(/Presença ainda não registrada/)).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+  it('evento aberto não cria regiões de autorização ou presença nominal', () => {
+    show({ kind: 'ready', snapshot: { churchId: church.id, occurrenceId: 'occurrence-a', subjectId: 'subject-a', participation: 'open' } })
+    expect(screen.queryByRole('region', { name: /^Autorização$/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: /^Presença$/ })).not.toBeInTheDocument()
+  })
   it('pendência bloqueia participação sem cancelar inscrição ou liberar vaga', () => {
     show()
     expect(screen.getByText('Inscrição confirmada.')).toBeInTheDocument()
