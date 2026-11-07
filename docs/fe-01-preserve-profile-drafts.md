@@ -82,3 +82,16 @@ proxima_acao: Conferir CI e revisao; solicitar ativacao para homologacao quando 
 pode_concluir: false
 aceite_humano: PENDENTE
 ```
+
+## Atualização da base — 2026-11-07 UTC
+
+PR #64 / issue #1. Base integrada f72b9fec225c4ca0a41401f2bceb13330b63d6de
+incorporada sem conflito, preservando planejamento e auditoria já integrados.
+Lint, typecheck, 746 testes em 35 arquivos, build e diff --check passaram
+novamente. Lockfile/dependências e cenários próprios inalterados.
+Revisão estática sequencial sem achados críticos/altos nesta atualização;
+revisão independente e aceite humano permanecem pendentes. CI do novo head
+será registrado no PR. Conforme instrução explícita do usuário nesta data,
+validação visual não é mais requisito do PR; os registros anteriores de
+NAO_TESTADO são históricos e não se convertem em PASSOU. Backend vivo não
+ensaiado nesta atualização. Sem merge em main, deploy ou alterações de infraestrutura.

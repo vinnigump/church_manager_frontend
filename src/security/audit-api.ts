@@ -2,7 +2,8 @@ import { api, type ApiClient } from '../api'
 import { isUuid } from '../validation'
 import { instant, type SecurityPage } from './security-api'
 
-export const auditResources = ['ACCESS_ROLE', 'USER_ROLE_ASSIGNMENT', 'ACCESS_ROLE_DELEGATION', 'EVENT_TYPE', 'EVENT_OCCURRENCE', 'EVENT_ATTENDANCE', 'EVENT_CALENDAR'] as const
+// audit-query-v1 1.2.0: AUDIT_LOG is opt-in and contains only typed denials.
+export const auditResources = ['ACCESS_ROLE', 'USER_ROLE_ASSIGNMENT', 'ACCESS_ROLE_DELEGATION', 'EVENT_TYPE', 'EVENT_OCCURRENCE', 'EVENT_ATTENDANCE', 'EVENT_CALENDAR', 'AUDIT_LOG'] as const
 export type AuditResource = typeof auditResources[number]
 export interface AuditFilters { resourceType?: AuditResource; resourceId?: string; from?: string; to?: string }
 export interface AuditEntry { id: string; occurredAt: string; actorUserId: string; action: string; resourceType: AuditResource; resourceId: string | null; outcome: 'SUCCESS' | 'DENIED' }
@@ -35,6 +36,9 @@ export async function listAudit(denominationId: string, filters: AuditFilters = 
   if (!Array.isArray(v.items) || v.page !== page || v.size !== 20 || !integer(v.total) || v.items.length > 20 || v.total < v.items.length) throw invalid()
   const items = v.items.map(parse)
   if (new Set(items.map(item => item.id)).size !== items.length || items.some(item =>
+    (item.resourceType === 'AUDIT_LOG' && (filters.resourceType !== 'AUDIT_LOG' || item.outcome !== 'DENIED'
+      || !['AUDIT_QUERY_DENIED', 'PROFILE_MANAGEMENT_DENIED', 'ASSIGNMENT_MANAGEMENT_DENIED'].includes(item.action)))
+    ||
     (filters.resourceType !== undefined && item.resourceType !== filters.resourceType)
     || (filters.resourceId !== undefined && item.resourceId !== filters.resourceId)
     || (filters.from !== undefined && nanos(item.occurredAt) < nanos(filters.from))

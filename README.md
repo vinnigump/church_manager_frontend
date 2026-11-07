@@ -19,6 +19,12 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
+O detalhe da ocorrência oferece espaço e sobreposições de planejamento
+(`event-spaces-v1` 1.0.0): resumo global, candidatos paginados e configuração
+de espaço somente do rascunho com revisão compartilhada. Alertas não confirmam
+disponibilidade, reserva ou autorização de publicar.
+[Relatório FE-04](docs/events/fe-04-space-planning.md).
+
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
 O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).
@@ -37,6 +43,11 @@ O backend já publica a consulta pontual `GET /api/v1/accounts/me/authorization`
 O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs de domínio ainda não integradas. Erros HTTP e falhas de leitura de JSON não exibem o corpo recebido nem mensagens brutas do parser, evitando refletir dados sensíveis. [Relatório de erros JSON](docs/fe-01-json-errors.md). Não armazenamos credenciais em storage nem logs.
 
 ## Consultas administrativas de segurança — FE-01
+
+A auditoria integra `audit-query-v1` 1.2.0 com filtro explícito de recusas
+administrativas tipadas. A consulta padrão preserva os sete tipos de domínio;
+ausência de registros não comprova ausência de tentativas.
+[Relatório FE-01](docs/fe-01-audit-denials.md).
 
 `/seguranca/denominacoes/:denominationId/perfis` lista os perfis; o detalhe em
 `/perfis/:profileId` apresenta estado, escopo e histórico, com acesso a
@@ -124,7 +135,7 @@ Apresentação administrativa UI-RIO-04 aplica cartões, estados textuais e hier
 aos catálogos, versões e planejamento anual existentes, sem mudar os contratos.
 Homologação visual pendente. [Escopo e verificação](docs/design/ui-rio-04-event-admin.md).
 
-`/eventos` exige autenticação. A agenda detalhada de ocorrências ainda não está integrada; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
+`/eventos` exige autenticação. Catálogo, calendário anual e ocorrências administrativas usam contratos publicados no backend. A agenda pública continua pendente.
 
 `/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. EVENT_CREATE libera criação local e EVENT_EDIT libera habilitação/desabilitação local, sempre com nova autorização no backend e CSRF. Templates obrigatórios não têm controles de alteração.
 
