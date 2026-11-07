@@ -65,6 +65,10 @@ Auditoria estruturada em `/seguranca/denominacoes/:denominationId/auditoria`
 exige security:audit:read/DENOMINATION. Filtros por tipo/período UTC e links
 contextuais usam apenas os metadados publicados; tentativa de leitura registrada
 não comprova recebimento. [Contrato e testes](docs/fe-01-security-audit.md).
+Shell RIO: uma navegação com estado ativo, lateral no desktop e inferior no mobile,
+preservando somente destinos reais, foco e proteção existentes. Navegação inferior
+permanece no fluxo. Homologação visual pendente.
+[Escopo e evidências UI-RIO-02](docs/design/ui-rio-02-shell.md).
 
 Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` lista
 com gestão central; o detalhe `/:delegationId` também permite o próprio delegado

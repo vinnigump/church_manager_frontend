@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Guard, loginDestination, useAuth } from './auth'
 import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
 import SecurityPages from './security/SecurityPages'
 import AuditPage from './security/AuditPage'
-import Brand from './components/Brand'
+import AppLayout from './components/AppLayout'
 import AssignmentsPage from './security/AssignmentsPage'
 import DelegationsPage from './security/DelegationsPage'
 import DelegationRevokePage from './security/DelegationRevokePage'
@@ -16,18 +16,6 @@ import AssignmentRevokePage from './security/AssignmentRevokePage'
 import ProfileManagementPage from './security/ProfileManagementPage'
 import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplatePages'
 
-function Layout() {
-  const { account, logout } = useAuth()
-  const { pathname } = useLocation()
-  const main = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
-    const pageTitle = main.current?.querySelector('h1[data-page-title]')?.getAttribute('data-page-title')
-    document.title = `${pageTitle ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
-    main.current?.focus()
-  }, [pathname])
-  return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><header className="app-header"><Link className="app-home-link" to="/"><Brand /></Link><nav className="app-navigation" aria-label="Principal">{account && <Link to="/eventos">Eventos</Link>}<Link to="/conta">Minha conta</Link>{account ? <button onClick={() => logout()}>Sair</button> : <Link to="/entrar">Entrar</Link>}</nav></header><main className="app-content" ref={main} id="conteudo" tabIndex={-1}><Outlet /></main></>
-}
 function Login() {
   const { account, login, expired, passwordNotice: notice } = useAuth()
   const { state } = useLocation()
@@ -50,7 +38,7 @@ function Login() {
 function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p><Link to="/conta/senha">Alterar minha senha</Link></> }
 export default function App() {
   return <Routes>
-    <Route element={<Layout />}>
+    <Route element={<AppLayout />}>
     <Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/>
     <Route path="entrar" element={<Login />}/>
     <Route element={<Guard />}>
