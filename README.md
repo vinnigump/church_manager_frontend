@@ -17,7 +17,9 @@ Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `Acco
 
 Login consulta `GET /api/v1/accounts/me` (`id`, `personId`, `login`, `status`) e `GET /api/v1/csrf` (`headerName`, `token`). Escritas exigem o token e cookie JSESSIONID da mesma sessão. A saída limpa a memória do frontend; não há contrato verificado de logout/invalidação remota. Não prometemos invalidar a sessão no servidor.
 
-**Bloqueio parcial da #1:** o backend não expõe no contrato de conta as permissões e escopos efetivos. A rota administrativa permanece negada por padrão. O guard suporta pares exatos permissão/escopo, mas não inventa concessões a partir de login ou status. O administrador técnico tampouco possui `identity:self`, portanto `/accounts/me` não é um endpoint de descoberta para esse perfil. É necessário um contrato de sessão/capacidades aprovado antes de habilitar administração. O backend sempre decide autorização.
+O backend já publica a consulta pontual `GET /api/v1/accounts/me/authorization` (OpenAPI 1.0.0), por `permissionCode`, `resourceType` e `resourceId`, retornando `{ allowed: boolean }`. `src/authorization.tsx` integra esse contrato e oferece `ResourceAccess` para futuras rotas com recurso e operação definidos. Não enumera igrejas/concessões nem substitui autorização de cada operação no servidor. A guarda reconsulta em mudança de contexto/sessão, foco e retry; não é uma assinatura em tempo real.
+
+**Bloqueio parcial da #1:** a descoberta de contextos autorizados e a sessão administrativa técnica continuam pendentes. `/admin` permanece negado por padrão; a nova guarda não foi ligada a uma operação inexistente. Não inferimos concessões a partir de login/status. O administrador técnico não possui `identity:self`; `/accounts/me` não é um endpoint de descoberta para esse perfil.
 
 O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs de domínio ainda não integradas. Erros HTTP não exibem o corpo recebido, evitando refletir dados sensíveis. Não armazenamos credenciais em storage nem logs.
 
@@ -33,6 +35,8 @@ O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs
 Não avançar implementando contratos fictícios para contornar dependências. Entrega da #1 deve seguir em PR rascunho, sem merge, com os bloqueios explícitos.
 
 Evidências atualizadas e checklist de integração: [revisão FE-01](docs/fe-01-review.md).
+
+Atualização posterior com contrato real, testes e limites: [autorização por recurso FE-01](docs/fe-01-resource-authorization.md). Os relatórios anteriores preservam as evidências históricas de suas entregas.
 
 ## Eventos — preparação da #4
 
