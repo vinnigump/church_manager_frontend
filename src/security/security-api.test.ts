@@ -43,7 +43,7 @@ describe('contratos de leitura administrativa RBAC', () => {
   })
   it('mantém Basic em memória e cookies na consulta', async () => {
     const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(url.endsWith('/accounts/me')
-      ? { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : profile)))
+      ? { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : profile)))
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     await client.login('ana', 'test-password')

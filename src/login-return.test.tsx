@@ -7,7 +7,7 @@ import { AuthProvider } from './auth'
 
 const church = '00000000-0000-0000-0000-000000000001'
 const path = `/eventos/igrejas/${church}/catalogo`
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const item = { id: '00000000-0000-0000-0000-000000000002', scopeType: 'DENOMINATION', name: 'Encontro autorizado', mandatory: true, enabled: true }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {

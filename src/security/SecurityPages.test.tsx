@@ -13,7 +13,7 @@ const profileRoute = (id = denomination) => `${root(id)}/perfis/${profileId}`
 const versionRoute = `${profileRoute()}/versoes/${versionId}`
 const profile = { id: profileId, code: 'READER', name: 'Consulta autorizada', scopeType: 'CHURCH', status: 'ENABLED', revision: 4, publishedVersionId: versionId }
 const version = { id: versionId, versionNumber: 1, name: 'Consulta original', status: 'LEGACY_SNAPSHOT', revision: 0, createdAt: '2026-11-07T12:00:00Z', publishedAt: null }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
   const fetcher = vi.fn().mockImplementation(async (url: string) => {

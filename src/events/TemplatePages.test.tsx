@@ -12,7 +12,7 @@ const draft = { ...version, id: other, number: 2, name: 'Novo nome em rascunho',
 const template = { id: type, status: 'PUBLISHED', revision: 2, publishedVersionId: version.id, draft }
 const catalog = { items: [{ id: type, name: 'Encontro original', scopeType: 'DENOMINATION', mandatory: true, enabled: true }], page: 0, size: 20, total: 1 }
 const history = { items: [version], page: 0, size: 20, total: 1 }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const route = (id = denomination) => `/eventos/denominacoes/${id}/catalogo`
 const detailRoute = (id = denomination, templateId = type) => `/eventos/denominacoes/${id}/templates/${templateId}`
 const json = (value: unknown) => new Response(JSON.stringify(value))

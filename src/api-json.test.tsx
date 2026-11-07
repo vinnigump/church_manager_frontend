@@ -5,7 +5,7 @@ import App from './App'
 import { ApiClient } from './api'
 import { AuthProvider } from './auth'
 
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const csrf = { headerName: 'X-CSRF-TOKEN', token: 'test' }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 const invalidMessage = 'Não foi possível validar a resposta do servidor. Tente novamente.'

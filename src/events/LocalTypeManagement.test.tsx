@@ -9,7 +9,7 @@ import { createLocalType, setLocalTypeEnabled } from './catalog-api'
 const churchId = '00000000-0000-0000-0000-000000000001'
 const local = { id: '00000000-0000-0000-0000-000000000002', scopeType: 'CHURCH' as const, name: 'Encontro local', mandatory: false, enabled: true }
 const mandatory = { ...local, id: '00000000-0000-0000-0000-000000000003', scopeType: 'DENOMINATION' as const, name: 'Template obrigatório', mandatory: true }
-const account = { id: 'account-a', personId: 'person-a', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 afterEach(() => api.clear())
 

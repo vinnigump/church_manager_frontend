@@ -14,7 +14,7 @@ const catalog: CatalogItem[] = [
   { id: '3', churchId: 'church-b', title: 'Evento de outra igreja', origin: 'local', status: 'published' },
 ]
 const occurrence: AgendaItem = { id: '1', churchId: church.id, title: 'Encontro de vários dias', startsAt: '2026-11-06T01:00:00Z', endsAt: '2026-11-08T20:00:00Z', status: 'published', participation: 'registration', checkInEnabled: true }
-const account = { id: 'a', personId: 'p', login: 'ana', status: 'ACTIVE' }
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 
 describe('catálogo isolado', () => {
   it.each([

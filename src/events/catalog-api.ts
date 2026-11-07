@@ -1,4 +1,6 @@
 import { api, type ApiClient } from '../api'
+import { isUuid } from '../validation'
+export { isUuid } from '../validation'
 
 // Contrato backend event-type-catalog-v1.openapi.json, versão 1.0.0 (EVT-005).
 export interface EventTypeView {
@@ -9,7 +11,6 @@ export interface EventTypeView {
   enabled: boolean
 }
 export interface EventTypePage { items: EventTypeView[]; page: number; size: number; total: number }
-export const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 
 export function parseEventType(item: unknown): EventTypeView {

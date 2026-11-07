@@ -1,11 +1,11 @@
+import { parseAccount, parseCsrf, type Account, type Csrf } from './session-contracts'
+export type { Account } from './session-contracts'
+
 export class ApiError extends Error {
   constructor(public status: number) {
     super(({ 0: 'Não foi possível conectar. Tente novamente.', 401: 'Sessão expirada ou credenciais inválidas. Entre novamente.', 403: 'Você não tem permissão ou a proteção da sessão expirou.', 404: 'Recurso não encontrado.', 409: 'Os dados foram alterados. Atualize e tente novamente.', 422: 'Revise os dados informados.' } as Record<number, string>)[status] ?? 'Não foi possível concluir a solicitação.')
   }
 }
-
-export interface Account { id: string; personId: string; login: string; status: string }
-interface Csrf { headerName: string; token: string }
 
 export class ApiClient {
   private authorization?: string
@@ -23,8 +23,11 @@ export class ApiClient {
     const bytes = new TextEncoder().encode(`${login}:${password}`)
     this.authorization = `Basic ${btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''))}`
     try {
-      const account = await this.request<Account>('/accounts/me')
-      this.csrf = await this.request<Csrf>('/csrf')
+      const account = parseAccount(await this.request<unknown>('/accounts/me'))
+      if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
+      const csrf = parseCsrf(await this.request<unknown>('/csrf'))
+      if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
+      this.csrf = csrf
       return account
     } catch (error) { if (generation === this.generation) this.clear(); throw error }
   }

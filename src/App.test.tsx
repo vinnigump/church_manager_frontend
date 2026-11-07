@@ -10,7 +10,7 @@ describe('navegação e autorização', () => {
   async function signIn() {
     vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(
       url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'csrf-test' }
-        : { id: '1', personId: '2', login: 'ana', status: 'ACTIVE' }))))
+        : { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }))))
     show('/conta')
     fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'senha' } })
@@ -38,7 +38,7 @@ describe('navegação e autorização', () => {
     expect(hasGrant([{ permission: 'read', scope: 'church:1' }], 'read', 'church:1')).toBe(true)
   })
   it('não infere autoridade administrativa de conta autenticada', () => {
-    render(<MemoryRouter initialEntries={['/admin']}><AuthContext.Provider value={{ account: { id: '1', personId: '2', login: 'ana', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App /></AuthContext.Provider></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/admin']}><AuthContext.Provider value={{ account: { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App /></AuthContext.Provider></MemoryRouter>)
     expect(screen.getByRole('alert')).toHaveTextContent('Acesso indisponível')
   })
   it('apresenta loading e erro de autenticação', async () => {
