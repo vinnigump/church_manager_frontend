@@ -3,6 +3,7 @@ import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router
 import { Guard, loginDestination, useAuth } from './auth'
 import EventsPage from './events/EventViews'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
+import AnnualCalendarPage from './events/AnnualCalendarPage'
 import { DenominationCatalogPage, TemplateHistoryPage } from './events/TemplatePages'
 
 function Layout() {
@@ -36,5 +37,5 @@ function Login() {
 }
 function AccountPage() { const { account } = useAuth(); return <><h1>Minha conta</h1><p>Conectado como {account?.login}.</p></> }
 export default function App() {
-  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/><Route path="eventos/denominacoes/:denominationId/catalogo" element={<DenominationCatalogPage />}/><Route path="eventos/denominacoes/:denominationId/templates/:typeId" element={<TemplateHistoryPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
+  return <Routes><Route element={<Layout />}><Route index element={<><h1>Bem-vindo</h1><p>Acesse sua conta para continuar.</p></>}/><Route path="entrar" element={<Login />}/><Route element={<Guard />}><Route path="conta" element={<AccountPage />}/><Route path="eventos" element={<EventsPage />}/><Route path="eventos/igrejas/:churchId/calendarios" element={<AnnualCalendarPage />}/><Route path="eventos/igrejas/:churchId/calendarios/:year" element={<AnnualCalendarPage />}/><Route path="eventos/igrejas/:churchId/catalogo" element={<ChurchCatalogPage />}/><Route path="eventos/denominacoes/:denominationId/catalogo" element={<DenominationCatalogPage />}/><Route path="eventos/denominacoes/:denominationId/templates/:typeId" element={<TemplateHistoryPage />}/><Route element={<Guard permission="organization:manage" scope="global" />}><Route path="admin" element={<h1>Administração</h1>}/></Route></Route><Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
