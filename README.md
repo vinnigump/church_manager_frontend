@@ -42,13 +42,17 @@ Atualização posterior com contrato real, testes e limites: [autorização por 
 
 `/eventos` exige autenticação. O calendário/programação ainda não está integrado; a consulta do catálogo por igreja já usa o contrato EVT-005 publicado no backend.
 
-`/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. Não há ações de escrita neste incremento.
+`/eventos/igrejas/:churchId/catalogo` consulta o catálogo paginado após verificar EVENT_VIEW no recurso CHURCH. O contexto vem do acesso da igreja; não há ainda descoberta automática de igrejas nem formulário para digitar identificadores. Sem permissão, a lista não é buscada. EVENT_CREATE libera criação local e EVENT_EDIT libera habilitação/desabilitação local, sempre com nova autorização no backend e CSRF. Templates obrigatórios não têm controles de alteração.
+
+A última desabilitação confirmada pode ser revertida enquanto a tela permanecer aberta. O backend ainda não publica consulta de todos os tipos desabilitados; esse atalho não é persistido. Falha de rede/5xx em escrita não presume sucesso e não repete a operação automaticamente.
 
 `src/events/EventViews.tsx` contém catálogo e agenda isolados, ainda não conectados à rota. Seus modelos são de apresentação, não DTOs de API. Os exemplos sintéticos existem somente em `EventViews.test.tsx`; execute `npm test -- src/events/EventViews.test.tsx` para verificar os componentes.
 
 Contratos inspecionados, bloqueios, resultados e parecer dos três papéis: [relatório FE-04](docs/events/fe-04-report.md). Entrega parcial; não implementa as issues #5/#6.
 
 Atualização com contrato de consulta real e limites de validação: [catálogo integrado FE-04](docs/events/fe-04-live-catalog.md). Relatórios anteriores preservam as evidências de suas respectivas entregas.
+
+Criação e habilitação local: [gestão local FE-04](docs/events/fe-04-local-type-management.md).
 
 ## Inscrições — preparação da #5
 
