@@ -23,15 +23,25 @@ function path(denominationId: string, assignmentId?: string) {
   if (!isUuid(denominationId) || (assignmentId !== undefined && !isUuid(assignmentId))) throw invalid()
   return `/security/denominations/${denominationId}/assignments${assignmentId ? `/${assignmentId}` : ''}`
 }
-export async function listAssignments(denominationId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<SecurityPage<Assignment>> {
+async function list(denominationId: string, page: number, signal: AbortSignal | undefined, client: ApiClient, delegationId?: string): Promise<SecurityPage<Assignment>> {
   if (!integer(page) || page > 100000) throw invalid()
-  const raw = await client.request<unknown>(`${path(denominationId)}?page=${page}&size=20`, { signal })
+  if (delegationId !== undefined && !isUuid(delegationId)) throw invalid()
+  const raw = await client.request<unknown>(`${path(denominationId)}?page=${page}&size=20${delegationId ? `&delegationId=${delegationId}` : ''}`, { signal })
   if (typeof raw !== 'object' || !raw || Array.isArray(raw)) throw invalid()
   const v = raw as Record<string, unknown>
   if (!Array.isArray(v.items) || v.page !== page || v.size !== 20 || !integer(v.total) || v.items.length > 20 || v.total < v.items.length) throw invalid()
   const items = v.items.map(parse)
   if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
+  if (delegationId !== undefined && items.some(item => item.delegationId !== delegationId)) throw invalid()
   return { items, page, size: 20, total: v.total }
+}
+export function listAssignments(denominationId: string, page = 0, signal?: AbortSignal, client: ApiClient = api) {
+  return list(denominationId, page, signal, client)
+}
+export function listDelegatedAssignments(denominationId: string, delegationId: string, page = 0, signal?: AbortSignal, client: ApiClient = api) {
+  // A fonte é obrigatória nesta operação; nunca cair na listagem central sem filtro.
+  if (!isUuid(delegationId)) return Promise.reject(invalid())
+  return list(denominationId, page, signal, client, delegationId)
 }
 export async function readAssignment(denominationId: string, assignmentId: string, signal?: AbortSignal, client: ApiClient = api) {
   const result = parse(await client.request<unknown>(path(denominationId, assignmentId), { signal }))
@@ -48,4 +58,10 @@ export async function revokeAssignment(denominationId: string, current: Assignme
   const result = raw as Record<string, unknown>
   if (result.id !== value.id || result.status !== 'REVOKED' || !integer(result.revision) || result.revision !== value.revision + 1) throw invalid()
   return { id: value.id, status: 'REVOKED' as const, revision: result.revision }
+}
+export async function readDelegatedAssignment(denominationId: string, delegationId: string, assignmentId: string, signal?: AbortSignal, client: ApiClient = api) {
+  if (!isUuid(delegationId)) throw invalid()
+  const value = await readAssignment(denominationId, assignmentId, signal, client)
+  if (value.delegationId !== delegationId) throw invalid()
+  return value
 }
