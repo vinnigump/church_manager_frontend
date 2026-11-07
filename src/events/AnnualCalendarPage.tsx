@@ -6,6 +6,7 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from './catalog-api'
 import { createCalendar, isCalendarYear, readCalendar, setCalendarPublished, type AnnualCalendar } from './calendar-api'
 import './events.css'
+import './event-admin.css'
 
 function YearNavigation({ churchId, year }: { churchId: string; year?: string }) {
   const id = useId()
@@ -17,7 +18,7 @@ function YearNavigation({ churchId, year }: { churchId: string; year?: string })
     if (!/^[1-9][0-9]{0,3}$/.test(value) || !isCalendarYear(Number(value))) { setError('Informe um ano entre 1 e 9999.'); return }
     setError(''); navigate(`/eventos/igrejas/${churchId}/calendarios/${Number(value)}`)
   }
-  return <form className="events-panel" onSubmit={submit}>
+  return <form className="events-panel event-year-form" onSubmit={submit}>
     <label htmlFor={`${id}-year`}>Ano do calendário</label>
     <input id={`${id}-year`} type="number" min={1} max={9999} step={1} required value={value} onChange={event => setValue(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined}/>
     {error && <p id={`${id}-error`} role="alert">{error}</p>}
@@ -105,7 +106,7 @@ function CalendarRecords({ churchId, year, mutation }: { churchId: string; year:
       <p>Não há calendário anual para {year} nesta igreja.</p>
       <button disabled={mutation.busy || mutation.blocked} onClick={() => { void mutation.run(null) }}>Criar calendário anual</button>
     </> : <section className="events-panel" aria-labelledby="annual-calendar-title">
-      <h2 id="annual-calendar-title">Planejamento de {year}</h2><p>Estado do planejamento: {result.calendar.status === 'PUBLISHED' ? 'Publicado' : 'Rascunho'}</p>
+      <h2 id="annual-calendar-title">Planejamento de {year}</h2><p className="event-state" data-state={result.calendar.status}>Estado do planejamento: {result.calendar.status === 'PUBLISHED' ? 'Publicado' : 'Rascunho'}</p>
       <p>Criado em <time dateTime={result.calendar.createdAt}>{new Date(result.calendar.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
       {result.calendar.publishedAt && <p>Publicado em <time dateTime={result.calendar.publishedAt}>{new Date(result.calendar.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
       <PublicationAction key={`${result.calendar.id}:${result.calendar.revision}`} calendar={result.calendar} mutation={mutation}/>
@@ -128,9 +129,9 @@ export default function AnnualCalendarPage() {
   const { churchId = '', year } = useParams()
   const { account } = useAuth()
   const valid = isUuid(churchId) && (year === undefined || (/^[1-9][0-9]{0,3}$/.test(year) && isCalendarYear(Number(year))))
-  return <><h1 data-page-title="Calendário anual administrativo">Calendário anual administrativo</h1><Link to="/eventos">Voltar a Eventos</Link>
+  return <div className="event-admin"><h1 data-page-title="Calendário anual administrativo">Calendário anual administrativo</h1><Link to="/eventos">Voltar a Eventos</Link>
     <p>A publicação do planejamento é independente das ocorrências e não abre inscrições ou check-in. A agenda detalhada e a visão pública ainda não estão disponíveis nesta tela.</p>
     {!valid ? <p role="alert">O acesso ao calendário é inválido. Abra novamente o acesso da sua igreja e informe um ano entre 1 e 9999.</p>
       : <CalendarWorkspace key={`${account?.id}:${churchId}:${year}`} churchId={churchId} year={year}/>}
-  </>
+  </div>
 }

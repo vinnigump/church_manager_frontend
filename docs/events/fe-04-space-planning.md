@@ -67,3 +67,45 @@ salva/política apesar da tentativa autorizada, sem contorno ou capturas.
 Não afirmar homologação visual, disponibilidade de espaço ou implementação
 do motor operacional de publicação/exceção. Sete vulnerabilidades moderadas
 preexistentes de tooling permanecem, sem atualização forçada.
+
+## Atualização de integração — 2026-11-07 UTC
+
+Issue #4, FE-04, branch `codex/fe-04-planning-overlaps`, PR #56.
+A base main `86f0821` integrou externamente os estilos do PR #54 e a
+governança do #57. A atualização desta branch preserva esses commits.
+O único conflito foi no README: mantidos o relato visual e a informação
+atual de ocorrências administrativas disponíveis. Sem alteração funcional
+adicional, contratos novos ou integração de PRs ainda pendentes.
+
+| ID | Critério desta atualização | Resultado | Evidência |
+| --- | --- | --- | --- |
+| INT-01 | Preservar estilos integrados e descrição de planejamento | PASSOU | diff contra origin/main, README e event-admin.css |
+| INT-02 | Regressão após atualização da base | PASSOU | npm ci, lint, typecheck, 724 testes/35 arquivos, build, diff --check |
+| INT-03 | Visual, backend vivo e aceite humano | NAO_TESTADO | solicitar ativação da aplicação ao usuário quando necessário |
+
+Node24/Windows; sem testes ignorados, alterações de timeout ou lockfile.
+Revisão estática sequencial sem achados críticos/altos nesta resolução;
+revisão independente PENDENTE. A ressalva anterior de origem bloqueada é
+histórica: localhost:5173 foi acessível em ensaio posterior do PR #59,
+sem comprovar homologação desta branch. Seguir orientação atual do usuário
+e solicitar ativação para a validação visual necessária.
+
+```yaml
+atividade: FE-04-SPACE-PLANNING-INTEGRATION
+issue: https://github.com/vinnigump/church_manager_frontend/issues/4
+status: EM_REVISAO
+criterios_total: 3
+criterios_comprovados: 2
+testes_aprovados: 724
+testes_falhos: 0
+testes_ignorados: 0
+ci: PENDENTE
+ci_url: null
+sha_validado: null
+revisao: PENDENTE
+prs: [56]
+bloqueios: [homologacao_visual, backend_vivo, revisao_independente, aceite_humano]
+proxima_acao: Conferir CI do novo head e revisao; solicitar ativacao para homologacao
+pode_concluir: false
+aceite_humano: PENDENTE
+```

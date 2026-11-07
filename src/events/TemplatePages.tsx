@@ -9,6 +9,7 @@ import { isUuid, listDenominationCatalog, type EventTypePage } from './catalog-a
 import { listTemplateHistory, readTemplate, type EventTemplate, type TemplateHistory, type TemplateVersion } from './template-api'
 import { TemplateActions, useTemplateMutation, type TemplateMutation } from './TemplateManagement'
 import './events.css'
+import './event-admin.css'
 
 type Result<T> = { key: string } & ({ kind: 'ready'; data: T } | { kind: 'error'; message: string })
 const catalogRoute = (id: string) => `/eventos/denominacoes/${id}/catalogo`
@@ -47,7 +48,7 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <p role="status">Página {page + 1} · {result.data.total} templates no catálogo.</p>
       {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id}>
-        <h2>{item.name}</h2><p>Origem denominacional · obrigatório para as igrejas vinculadas</p>
+        <h2>{item.name}</h2><p className="event-origin">Origem denominacional · obrigatório para as igrejas vinculadas</p>
         <Link to={`/eventos/denominacoes/${denominationId}/templates/${item.id}`}>Consultar versões de {item.name}</Link>
       </li>)}</ul>}
       <Pagination page={page} size={result.data.size} total={result.data.total} onChange={setPage} label="Páginas do catálogo denominacional" disabled={creation.busy}/>
@@ -56,7 +57,7 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
 }
 
 function VersionDetails({ version }: { version: TemplateVersion }) {
-  return <><h3>Versão {version.number} · {version.name}</h3><p>Estado da versão: {statusLabel[version.status]}</p>
+  return <><h3>Versão {version.number} · {version.name}</h3><p className="event-state" data-state={version.status}>Estado da versão: {statusLabel[version.status]}</p>
     <p>Criada em <time dateTime={version.createdAt}>{new Date(version.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
     {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{new Date(version.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
   </>
@@ -96,7 +97,7 @@ function VersionHistory({ denominationId, typeId, publishedVersionId }: { denomi
       <button onClick={() => setAttempt(value => value + 1)}>Atualizar histórico</button>
       {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
         <p role="status">Página {page + 1} · {result.data.total} versões.</p>
-        {result.data.items.length === 0 ? <p>Nenhuma versão no histórico.</p> : <ol className="event-list">{result.data.items.map(version => <li key={version.id}><VersionDetails version={version}/>{version.id === publishedVersionId && <p>Versão publicada de referência na última consulta do template.</p>}</li>)}</ol>}
+        {result.data.items.length === 0 ? <p>Nenhuma versão no histórico.</p> : <ol className="event-list event-version-history">{result.data.items.map(version => <li key={version.id}><VersionDetails version={version}/>{version.id === publishedVersionId && <p>Versão publicada de referência na última consulta do template.</p>}</li>)}</ol>}
         <Pagination page={page} size={result.data.size} total={result.data.total} onChange={setPage} label="Páginas do histórico"/>
       </>}
     </>}
@@ -120,7 +121,7 @@ function TemplateDetails({ denominationId, typeId, mutation }: { denominationId:
   return <>
     <button disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
-      <h2>Estado do template: {statusLabel[result.data.status]}</h2>
+      <h2 className="event-template-state" data-state={result.data.status}>Estado do template: {statusLabel[result.data.status]}</h2>
       {result.data.status === 'DISCONTINUED' && <p>Este template não está disponível para novas ocorrências. Seu histórico foi preservado.</p>}
       <section className="events-panel" aria-labelledby="template-draft-title"><h2 id="template-draft-title">Rascunho atual</h2>
         {result.data.draft ? <VersionDetails version={result.data.draft}/> : <p>Não há rascunho atual.</p>}
@@ -134,21 +135,21 @@ function TemplateDetails({ denominationId, typeId, mutation }: { denominationId:
 export function DenominationCatalogPage() {
   const { denominationId = '' } = useParams()
   const { account } = useAuth()
-  return <><h1 data-page-title="Catálogo denominacional">Catálogo denominacional de eventos</h1><Link to="/eventos">Voltar a Eventos</Link>
+  return <div className="event-admin"><h1 data-page-title="Catálogo denominacional">Catálogo denominacional de eventos</h1><Link to="/eventos">Voltar a Eventos</Link>
     {!isUuid(denominationId) ? <p role="alert">O acesso ao catálogo é inválido. Abra novamente o acesso da sua denominação.</p> :
       <DenominationCatalogWorkspace key={`${account?.id}:${denominationId}`} denominationId={denominationId}/>}
-  </>
+  </div>
 }
 
 export function TemplateHistoryPage() {
   const { denominationId = '', typeId = '' } = useParams()
   const { account } = useAuth()
-  return <><h1 data-page-title="Versões do template">Versões do template de evento</h1>
+  return <div className="event-admin"><h1 data-page-title="Versões do template">Versões do template de evento</h1>
     {!isUuid(denominationId) || !isUuid(typeId) ? <p role="alert">O acesso ao template é inválido. Abra novamente o catálogo da sua denominação.</p> : <>
       <Link to={catalogRoute(denominationId)}>Voltar ao catálogo denominacional</Link>
       <TemplateWorkspace key={`${account?.id}:${denominationId}:${typeId}`} denominationId={denominationId} typeId={typeId}/>
     </>}
-  </>
+  </div>
 }
 
 function TemplateWorkspace({ denominationId, typeId }: { denominationId: string; typeId: string }) {

@@ -20,3 +20,7 @@ Backend: `vinnigump/church_manager`, backlog EVT-001..EVT-032 e PRs #55/#56 (em 
 
 ## Fluxo
 Implementador -> Testador -> Revisor -> aprovação humana. Não iniciar o próximo incremento automaticamente.
+
+## Prestação de contas e rastreabilidade (obrigatório)
+
+Antes de iniciar, em cada handoff e antes de declarar conclusão, seguir `docs/governance/development-reporting.md`. Todo PR deve preencher `.github/pull_request_template.md` com issue canônica, critérios de aceite individualizados, evidências de testes/CI/SHA, riscos, bloqueios e próxima ação. Implementador, Testador e Revisor devem produzir suas próprias evidências; o Coordenador apenas consolida. Não classificar uma issue como CONCLUIDA pelo simples merge de um PR; exigir critérios comprovados e aceite humano conforme fluxo vigente. Não encerrar issues, realizar merge ou deploy automaticamente.
