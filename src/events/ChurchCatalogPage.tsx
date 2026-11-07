@@ -19,7 +19,14 @@ function CatalogRecords({ churchId, mutation }: { churchId: string; mutation: Lo
     let active = true
     const controller = new AbortController()
     listChurchCatalog(churchId, page, controller.signal)
-      .then(data => { if (active) setResult({ key, kind: 'ready', data }) })
+      .then(data => {
+        if (!active) return
+        // O catálogo pode encolher após uma desabilitação ou alteração externa.
+        // Reconsulta somente a última página válida; nunca repete uma escrita.
+        const lastPage = Math.max(0, Math.ceil(data.total / data.size) - 1)
+        if (page > lastPage) { setPage(lastPage); return }
+        setResult({ key, kind: 'ready', data })
+      })
       .catch(error => { if (active) setResult({ key, kind: 'error', message: error instanceof ApiError ? error.message : 'Não foi possível carregar o catálogo. Tente novamente.' }) })
     return () => { active = false; controller.abort() }
   }, [churchId, page, attempt, revision, key])

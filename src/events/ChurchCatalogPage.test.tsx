@@ -161,3 +161,46 @@ describe('consulta paginada do catálogo autorizada', () => {
     expect(screen.getByText('Catálogo B')).toBeInTheDocument()
   })
 })
+
+describe('recuperação da paginação quando o catálogo encolhe', () => {
+  it.each([0, 20])('reconsulta a primeira página quando o total cai para %s', async total => {
+    let shrunk = false
+    const fetcher = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/authorization?')) return json({ allowed: true })
+      const currentPage = Number(new URL(url, 'https://example.test').searchParams.get('page'))
+      return json({ items: shrunk && (currentPage > 0 || total === 0) ? [] : [{ ...item, name: `Tipo da página ${currentPage + 1}` }], page: currentPage, size: 20, total: shrunk ? total : 41 })
+    })
+    vi.stubGlobal('fetch', fetcher)
+    show()
+    await screen.findByText('Tipo da página 1')
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+    await screen.findByText('Tipo da página 2')
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+    await screen.findByText('Tipo da página 3')
+    shrunk = true
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    await screen.findByText(`Página 1 · ${total} tipos de evento no catálogo.`)
+    expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
+    expect(screen.queryByText('Tipo da página 3')).not.toBeInTheDocument()
+    if (total === 0) expect(screen.getByText('Nenhum tipo de evento nesta página.')).toBeInTheDocument()
+    else expect(screen.getByText('Tipo da página 1')).toBeInTheDocument()
+    const reads = fetcher.mock.calls.filter(([url]) => !url.includes('/authorization?'))
+    expect(reads.map(([url]) => new URL(url, 'https://example.test').searchParams.get('page'))).toEqual(['0', '1', '2', '2', '0'])
+    expect(fetcher.mock.calls.every(([, init]) => !init.method || init.method === 'GET')).toBe(true)
+  })
+
+  it('preserva a página atual quando ela ainda existe após atualizar', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/authorization?')) return json({ allowed: true })
+      const currentPage = Number(new URL(url, 'https://example.test').searchParams.get('page'))
+      return json({ ...page, page: currentPage, total: 21 })
+    }))
+    show()
+    await screen.findByText(item.name)
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+    await screen.findByText('Página 2 · 21 tipos de evento no catálogo.')
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    expect(await screen.findByText('Página 2 · 21 tipos de evento no catálogo.')).toBeInTheDocument()
+  })
+})
