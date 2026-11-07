@@ -97,3 +97,15 @@ proxima_acao: Obter links autorizados e identificar a versao servida para comple
 pode_concluir: false
 aceite_humano: PENDENTE
 ```
+
+## Orientação posterior e atualização documental — 2026-11-07 UTC
+
+O usuário dispensou validação visual como requisito dos PRs. Este relatório
+preserva apenas evidências históricas e seus limites; não bloqueia entregas,
+não declara testes pendentes aprovados e não comprova um SHA servido específico.
+Branch do PR #59 atualizada com main f72b9fe sem conflito. Diff contra a base
+contém exclusivamente documentação e artefatos já registrados. git diff --check
+passou; suíte local não reexecutada nesta atualização documental. CI do novo head
+será registrado no PR, sem atribuir seus resultados ao antigo serviço capturado.
+Revisão estática sequencial sem críticos/altos; revisão independente pendente.
+Sem merge em main, deploy ou alteração de código funcional.

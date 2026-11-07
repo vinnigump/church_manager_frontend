@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -37,8 +37,10 @@ describe('Home pública e autenticada', () => {
     expect(screen.getByTestId('route')).toHaveTextContent(/^\/$/)
     expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page')
     expect(within(screen.getByRole('navigation', { name: 'Principal' })).getAllByRole('link')).toHaveLength(3)
-    expect(document.title).toBe('Início | Church Manager')
-    expect(screen.getByRole('main')).toHaveFocus()
+    await waitFor(() => {
+      expect(document.title).toBe('Início | Church Manager')
+      expect(screen.getByRole('main')).toHaveFocus()
+    })
   })
   it.each(['Sair', 'Sair da conta'])('saída %s volta à Home pública e não restaura Minha conta no próximo login', async action => {
     show()
