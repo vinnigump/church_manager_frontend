@@ -16,7 +16,8 @@ local preserva o tom de conflito sem ser substituído pelo estilo global de aler
 
 Sem mudança de modelos, validações ou regras. OPEN_EVENT mantém ausência de resumo
 nominal/capacidade/fila. Mudança de igreja/ocorrência ou estado indisponível remove
-snapshot anterior. Exemplos sintéticos continuam somente nos testes. Não há import
+snapshot anterior. Exemplos sintéticos ficam nos testes e na prévia documental
+explicitamente identificada. Não há import
 de RegistrationViews nas rotas de produção, endpoint, storage, botão de inscrição,
 promoção, QR, documento, presença ou promessa de integração. ParticipationNotices
 permanece na fatia própria #6; nenhuma alteração nesse componente.
@@ -29,10 +30,25 @@ Lint/typecheck/566 testes/build/diff --check passaram antes da atualização de 
 Após integração externa de #48, base96e9558: lint/typecheck/573 testes/build/
 diff --check passaram. Build adicional da entrada RegistrationViews com Vite,
 write:false, validou compilação do JS/CSS isolado sem montá-lo ou alterar dist.
-O primeiro resumo do retorno desse build tratou array como objeto; corrigido o
-script de verificação, a saída JS/CSS foi inspecionada com sucesso. Não é render.
-Busca dos imports confirmou que a única referência fora dos testes é a definição
-do componente. npm ci nesta sessão, lockfile intacto.
+A saída JS/CSS foi inspecionada com sucesso. Não é render.
+O componente não é importado pelas rotas do aplicativo. npm ci nesta sessão,
+lockfile intacto.
+
+Após pedido da revisão externa, preparada prévia documental do componente real
+em docs/design/ui-rio-07/registration-preview.html, com entrada exclusiva
+src/previews/RegistrationPreview.tsx. Declarada como dados sintéticos, sem API/vagas/
+inscrições reais. Select controla somente demonstração de confirmação, espera,
+cancelamento, capacidade desconhecida/inconsistente, textos longos, evento aberto,
+loading/erro/conflito/indisponível. Não é rota nem entrada do build de produção.
+Permite homologação humana em ambiente autorizado; não foi aberta nesta sessão e
+não atende por si só ao pedido de capturas/matriz/zoom da revisão.
+Base b8096d5 após #49: lint/typecheck/578 testes/build/diff --check passaram; build
+isolado write:false da prévia validou também seus imports/CSS. Busca de imports e
+marcador no bundle principal confirmou que não entrou no aplicativo de produção.
+Como #50 foi integrado externamente antes desse complemento, a prévia foi separada
+em branch/PR próprios sobre02617b1, que já contém #50/#51. Nessa base, lint/typecheck/
+580 testes/build/diff --check e build isolado da prévia passaram. Nenhuma alteração
+do comportamento de inscrição foi acrescentada pelo complemento.
 
 Contraste calculado a partir das cores sRGB, sem captura: atenção6,48; confirmação
 6,90; texto auxiliar sobre branco4,92; erro sobre branco7,86. Esses números cobrem
