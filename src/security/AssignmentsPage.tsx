@@ -6,7 +6,7 @@ import { isUuid } from '../validation'
 import { listAssignments, readAssignment, type Assignment } from './assignments-api'
 import { Pagination, ReadResult, securityRoute, useRead } from './SecurityPages'
 
-function Metadata({ value }: { value: Assignment }) {
+export function AssignmentMetadata({ value }: { value: Assignment }) {
   return <><p>Identificador da conta: {value.userId}</p><p>Identificador do perfil: {value.profileId}</p>
     <p>Unidade organizacional: {value.organizationUnitId}</p><p>Estado registrado: {value.status}</p>
     <p>Início inclusivo: <time dateTime={value.startsAt}>{new Date(value.startsAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
@@ -20,7 +20,7 @@ function List({ denominationId }: { denominationId: string }) {
   return <ReadResult query={query} label="atribuições">{data => <>
     <p role="status">Página {page + 1} · {data.total} atribuições.</p>
     {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}>
-      <h2>Atribuição {item.id}</h2><Metadata value={item}/>
+      <h2>Atribuição {item.id}</h2><AssignmentMetadata value={item}/>
       <Link to={`${securityRoute(denominationId)}/atribuicoes/${item.id}`}>Consultar atribuição {item.id}</Link>
     </li>)}</ul> : <p>Nenhuma atribuição nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das atribuições"/>
@@ -29,7 +29,9 @@ function List({ denominationId }: { denominationId: string }) {
 function Detail({ denominationId, assignmentId }: { denominationId: string; assignmentId: string }) {
   const load = useCallback((signal: AbortSignal) => readAssignment(denominationId, assignmentId, signal), [denominationId, assignmentId])
   const query = useRead(JSON.stringify([denominationId, assignmentId]), load)
-  return <ReadResult query={query} label="atribuição">{data => <><h2>Atribuição {data.id}</h2><Metadata value={data}/></>}</ReadResult>
+  return <ReadResult query={query} label="atribuição">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
+    {data.status === 'ACTIVE' && <Link to={`${securityRoute(denominationId)}/atribuicoes/${data.id}/revogar`}>Revogar atribuição</Link>}
+  </>}</ReadResult>
 }
 export default function AssignmentsPage() {
   const { denominationId = '', assignmentId } = useParams()

@@ -38,3 +38,14 @@ export async function readAssignment(denominationId: string, assignmentId: strin
   if (result.id !== assignmentId) throw invalid()
   return result
 }
+export async function revokeAssignment(denominationId: string, current: Assignment, signal?: AbortSignal, client: ApiClient = api) {
+  const value = parse(current)
+  if (value.status !== 'ACTIVE' || value.revision === Number.MAX_SAFE_INTEGER) throw invalid()
+  const raw = await client.request<unknown>(`${path(denominationId, value.id)}/revoke`, {
+    method: 'POST', headers: { 'X-Expected-Revision': String(value.revision) }, signal,
+  })
+  if (typeof raw !== 'object' || !raw || Array.isArray(raw)) throw invalid()
+  const result = raw as Record<string, unknown>
+  if (result.id !== value.id || result.status !== 'REVOKED' || !integer(result.revision) || result.revision !== value.revision + 1) throw invalid()
+  return { id: value.id, status: 'REVOKED' as const, revision: result.revision }
+}
