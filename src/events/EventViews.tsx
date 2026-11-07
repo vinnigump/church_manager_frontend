@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from 'react'
-import { dateTime, localDate, type AgendaItem, type CatalogItem, type ChurchContext, type ViewState } from './presentation'
+import { canDisplayAgenda, dateTime, localDate, type AgendaItem, type CatalogItem, type ChurchContext, type ViewState } from './presentation'
 import './events.css'
 
 function Result<T>({ state, children }: { state: ViewState<T>; children: (items: readonly T[]) => ReactNode }) {
@@ -44,7 +44,9 @@ export function EventAgenda({ church, timeZone, state }: { church: ChurchContext
       <label htmlFor={`${id}-end`}>Data final<input id={`${id}-end`} type="date" value={end} onChange={event => setEnd(event.target.value)} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}/></label>
     </fieldset>
     {invalid ? <p id={`${id}-error`} role="alert">A data final deve ser igual ou posterior à inicial.</p> : <Result state={state}>{items => {
-      const visible = items.filter(item => item.churchId === church.id)
+      const scoped = items.filter(item => item.churchId === church.id)
+      if (!canDisplayAgenda(scoped, timeZone)) return <p role="alert">Não foi possível exibir a agenda: período ou fuso horário inválido. Atualize os dados.</p>
+      const visible = scoped
         .filter(item => (!start || localDate(item.endsAt, timeZone) >= start) && (!end || localDate(item.startsAt, timeZone) <= end))
         .slice().sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))
       return visible.length ? <ol className="event-list">{visible.map(item => <li key={item.id}>
