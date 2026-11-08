@@ -8,6 +8,7 @@ import EventsPage from './events/EventViews'
 import OccurrencePages from './events/OccurrencePages'
 import PlanningPage from './events/PlanningPage'
 import SpaceEditorPage from './events/SpaceEditorPage'
+import AnnualCopyPage from './events/AnnualCopyPage'
 import OccurrenceTransitionPage from './events/OccurrenceTransitionPage'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
@@ -58,6 +59,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/transicoes/:action" element={<OccurrenceTransitionPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
+    <Route path="eventos/igrejas/:churchId/planejamento/copiar" element={<AnnualCopyPage />}/>
     <Route path="eventos/igrejas/:churchId/calendarios" element={<AnnualCalendarPage />}/>
     <Route path="eventos/igrejas/:churchId/planejamento/gerar" element={<AnnualGenerationPage />}/>
     <Route path="eventos/igrejas/:churchId/calendarios/:year" element={<AnnualCalendarPage />}/>

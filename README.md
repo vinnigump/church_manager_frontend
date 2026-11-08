@@ -233,3 +233,11 @@ continuam somente em memória, com nova autorização em cada operação no serv
 Evidências e limites: [consulta de versões FE-04](docs/events/fe-04-template-history.md).
 
 Gestão de versões: [relatório FE-04](docs/events/fe-04-template-lifecycle.md).
+
+## Cópia manual de planejamento anual
+
+O catálogo autorizado oferece cópia de até100 rascunhos selecionados manualmente,
+com revisões originais, confirmação e CSRF. O servidor valida os anos no fuso da
+igreja e cria destinos independentes, preservando as origens. Reenvio pode duplicar
+planejamento; a tela mantém trava após a tentativa e orienta conferir a lista.
+[Contrato, limites e testes](docs/events/fe-04-annual-copy.md).
