@@ -58,17 +58,31 @@ export function useTemplateMutation(denominationId: string) {
 }
 export type TemplateMutation = ReturnType<typeof useTemplateMutation>
 
-export function TemplateActions({ template, mutation }: { template: EventTemplate; mutation: TemplateMutation }) {
+export function TemplateActions({ template, mutation, section = 'editing' }: { template: EventTemplate; mutation: TemplateMutation; section?: 'editing' | 'availability' }) {
   const id = useId()
   const name = mutation.editor?.name ?? template.draft?.name ?? ''
   const [error, setError] = useState('')
   const [confirm, setConfirm] = useState<'publish' | 'discontinue' | null>(null)
-  if (template.status === 'DISCONTINUED') return null
+  const confirmationTrigger = useRef<HTMLButtonElement>(null)
+  function cancelConfirmation() { setConfirm(null); confirmationTrigger.current?.focus() }
+  if (template.status === 'DISCONTINUED' && section === 'editing') return null
   const snapshot = mutation.editor?.snapshot
   const stale = Boolean(snapshot && (snapshot.revision !== template.revision || snapshot.publishedVersionId !== template.publishedVersionId
     || snapshot.status !== template.status || snapshot.draft?.id !== template.draft?.id || snapshot.draft?.revision !== template.draft?.revision))
   const disabled = mutation.busy || mutation.blocked || stale
   const dirty = template.draft && name.trim() !== template.draft.name
+  if (section === 'availability') return <section className="events-panel template-availability" aria-labelledby={`${id}-title`} aria-busy={mutation.busy}>
+    <h2 id={`${id}-title`}>Disponibilidade para novas ocorrências</h2>
+    {template.status === 'DISCONTINUED' ? <p>Este template não está disponível para novas ocorrências. Seu histórico foi preservado.</p> : template.status === 'PUBLISHED' ? <>
+      <p>Descontinuar impede novas ocorrências deste template. Histórico e ocorrências existentes serão preservados. Esta ação não pode ser revertida.</p>
+      <div className="event-actions"><button ref={confirmationTrigger} data-tone="attention" disabled={disabled} onClick={() => setConfirm('discontinue')}>Descontinuar template</button></div>
+      {confirm === 'discontinue' && <div role="group" aria-label="Confirmar descontinuação">
+        <p>Confirmar descontinuação deste template? Histórico e ocorrências existentes serão preservados. Esta ação não pode ser revertida.</p>
+        <div className="event-actions"><button data-tone="attention" disabled={disabled} onClick={async () => { if (await mutation.run(template, 'discontinue')) setConfirm(null) }}>Confirmar descontinuação</button>
+          <button data-tone="secondary" disabled={mutation.busy} onClick={cancelConfirmation}>Cancelar alteração</button></div>
+      </div>}
+    </> : <p>O template ainda não foi publicado. A publicação da versão é uma operação separada da publicação de ocorrências.</p>}
+  </section>
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (disabled) return
@@ -88,14 +102,12 @@ export function TemplateActions({ template, mutation }: { template: EventTemplat
         <button disabled={disabled}>Salvar rascunho</button>
       </form>
       {dirty && <p>Salve as alterações do nome antes de publicar.</p>}
-      <button disabled={disabled || Boolean(dirty)} onClick={() => setConfirm('publish')}>Publicar versão</button>
+      <button ref={confirmationTrigger} disabled={disabled || Boolean(dirty)} onClick={() => setConfirm('publish')}>Publicar versão</button>
     </> : template.status === 'PUBLISHED' && <button disabled={disabled} onClick={() => { void mutation.run(template, 'createDraft') }}>Criar novo rascunho</button>}
-    {template.status === 'PUBLISHED' && <button disabled={disabled} onClick={() => setConfirm('discontinue')}>Descontinuar template</button>}
-    {confirm && <div role="group" aria-label={confirm === 'publish' ? 'Confirmar publicação' : 'Confirmar descontinuação'}>
-      <p>{confirm === 'publish' ? `Publicar a versão ${template.draft?.number}: ${template.draft?.name}? A versão publicada será imutável; ocorrências anteriores não serão alteradas.`
-        : 'Descontinuar impede novas ocorrências deste template. Histórico e ocorrências existentes serão preservados. Esta ação não pode ser revertida.'}</p>
-      <button disabled={disabled || (confirm === 'publish' && Boolean(dirty))} onClick={async () => { if (await mutation.run(template, confirm)) setConfirm(null) }}>Confirmar {confirm === 'publish' ? 'publicação' : 'descontinuação'}</button>{' '}
-      <button disabled={mutation.busy} onClick={() => setConfirm(null)}>Cancelar alteração</button>
+    {confirm === 'publish' && <div role="group" aria-label="Confirmar publicação">
+      <p>Publicar a versão {template.draft?.number}: {template.draft?.name}? A versão publicada será imutável; ocorrências anteriores não serão alteradas.</p>
+      <div className="event-actions"><button disabled={disabled || Boolean(dirty)} onClick={async () => { if (await mutation.run(template, 'publish')) setConfirm(null) }}>Confirmar publicação</button>
+        <button data-tone="secondary" disabled={mutation.busy} onClick={cancelConfirmation}>Cancelar alteração</button></div>
     </div>}
   </section>
 }

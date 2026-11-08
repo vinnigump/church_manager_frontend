@@ -18,8 +18,8 @@ const message = (error: unknown) => error instanceof ApiError ? error.message : 
 
 function Pagination({ page, size, total, onChange, label, disabled = false }: { page: number; size: number; total: number; onChange: (page: number) => void; label: string; disabled?: boolean }) {
   return <nav className="catalog-pagination" aria-label={label}>
-    <button disabled={disabled || page === 0} onClick={() => onChange(page - 1)}>Página anterior</button>
-    <button disabled={disabled || page >= 100000 || (page + 1) * size >= total} onClick={() => onChange(page + 1)}>Próxima página</button>
+    <button data-tone="secondary" disabled={disabled || page === 0} onClick={() => onChange(page - 1)}>Página anterior</button>
+    <button data-tone="secondary" disabled={disabled || page >= 100000 || (page + 1) * size >= total} onClick={() => onChange(page + 1)}>Próxima página</button>
   </nav>
 }
 
@@ -44,7 +44,7 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
   }, [denominationId, page, attempt, revision, key, acknowledgeRead, failureGeneration])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando templates…</p>
   return <>
-    <button disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
+    <button data-tone="secondary" disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <p role="status">Página {page + 1} · {result.data.total} templates no catálogo.</p>
       {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id}>
@@ -94,7 +94,7 @@ function VersionHistory({ denominationId, typeId, publishedVersionId }: { denomi
   return <section className="events-panel" aria-labelledby="template-history-title"><h2 id="template-history-title">Histórico de versões</h2>
     <p>Versões publicadas são imutáveis. Ocorrências existentes preservam sua versão anterior.</p>
     {!result || result.key !== key ? <p role="status" aria-busy="true">Carregando histórico…</p> : <>
-      <button onClick={() => setAttempt(value => value + 1)}>Atualizar histórico</button>
+      <button data-tone="secondary" onClick={() => setAttempt(value => value + 1)}>Atualizar histórico</button>
       {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
         <p role="status">Página {page + 1} · {result.data.total} versões.</p>
         {result.data.items.length === 0 ? <p>Nenhuma versão no histórico.</p> : <ol className="event-list event-version-history">{result.data.items.map(version => <li key={version.id}><VersionDetails version={version}/>{version.id === publishedVersionId && <p>Versão publicada de referência na última consulta do template.</p>}</li>)}</ol>}
@@ -119,16 +119,21 @@ function TemplateDetails({ denominationId, typeId, mutation }: { denominationId:
   }, [denominationId, typeId, attempt, revision, key])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando template…</p>
   return <>
-    <button disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
-    {mutation.editor && <button disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh(); setAttempt(value => value + 1) }}>Descartar alterações locais e atualizar template</button>}
+    <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
+    {mutation.editor && <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh(); setAttempt(value => value + 1) }}>Descartar alterações locais e atualizar template</button>}
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
-      <h2 className="event-template-state" data-state={result.data.status}>Estado do template: {statusLabel[result.data.status]}</h2>
-      {result.data.status === 'DISCONTINUED' && <p>Este template não está disponível para novas ocorrências. Seu histórico foi preservado.</p>}
+      <section className="events-panel" aria-labelledby="template-identification-title"><h2 id="template-identification-title">Identificação do template</h2>
+        <p>Template: {result.data.id}</p>
+        <p className="event-template-state" data-state={result.data.status}>Estado do template: {statusLabel[result.data.status]}</p>
+        <p>{result.data.publishedVersionId ? <>Versão publicada de referência: <code>{result.data.publishedVersionId}</code></> : 'Sem versão publicada de referência.'}</p>
+        <p>A referência publicada é distinta do rascunho e do estado geral do template. Os nomes e números das versões estão no rascunho e no histórico consultados.</p>
+      </section>
       <section className="events-panel" aria-labelledby="template-draft-title"><h2 id="template-draft-title">Rascunho atual</h2>
         {result.data.draft ? <VersionDetails version={result.data.draft}/> : <p>Não há rascunho atual.</p>}
       </section>
       <TemplateActions key={`${result.data.revision}:${result.data.draft?.id}:${result.data.draft?.revision}`} template={result.data} mutation={mutation}/>
       <VersionHistory key={`${attempt}:${revision}`} denominationId={denominationId} typeId={typeId} publishedVersionId={result.data.publishedVersionId}/>
+      <TemplateActions key={`availability:${result.data.revision}:${result.data.draft?.id}:${result.data.draft?.revision}`} section="availability" template={result.data} mutation={mutation}/>
     </>}
   </>
 }

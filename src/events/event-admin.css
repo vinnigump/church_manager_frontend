@@ -28,3 +28,16 @@
   .event-admin form > button { justify-self: stretch; }
   .event-admin .catalog-pagination > button { flex: 1 1 10rem; }
 }
+
+/* D1/D4: hierarchy applies to controls outside forms as well. */
+.event-admin button[data-tone="secondary"] { background: var(--rio-color-surface); color: var(--rio-color-primary); border-color: var(--rio-color-input-border); }
+.event-admin button[data-tone="secondary"]:hover:not(:disabled) { background: var(--rio-color-soft); }
+.event-admin button[data-tone="attention"] { background: #fff4dc; color: #77510b; border-color: #77510b; }
+.event-admin button[data-tone="attention"]:hover:not(:disabled) { background: #ffe9b5; }
+.event-admin .event-actions { display: flex; flex-wrap: wrap; gap: var(--rio-space-3); min-width: 0; }
+.event-admin .template-availability { margin-block-start: var(--rio-space-5); border-inline-start: 4px solid #77510b; }
+.event-admin code { overflow-wrap: anywhere; }
+@media (max-width: 40rem) {
+  .event-admin .event-actions { flex-direction: column; align-items: stretch; }
+  .event-admin .event-actions > button { width: 100%; white-space: normal; }
+}

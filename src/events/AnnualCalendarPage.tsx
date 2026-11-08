@@ -79,7 +79,7 @@ function PublicationAction({ calendar, mutation }: { calendar: AnnualCalendar; m
   return confirm ? <div role="group" aria-label="Confirmar publicação do planejamento">
     <p>{published ? 'Retirar a publicação do planejamento anual?' : 'Publicar o planejamento anual?'} Esta ação não altera ocorrências, inscrições ou check-in e não concede acesso público por esta tela.</p>
     <button disabled={mutation.busy || mutation.blocked} onClick={() => { void mutation.run(calendar, !published) }}>Confirmar {published ? 'retirada de publicação' : 'publicação'}</button>{' '}
-    <button disabled={mutation.busy} onClick={() => setConfirm(false)}>Cancelar alteração</button>
+    <button data-tone="secondary" disabled={mutation.busy} onClick={() => setConfirm(false)}>Cancelar alteração</button>
   </div> : <button disabled={mutation.busy || mutation.blocked} onClick={() => setConfirm(true)}>{published ? 'Retirar publicação do planejamento' : 'Publicar planejamento anual'}</button>
 }
 
@@ -101,7 +101,7 @@ function CalendarRecords({ churchId, year, mutation }: { churchId: string; year:
   }, [churchId, year, attempt, revision, key])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando calendário…</p>
   return <>
-    <button disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar calendário</button>
+    <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar calendário</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : result.kind === 'missing' ? <>
       <p>Não há calendário anual para {year} nesta igreja.</p>
       <button disabled={mutation.busy || mutation.blocked} onClick={() => { void mutation.run(null) }}>Criar calendário anual</button>
