@@ -19,12 +19,6 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
-O catálogo autorizado oferece geração de nova série anual em rascunho, com
-frequências diária/semanal/mensal dentro do ano, conforme decisões posteriores
-do backend EVT-008 e contrato `event-planning-v1` 1.0.0. Fuso e ajustes são
-calculados no servidor; confirmação explícita e trava evitam retry automático
-de um endpoint sem idempotência. [Escopo e testes](docs/events/fe-04-annual-generation.md).
-
 O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
 confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
 reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
@@ -35,6 +29,12 @@ O detalhe da ocorrência oferece espaço e sobreposições de planejamento
 de espaço somente do rascunho com revisão compartilhada. Alertas não confirmam
 disponibilidade, reserva ou autorização de publicar.
 [Relatório FE-04](docs/events/fe-04-space-planning.md).
+
+O catálogo autorizado oferece geração de nova série anual em rascunho, com
+frequências diária/semanal/mensal dentro do ano, conforme decisões posteriores
+do backend EVT-008 e contrato `event-planning-v1` 1.0.0. Fuso e ajustes são
+calculados no servidor; confirmação explícita e trava evitam retry automático
+de um endpoint sem idempotência. [Escopo e testes](docs/events/fe-04-annual-generation.md).
 
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 

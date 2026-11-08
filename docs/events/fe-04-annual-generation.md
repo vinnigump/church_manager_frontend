@@ -66,6 +66,12 @@ requisito dos PRs por instrução atual do usuário.
 
 ## Revisor
 
+Conferência de compatibilidade após abrir PR: merge-tree entre filtros73 e
+geração75 identificou conflito somente no README (ambos adicionavam resumo no
+mesmo ponto). Reposicionada a seção de geração após planejamento de espaço,
+preservando os dois textos sem alterar código funcional. diff --check passou;
+novo head exige CI,900 testes locais anteriores cobrem o código inalterado.
+
 Revisão estática sequencial de rota/guardas, catálogos, JSON/CSRF, limites,
 resposta, travas/aborto, precisão e ausência de efeitos de participação.
 Sem achado crítico/alto remanescente identificado; revisão independente PENDENTE.
