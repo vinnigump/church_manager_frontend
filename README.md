@@ -25,10 +25,12 @@ e paginação usam o total do servidor; período inclui interseções positivas,
 sem reinterpretar OPEN/CLOSED ou abrir uma agenda pública.
 [Contrato e testes](docs/events/fe-04-occurrence-filters.md).
 
-O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
-confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
-reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
-obrigatória ainda pendente. [Escopo/testes](docs/events/fe-04-occurrence-transitions.md).
+O detalhe oferece publicação, despublicação, cancelamento e conclusão com permissão
+própria, confirmação, CSRF e revisão. A publicação usa `event-lifecycle-v1` 1.1.0;
+o servidor exige coordenação formal ativa e reavalia conflitos e horários.
+A tela publica sem solicitar exceções críticas; conflitos críticos precisam ser
+resolvidos antes da tentativa. [Publicação e limites](docs/events/fe-04-occurrence-publication.md).
+[Demais transições](docs/events/fe-04-occurrence-transitions.md).
 
 O detalhe da ocorrência oferece espaço e sobreposições de planejamento
 (`event-spaces-v1` 1.0.0): resumo global, candidatos paginados e configuração
@@ -233,3 +235,11 @@ continuam somente em memória, com nova autorização em cada operação no serv
 Evidências e limites: [consulta de versões FE-04](docs/events/fe-04-template-history.md).
 
 Gestão de versões: [relatório FE-04](docs/events/fe-04-template-lifecycle.md).
+
+## Cópia manual de planejamento anual
+
+O catálogo autorizado oferece cópia de até100 rascunhos selecionados manualmente,
+com revisões originais, confirmação e CSRF. O servidor valida os anos no fuso da
+igreja e cria destinos independentes, preservando as origens. Reenvio pode duplicar
+planejamento; a tela mantém trava após a tentativa e orienta conferir a lista.
+[Contrato, limites e testes](docs/events/fe-04-annual-copy.md).
