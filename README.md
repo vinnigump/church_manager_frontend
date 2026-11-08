@@ -36,6 +36,12 @@ de espaço somente do rascunho com revisão compartilhada. Alertas não confirma
 disponibilidade, reserva ou autorização de publicar.
 [Relatório FE-04](docs/events/fe-04-space-planning.md).
 
+O catálogo autorizado oferece geração de nova série anual em rascunho, com
+frequências diária/semanal/mensal dentro do ano, conforme decisões posteriores
+do backend EVT-008 e contrato `event-planning-v1` 1.0.0. Fuso e ajustes são
+calculados no servidor; confirmação explícita e trava evitam retry automático
+de um endpoint sem idempotência. [Escopo e testes](docs/events/fe-04-annual-generation.md).
+
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
 O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).
