@@ -19,6 +19,12 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
+A lista administrativa de ocorrências permite aplicar limites UTC opcionais,
+modalidade e estado, conforme `event-occurrences-v1` 1.1.0. Filtros combinados
+e paginação usam o total do servidor; período inclui interseções positivas,
+sem reinterpretar OPEN/CLOSED ou abrir uma agenda pública.
+[Contrato e testes](docs/events/fe-04-occurrence-filters.md).
+
 O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
 confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
 reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
