@@ -103,6 +103,30 @@ describe('contratos de escrita local', () => {
 })
 
 describe('gestão local na tela de catálogo', () => {
+  it('preserva nome não enviado ao revalidar foco, mas oculta formulário quando perde permissão', async () => {
+    const fetcher = server()
+    const handler = fetcher.getMockImplementation()!
+    let createAllowed = true
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes('/authorization?') && new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'EVENT_CREATE'
+      ? json({ allowed: createAllowed }) : handler(url, init))
+    await show()
+    fireEvent.change(await screen.findByLabelText('Nome do tipo de evento'), { target: { value: 'Nome ainda não enviado' } })
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do tipo de evento')).toHaveValue('Nome ainda não enviado')
+    createAllowed = false; fireEvent(window, new Event('focus'))
+    await screen.findByText(local.name)
+    expect(screen.queryByDisplayValue('Nome ainda não enviado')).not.toBeInTheDocument()
+    createAllowed = true; fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do tipo de evento')).toHaveValue('Nome ainda não enviado')
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('nome não enviado de uma igreja não passa para outra igreja', async () => {
+    const fetcher = server(); await show(true)
+    fireEvent.change(await screen.findByLabelText('Nome do tipo de evento'), { target: { value: 'Nome da igreja A' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Outra igreja' }))
+    expect(await screen.findByLabelText('Nome do tipo de evento')).toHaveValue('')
+    expect(writes(fetcher)).toHaveLength(0)
+  })
   it('EVENT_VIEW não revela ações CREATE/EDIT negadas', async () => {
     server({ create: false, edit: false })
     await show()

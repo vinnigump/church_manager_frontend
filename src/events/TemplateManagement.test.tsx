@@ -108,6 +108,59 @@ describe('comandos publicados EVT-006', () => {
   })
 })
 
+describe('rascunho local durante reautorização de template', () => {
+  it('mantém nome e bloqueio de publicar alterações não salvas após foco', async () => {
+    const fetcher = server(); await show()
+    const field = await screen.findByLabelText('Nome do rascunho')
+    fireEvent.change(field, { target: { value: 'Nome não salvo' } })
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do rascunho')).toHaveValue('Nome não salvo')
+    expect(screen.getByRole('button', { name: 'Publicar versão' })).toBeDisabled()
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it.each([
+    { ...editing, draft: { ...draft, name: 'Nome externo', revision: 4 } },
+    { ...editing, revision: 9, publishedVersionId: draft.id, draft: { ...draft, id: denomination, number: 3, name: 'Nome externo', revision: 0 } },
+  ])('revisão concorrente não apaga nome local nem permite sobrescrever versão nova', async changed => {
+    const fetcher = server()
+    const handler = fetcher.getMockImplementation()!
+    let current = editing
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.endsWith(`/types/${typeId}`) && !init?.method ? json(current) : handler(url, init))
+    await show()
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho'), { target: { value: 'Nome não salvo' } })
+    current = changed; fireEvent(window, new Event('focus'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('template mudou')
+    expect(screen.getByLabelText('Nome do rascunho')).toHaveValue('Nome não salvo')
+    expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Publicar versão' })).toBeDisabled()
+    fireEvent.submit(screen.getByLabelText('Nome do rascunho').closest('form')!)
+    expect(writes(fetcher)).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar alterações locais e atualizar template' }))
+    expect(await screen.findByLabelText('Nome do rascunho')).toHaveValue('Nome externo')
+    expect(screen.getByRole('button', { name: 'Publicar versão' })).toBeEnabled()
+  })
+  it('não transporta nome local para outra denominação', async () => {
+    const fetcher = server(); await show(true)
+    fireEvent.change(await screen.findByLabelText('Nome do rascunho'), { target: { value: 'Nome local A' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
+    expect(await screen.findByLabelText('Nome do rascunho')).toHaveValue(draft.name)
+    expect(writes(fetcher)).toHaveLength(0)
+  })
+  it('erro seguido de foco mantém nome local e trava até conferir novamente', async () => {
+    const fetcher = server(editing, async () => new Response(null, { status: 500 }))
+    await show(); await edit('Nome não confirmado')
+    await screen.findByRole('alert')
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('Nome do rascunho')).toHaveValue('Nome não confirmado')
+    expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeDisabled()
+    expect(writes(fetcher)).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar alterações locais e atualizar template' }))
+    expect(await screen.findByLabelText('Nome do rascunho')).toHaveValue(draft.name)
+    expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeEnabled()
+    expect(writes(fetcher)).toHaveLength(1)
+  })
+})
+
 describe('gerência autorizada de versões', () => {
   it('cria rascunho, edita, confirma publicação e descontinuação', async () => {
     const fetcher = server(published)

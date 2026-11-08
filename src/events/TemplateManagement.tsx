@@ -6,6 +6,7 @@ const success = { createDraft: 'Rascunho criado.', editDraft: 'Rascunho salvo.',
 
 // Permanece acima da guarda: reconsulta de foco não perde a trava da escrita.
 export function useTemplateMutation(denominationId: string) {
+  const [editor, setEditor] = useState<{ snapshot: EventTemplate; name: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [message, setMessage] = useState('')
@@ -26,6 +27,7 @@ export function useTemplateMutation(denominationId: string) {
     try {
       await changeTemplate(denominationId, template, command, name, controller.signal)
       if (!active.current) return false
+      setEditor(null)
       setMessage(success[command]); setRevision(value => value + 1)
       return true
     } catch (error) {
@@ -48,31 +50,40 @@ export function useTemplateMutation(denominationId: string) {
     setBlocked(false)
     if (failed) { setMessage(''); setFailed(false) }
   }
-  return { busy, blocked, message, failed, revision, run, refresh }
+  function changeName(template: EventTemplate, name: string) {
+    setEditor(value => value ? { ...value, name } : { snapshot: template, name })
+  }
+  function discardChanges() { if (!request.current) setEditor(null) }
+  return { busy, blocked, message, failed, revision, run, refresh, editor, changeName, discardChanges }
 }
 export type TemplateMutation = ReturnType<typeof useTemplateMutation>
 
 export function TemplateActions({ template, mutation }: { template: EventTemplate; mutation: TemplateMutation }) {
   const id = useId()
-  const [name, setName] = useState(template.draft?.name ?? '')
+  const name = mutation.editor?.name ?? template.draft?.name ?? ''
   const [error, setError] = useState('')
   const [confirm, setConfirm] = useState<'publish' | 'discontinue' | null>(null)
   if (template.status === 'DISCONTINUED') return null
-  const disabled = mutation.busy || mutation.blocked
+  const snapshot = mutation.editor?.snapshot
+  const stale = Boolean(snapshot && (snapshot.revision !== template.revision || snapshot.publishedVersionId !== template.publishedVersionId
+    || snapshot.status !== template.status || snapshot.draft?.id !== template.draft?.id || snapshot.draft?.revision !== template.draft?.revision))
+  const disabled = mutation.busy || mutation.blocked || stale
   const dirty = template.draft && name.trim() !== template.draft.name
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (disabled) return
     if (!name.trim() || name.trim().length > 180) { setError('Informe um nome de até 180 caracteres.'); return }
     setError(''); setConfirm(null)
-    await mutation.run(template, 'editDraft', name)
+    await mutation.run(snapshot ?? template, 'editDraft', name)
   }
   return <section className="events-panel" aria-labelledby={`${id}-title`} aria-busy={mutation.busy}>
     <h2 id={`${id}-title`}>Gerenciar template</h2>
+    {stale && <p role="alert">O template mudou durante a edição. Descarte as alterações locais e atualize antes de salvar ou publicar.</p>}
     {mutation.busy && <p role="status">Salvando alteração…</p>}
     {template.draft ? <>
       <form onSubmit={submit}>
         <label htmlFor={`${id}-name`}>Nome do rascunho</label>
-        <input id={`${id}-name`} value={name} maxLength={180} required disabled={disabled} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} onChange={event => { setName(event.target.value); setConfirm(null) }}/>
+        <input id={`${id}-name`} value={name} maxLength={180} required disabled={disabled} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} onChange={event => { mutation.changeName(template, event.target.value); setConfirm(null) }}/>
         {error && <p role="alert" id={`${id}-error`}>{error}</p>}
         <button disabled={disabled}>Salvar rascunho</button>
       </form>

@@ -10,6 +10,8 @@ export interface LocalTypeMutation {
   message: string
   failed: boolean
   revision: number
+  draftName: string
+  setDraftName: (value: string) => void
   create: (name: string) => Promise<boolean>
   setEnabled: (item: EventTypeView, enabled: boolean) => Promise<boolean>
 }
@@ -17,6 +19,7 @@ export interface LocalTypeMutation {
 // Mantido acima das guardas de leitura/ação: reconsulta por foco não perde o
 // resultado de uma escrita que já está em andamento nem permite outro envio.
 export function useLocalTypeMutation(churchId: string): LocalTypeMutation {
+  const [draftName, setDraftName] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<EventTypeView | null>(null)
   const [lastDisabled, setLastDisabled] = useState<EventTypeView | null>(null)
@@ -54,7 +57,7 @@ export function useLocalTypeMutation(churchId: string): LocalTypeMutation {
       }
     }
   }
-  return { busy, result, lastDisabled, message, failed, revision,
+  return { busy, result, lastDisabled, message, failed, revision, draftName, setDraftName,
     create: name => run(signal => createLocalType(churchId, name, signal), 'Tipo local criado.'),
     setEnabled: (item, enabled) => run(signal => setLocalTypeEnabled(churchId, item, enabled, signal), enabled ? 'Tipo local habilitado.' : 'Tipo local desabilitado. Ocorrências e inscrições existentes foram preservadas.'),
   }
@@ -62,7 +65,7 @@ export function useLocalTypeMutation(churchId: string): LocalTypeMutation {
 
 export function CreateLocalTypeForm({ mutation }: { mutation: LocalTypeMutation }) {
   const id = useId()
-  const [name, setName] = useState('')
+  const { draftName: name, setDraftName: setName } = mutation
   const [error, setError] = useState('')
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

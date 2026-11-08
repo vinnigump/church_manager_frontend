@@ -4,6 +4,7 @@ import { ApiError } from '../api'
 import { createDenominationalType, type EventTypeView } from './catalog-api'
 
 export function useTemplateCreation(denominationId: string) {
+  const [draftName, setDraftName] = useState('')
   const [busy, setBusy] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [result, setResult] = useState<EventTypeView | null>(null)
@@ -49,13 +50,13 @@ export function useTemplateCreation(denominationId: string) {
     setBlocked(false)
     setMessage(''); setFailed(false)
   }, [])
-  return { busy, blocked, result, message, failed, revision, create, acknowledgeRead, failureGeneration }
+  return { busy, blocked, result, message, failed, revision, create, acknowledgeRead, failureGeneration, draftName, setDraftName }
 }
 export type TemplateCreation = ReturnType<typeof useTemplateCreation>
 
 export function TemplateCreationForm({ creation }: { creation: TemplateCreation }) {
   const id = useId()
-  const [name, setName] = useState('')
+  const { draftName: name, setDraftName: setName } = creation
   const [error, setError] = useState('')
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
