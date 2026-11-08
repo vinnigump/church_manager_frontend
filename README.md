@@ -78,10 +78,11 @@ O cliente tipa apenas os contratos usados. Não há geração de tipos para APIs
 
 ## Consultas administrativas de segurança — FE-01
 
-A auditoria integra `audit-query-v1` 1.5.0 com filtros explícitos de recusas
-administrativas tipadas e de edições seletivas de séries anuais. A consulta padrão
+A auditoria integra `audit-query-v1` 1.6.0 com filtros explícitos de recusas
+administrativas tipadas, edições seletivas de séries e vínculos de grupos. A consulta padrão
 preserva os sete tipos anteriores. Exibe somente metadados; ausência de registros
-não comprova ausência de tentativas. [Contrato e testes](docs/fe-01-series-audit.md).
+não comprova ausência de tentativas. O motivo privado do vínculo não integra
+a auditoria. [Vínculos](docs/fe-01-group-audit.md) · [Séries e recusas](docs/fe-01-series-audit.md).
 
 `/seguranca/denominacoes/:denominationId/perfis` lista os perfis; o detalhe em
 `/perfis/:profileId` apresenta estado, escopo e histórico, com acesso a
