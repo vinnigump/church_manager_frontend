@@ -5,6 +5,7 @@ import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
+import GroupMembershipPages from './membership/GroupMembershipPages'
 import OccurrencePages from './events/OccurrencePages'
 import PlanningPage from './events/PlanningPage'
 import SpaceEditorPage from './events/SpaceEditorPage'
@@ -54,6 +55,8 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="eventos" element={<EventsPage />}/>
+    <Route path="igrejas/:churchId/grupos/:kind/:groupId/vinculos" element={<GroupMembershipPages />}/>
+    <Route path="igrejas/:churchId/grupos/:kind/:groupId/vinculos/:membershipId" element={<GroupMembershipPages />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias" element={<OccurrencePages view="list" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/nova" element={<OccurrencePages view="create" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId" element={<OccurrencePages view="detail" />}/>
