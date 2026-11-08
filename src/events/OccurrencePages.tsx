@@ -27,7 +27,7 @@ function Details({ value }: { value: Occurrence }) {
     <dt>Capacidade</dt><dd>{value.capacity === null ? 'Ilimitada' : value.capacity < 0 ? `Valor legado inválido: ${value.capacity}` : value.capacity}</dd>
     <dt>Primeira publicação</dt><dd>{value.firstPublishedAt ?? 'Sem marco registrado'}</dd>
     <dt>Série vinculada</dt><dd>{value.recurrenceRuleId ?? 'Sem série vinculada'}</dd><dt>Revisão</dt><dd>{value.revision}</dd>
-  </dl></>
+  </dl><p><Link to={`${occurrenceRoute(value.churchId)}/${value.id}/equipe`}>Consultar equipe da ocorrência</Link></p></>
 }
 function OccurrenceList({ churchId, control }: { churchId: string; control: OccurrenceFilterControl }) {
   const { page, setPage, filters } = control

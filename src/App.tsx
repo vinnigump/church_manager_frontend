@@ -10,6 +10,7 @@ import PlanningPage from './events/PlanningPage'
 import SpaceEditorPage from './events/SpaceEditorPage'
 import AnnualCopyPage from './events/AnnualCopyPage'
 import OccurrenceTransitionPage from './events/OccurrenceTransitionPage'
+import OccurrenceTeamPage from './events/OccurrenceTeamPage'
 import ChurchCatalogPage from './events/ChurchCatalogPage'
 import AnnualCalendarPage from './events/AnnualCalendarPage'
 import AnnualGenerationPage from './events/AnnualGenerationPage'
@@ -57,6 +58,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId" element={<OccurrencePages view="detail" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/editar" element={<OccurrencePages view="edit" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/transicoes/:action" element={<OccurrenceTransitionPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/equipe" element={<OccurrenceTeamPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
     <Route path="eventos/igrejas/:churchId/planejamento/copiar" element={<AnnualCopyPage />}/>
