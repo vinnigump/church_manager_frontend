@@ -28,7 +28,7 @@ históricos não foram reescritos nem issues declaradas concluídas.
   na inspeção. CI42525879298 do48156e69 passou; não valida este novo documento.
 - Backend master efc5990003534c72b7a2b55db100e08edbdf7a23 e inventário docs/api;
   sem PR backend aberto na inspeção. event-registration-window-v1 integrado,
-  sem contratos de inscrição/fila/OTP/Jornada/trilhas/autorizações/check-in.
+  sem contratos de inscrição/fila/autocadastro/ativação/Jornada/trilhas/autorizações/check-in.
 - organization.md, MinistryController e OrganizationController: administração
   global não substitui descoberta contextual dos usuários de Eventos.
 - README e rotas/serviços reais distinguem componentes isolados e integrações.
@@ -48,6 +48,14 @@ será conferido no SHA publicado, sem transferir resultado do PR89.
 | D04 | Preservar execução e relatórios históricos | PASSOU | diff somente README e este relatório |
 
 ## Revisor e decisão
+
+Revisão posterior Onda1 autorizada: corrigida no quadro atual a menção a APIs de
+OTP como dependência definitiva de FE-02. A issue64 CF/AP e #72 ID-DEC-045/ID01/02
+definem autocadastro com senha/canal exclusivo confirmado, convite administrativo
+manual e confirmação pelo titular na ativação. Código Basic integrado preservado;
+não implementados contratos futuros. A evidência técnica do head6cc74a1 foi
+1274 testes/49 arquivos, lint/typecheck/build aprovados; o novo head deve ser
+revalidado e registrado no PR. Sem encerramento da issue, merge ou deploy.
 
 Revisão técnica sequencial do mesmo agente, sem achados críticos/altos neste
 escopo documental. Revisão independente PENDENTE. Não cria contrato, permissão,

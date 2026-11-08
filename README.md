@@ -172,7 +172,7 @@ formal de issues. Contratos e integração devem ser reconsultados antes de cada
 | Issue | Entregas existentes | Próxima dependência real |
 | --- | --- | --- |
 | #1 Fundação | React/TypeScript, Basic em memória, HTTP/CSRF, guardas, CI, segurança e auditoria integrados | Descoberta de contextos autorizados e contrato de sessão administrativa técnica; não inferir concessões do login |
-| #2 Acesso público/Minha Jornada | Login Basic existente pertence à fundação | APIs de OTP, Jornada e acesso autorizado a dependentes; Basic não comprova OTP |
+| #2 Acesso público/Minha Jornada | Login Basic existente pertence à fundação | Contratos de autocadastro com senha/canal exclusivo verificado, convite/ativação, recuperação, Jornada e dependentes; OTP-only é legado substituído por CF/AP-2026-11-08 |
 | #3 Trilhas/migração | Sem integração de migração | Contratos de versões/tarefas, prévia, migração, acompanhamento SSE/REST e permissões |
 | #4 Catálogo/eventos | Catálogos, versões, calendário, ocorrências, planejamento, espaços, equipe consultável/liberação, séries e política de audiência integrados | Descoberta contextual para novas referências de audiência e integrantes da equipe; avaliação autoritativa para exceções críticas de publicação; projeção pública |
 | #5 Inscrições | Componentes isolados de apresentação, sem inscrição real | APIs canônicas EVT-013..020 (backend #33..#40): inscrição individual, capacidade, fila, promoção e concorrência |
