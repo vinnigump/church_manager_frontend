@@ -19,7 +19,16 @@ React 19, TypeScript 5.9, Vite 7, React Router 7, Vitest, Testing Library, ESLin
 Backend: `vinnigump/church_manager`, backlog EVT-001..EVT-032 e PRs #55/#56 (em rascunho, não presumir merge). Frontend: issues #4 (catálogo/calendário), #5 (inscrições), #6 (menores/presença). Backend EP-01 (#21..#24) prepara RBAC, auditoria e isolamento.
 
 ## Fluxo
-Implementador -> Testador -> Revisor -> aprovação humana. Não iniciar o próximo incremento automaticamente.
+Implementador -> Testador -> Revisor -> aprovação humana para aceite e integração.
+
+### Continuidade e bloqueios
+
+- Ao abrir um PR em rascunho, continuar outra demanda autorizada e independente, sem esperar aprovação para esse trabalho independente.
+- Antes de cada nova atividade, reler este arquivo e conferir comentários, revisões, CI, conflitos e integração dos PRs anteriores. Retomar dependências quando seus pré-requisitos estiverem efetivamente integrados.
+- Ao encontrar um bloqueio, registrar seu motivo e procurar imediatamente outra atividade disponível no backlog inteiro. Avaliar também correções comprovadas, acessibilidade, testes necessários e documentação autorizada que não dependam do bloqueio; não criar trabalho artificial nem ampliar regras funcionais pendentes.
+- Um bloqueio de uma demanda não bloqueia toda a meta. Somente solicitar intervenção ou declarar a meta bloqueada quando não houver trabalho autorizado executável, após conferir as fontes atuais e registrar as dependências específicas. Não repetir apenas o status de um PR sem reavaliar alternativas.
+- Manter uma atividade por branch/PR. Não usar código ou API de PR pendente como dependência implicitamente integrada. Esta autonomia não autoriza merge, deploy ou aceite humano em nome do usuário.
+- Validação visual não é requisito dos PRs nem bloqueia desenvolvimento, conforme orientação posterior do usuário. Solicitar Run local somente quando houver necessidade concreta de teste com aplicação/backend em execução; não reiniciar aplicações locais por iniciativa própria.
 
 ## Prestação de contas e rastreabilidade (obrigatório)
 

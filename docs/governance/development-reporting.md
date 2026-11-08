@@ -16,6 +16,25 @@ Estados mutuamente exclusivos: `NAO_INICIADA`, `EM_DESENVOLVIMENTO`, `BLOQUEADA`
 - **Dependências:** bloqueio, responsável, ação concreta e issue vinculada.
 - **Decisão:** `PODE_CONCLUIR: SIM/NAO`, justificativa e aceite humano quando requerido.
 
+## Bloqueio de demanda e continuidade da meta
+
+Registrar o bloqueio no escopo da demanda afetada, com dependência, fonte atual,
+responsável e ação necessária. Em seguida, consultar o backlog inteiro e iniciar
+outra atividade autorizada que não dependa desse bloqueio. PR em revisão não
+impede trabalho independente; APIs planejadas não são contratos integrados.
+
+Antes de declarar a meta bloqueada, registrar quais demandas restantes foram
+reavaliadas, quais entregas já existem e quais dependências impedem cada próxima
+atividade. Incluir correções comprovadas e melhorias de qualidade autorizadas na
+triagem, sem fabricar defeitos, testes redundantes ou documentação sem finalidade.
+Título/status antigo de issue não basta para provar disponibilidade ou bloqueio.
+Confirmar código, contratos, requisitos, comentários e integração atuais.
+
+Validação visual não compõe o requisito atual de PR; sua ausência não bloqueia
+outras atividades. Run local só é solicitado por necessidade concreta e não é
+um passo automático após cada push. Essas orientações posteriores do usuário
+prevalecem sobre requisitos históricos em relatórios de entregas anteriores.
+
 ## Resumo legível por máquina (preencher sem inventar)
 ```yaml
 atividade: EVT-XXX
