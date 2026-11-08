@@ -2,8 +2,8 @@ import { api, type ApiClient } from '../api'
 import { isUuid } from '../validation'
 import { instant, type SecurityPage } from './security-api'
 
-// audit-query-v1 1.2.0: AUDIT_LOG is opt-in and contains only typed denials.
-export const auditResources = ['ACCESS_ROLE', 'USER_ROLE_ASSIGNMENT', 'ACCESS_ROLE_DELEGATION', 'EVENT_TYPE', 'EVENT_OCCURRENCE', 'EVENT_ATTENDANCE', 'EVENT_CALENDAR', 'AUDIT_LOG'] as const
+// audit-query-v1 1.5.0: denials and series changes each require explicit opt-in.
+export const auditResources = ['ACCESS_ROLE', 'USER_ROLE_ASSIGNMENT', 'ACCESS_ROLE_DELEGATION', 'EVENT_TYPE', 'EVENT_OCCURRENCE', 'EVENT_ATTENDANCE', 'EVENT_CALENDAR', 'AUDIT_LOG', 'EVENT_RECURRENCE_RULE'] as const
 export type AuditResource = typeof auditResources[number]
 export interface AuditFilters { resourceType?: AuditResource; resourceId?: string; from?: string; to?: string }
 export interface AuditEntry { id: string; occurredAt: string; actorUserId: string; action: string; resourceType: AuditResource; resourceId: string | null; outcome: 'SUCCESS' | 'DENIED' }
@@ -37,7 +37,9 @@ export async function listAudit(denominationId: string, filters: AuditFilters = 
   const items = v.items.map(parse)
   if (new Set(items.map(item => item.id)).size !== items.length || items.some(item =>
     (item.resourceType === 'AUDIT_LOG' && (filters.resourceType !== 'AUDIT_LOG' || item.outcome !== 'DENIED'
-      || !['AUDIT_QUERY_DENIED', 'PROFILE_MANAGEMENT_DENIED', 'ASSIGNMENT_MANAGEMENT_DENIED'].includes(item.action)))
+      || !['AUDIT_QUERY_DENIED', 'PROFILE_MANAGEMENT_DENIED', 'ASSIGNMENT_MANAGEMENT_DENIED', 'PROFILE_READ_DENIED', 'ASSIGNMENT_READ_DENIED', 'DELEGATED_ASSIGNMENT_DENIED'].includes(item.action)))
+    || (item.resourceType === 'EVENT_RECURRENCE_RULE' && (filters.resourceType !== 'EVENT_RECURRENCE_RULE' || item.outcome !== 'SUCCESS'
+      || item.action !== 'EVENT_SERIES_UPDATED' || item.resourceId === null))
     ||
     (filters.resourceType !== undefined && item.resourceType !== filters.resourceType)
     || (filters.resourceId !== undefined && item.resourceId !== filters.resourceId)

@@ -7,7 +7,7 @@ import { auditResources, isAuditResource, listAudit, type AuditFilters, type Aud
 import { instant } from './security-api'
 import { Pagination, ReadResult, useRead } from './SecurityPages'
 
-const labels: Record<AuditResource, string> = { ACCESS_ROLE: 'Perfil', USER_ROLE_ASSIGNMENT: 'Atribuição', ACCESS_ROLE_DELEGATION: 'Fonte de delegação', EVENT_TYPE: 'Tipo de evento', EVENT_OCCURRENCE: 'Ocorrência', EVENT_ATTENDANCE: 'Presença', EVENT_CALENDAR: 'Calendário', AUDIT_LOG: 'Recusas administrativas de consulta e gestão' }
+const labels: Record<AuditResource, string> = { ACCESS_ROLE: 'Perfil', USER_ROLE_ASSIGNMENT: 'Atribuição', ACCESS_ROLE_DELEGATION: 'Fonte de delegação', EVENT_TYPE: 'Tipo de evento', EVENT_OCCURRENCE: 'Ocorrência', EVENT_ATTENDANCE: 'Presença', EVENT_CALENDAR: 'Calendário', AUDIT_LOG: 'Recusas administrativas de consulta e gestão', EVENT_RECURRENCE_RULE: 'Edição de série anual' }
 function utc(value: string) {
   if (!value) return undefined
   const result = `${value.length === 16 ? `${value}:00` : value}Z`
@@ -35,15 +35,16 @@ function Workspace({ denominationId, resourceType, resourceId }: { denominationI
     {resourceId && <p>Recurso selecionado: {labels[resourceType!]} · {resourceId}</p>}
     <form onSubmit={submit}>
       <label htmlFor="audit-type">Tipo de recurso</label><select id="audit-type" value={type} disabled={resourceType !== undefined} onChange={event => setType(event.target.value as AuditResource | '')}>
-        <option value="">Tipos de domínio (sem recusas administrativas)</option>{auditResources.map(value => <option key={value} value={value}>{labels[value]}</option>)}
+        <option value="">Sete tipos anteriores (sem recusas ou séries)</option>{auditResources.map(value => <option key={value} value={value}>{labels[value]}</option>)}
       </select>
       <label htmlFor="audit-from">Início inclusivo (UTC)</label><input id="audit-from" type="datetime-local" step="1" value={from} onChange={event => setFrom(event.target.value)}/>
       <label htmlFor="audit-to">Fim exclusivo (UTC)</label><input id="audit-to" type="datetime-local" step="1" value={to} onChange={event => setTo(event.target.value)}/>
       <p>Digite os horários em UTC. Deixe os campos vazios para não limitar o período.</p>
-      <p>Recusas administrativas exigem seleção explícita do tipo e aplicação do filtro. A consulta padrão preserva os sete tipos de domínio.</p>
+      <p>Recusas administrativas e edições de séries exigem seleção explícita do tipo e aplicação do filtro. A consulta padrão preserva os sete tipos anteriores.</p>
       {error && <p role="alert">{error}</p>}<button>Aplicar filtros de auditoria</button>
     </form>
-    {filters.resourceType === 'AUDIT_LOG' && <p role="note">Esta consulta inclui apenas recusas tipadas de consulta de auditoria e do acesso inicial à gestão central de perfis e atribuições/delegações. Não representa todas as recusas do sistema; ausência de registros não comprova ausência de tentativas.</p>}
+    {filters.resourceType === 'AUDIT_LOG' && <p role="note">Esta consulta inclui apenas recusas tipadas de leitura e gestão administrativa de auditoria, perfis e atribuições/delegações. Não representa todas as recusas do sistema; ausência de registros não comprova ausência de tentativas.</p>}
+    {filters.resourceType === 'EVENT_RECURRENCE_RULE' && <p role="note">Esta consulta inclui somente edições seletivas de séries anuais confirmadas pelo servidor. Não representa todo o histórico de Eventos; geração, cópia e alterações individuais não são listadas por este tipo.</p>}
     <ReadResult query={query} label="auditoria">{data => <>
       <p role="status">Página {page + 1} · {data.total} registros.</p>
       {data.items.length ? <ol className="security-list">{data.items.map(entry => <li key={entry.id}>
