@@ -1,0 +1,194 @@
+[
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 246
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 246
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 156.78125
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 320,
+    "title": "Entrar | Church Manager",
+    "width": 320
+  },
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 286
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 286
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 196.78125
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 360,
+    "title": "Entrar | Church Manager",
+    "width": 360
+  },
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 316
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 316
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 226.78125
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 390,
+    "title": "Entrar | Church Manager",
+    "width": 390
+  },
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 399.9375
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 399.9375
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 310.71875
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 768,
+    "title": "Entrar | Church Manager",
+    "width": 768
+  },
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 384.5625
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 384.5625
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 295.34375
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 1024,
+    "title": "Entrar | Church Manager",
+    "width": 1024
+  },
+  {
+    "buttons": [
+      {
+        "height": 51.59375,
+        "label": "Mostrar",
+        "width": 81.21875
+      },
+      {
+        "height": 51.59375,
+        "label": "Entrar",
+        "width": 382
+      }
+    ],
+    "fields": [
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Login",
+        "width": 382
+      },
+      {
+        "fontSize": "16px",
+        "height": 51.59375,
+        "label": "Senha",
+        "width": 292.78125
+      }
+    ],
+    "navCount": 0,
+    "scrollWidth": 1440,
+    "title": "Entrar | Church Manager",
+    "width": 1440
+  }
+]

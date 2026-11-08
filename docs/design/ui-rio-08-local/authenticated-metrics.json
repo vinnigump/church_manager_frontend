@@ -1,0 +1,494 @@
+[
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 93.328125
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 93.328125
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 93.34375
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 246
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 246
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 320,
+    "title": "Minha conta | Church Manager",
+    "width": 320
+  },
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 106.65625
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 106.671875
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 106.65625
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 286
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 286
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 360,
+    "title": "Minha conta | Church Manager",
+    "width": 360
+  },
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 116.65625
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 116.671875
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 116.65625
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 316
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 316
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 390,
+    "title": "Minha conta | Church Manager",
+    "width": 390
+  },
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 479.9375
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 479.9375
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 768,
+    "title": "Minha conta | Church Manager",
+    "width": 768
+  },
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 141.328125
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 117.796875
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 1024,
+    "title": "Minha conta | Church Manager",
+    "width": 1024
+  },
+  {
+    "page": "account",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 44,
+        "label": "Alterar minha senha",
+        "width": 141.328125
+      },
+      {
+        "height": 51.59375,
+        "label": "Sair da conta",
+        "width": 117.796875
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 1440,
+    "title": "Minha conta | Church Manager",
+    "width": 1440
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 93.328125
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 93.328125
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 93.34375
+      },
+      {
+        "height": 112.390625,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 288
+      },
+      {
+        "height": 137.984375,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 288
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 320,
+    "title": "Início | Church Manager",
+    "width": 320
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 106.65625
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 106.671875
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 106.65625
+      },
+      {
+        "height": 112.390625,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 328
+      },
+      {
+        "height": 112.390625,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 328
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 360,
+    "title": "Início | Church Manager",
+    "width": 360
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 62.390625,
+        "label": "Início",
+        "width": 116.65625
+      },
+      {
+        "height": 62.390625,
+        "label": "Eventos",
+        "width": 116.671875
+      },
+      {
+        "height": 62.390625,
+        "label": "Minha conta",
+        "width": 116.65625
+      },
+      {
+        "height": 112.390625,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 358
+      },
+      {
+        "height": 112.390625,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 358
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 390,
+    "title": "Início | Church Manager",
+    "width": 390
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 137.984375,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 256
+      },
+      {
+        "height": 137.984375,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 256
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 768,
+    "title": "Início | Church Manager",
+    "width": 768
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 112.390625,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 376
+      },
+      {
+        "height": 112.390625,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 376
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 1024,
+    "title": "Início | Church Manager",
+    "width": 1024
+  },
+  {
+    "page": "home",
+    "actions": [
+      {
+        "height": 44,
+        "label": "Sair",
+        "width": 60.078125
+      },
+      {
+        "height": 49.59375,
+        "label": "Início",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Eventos",
+        "width": 167
+      },
+      {
+        "height": 49.59375,
+        "label": "Minha conta",
+        "width": 167
+      },
+      {
+        "height": 112.390625,
+        "label": "Ver eventosAcesse a área de eventos.",
+        "width": 376
+      },
+      {
+        "height": 112.390625,
+        "label": "Acessar minha contaConsulte seu acesso e altere sua senha.",
+        "width": 376
+      }
+    ],
+    "mainFocus": true,
+    "navPosition": "static",
+    "navigationCount": 1,
+    "scrollWidth": 1440,
+    "title": "Início | Church Manager",
+    "width": 1440
+  }
+]
