@@ -25,10 +25,12 @@ e paginação usam o total do servidor; período inclui interseções positivas,
 sem reinterpretar OPEN/CLOSED ou abrir uma agenda pública.
 [Contrato e testes](docs/events/fe-04-occurrence-filters.md).
 
-O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
-confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
-reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
-obrigatória ainda pendente. [Escopo/testes](docs/events/fe-04-occurrence-transitions.md).
+O detalhe oferece publicação, despublicação, cancelamento e conclusão com permissão
+própria, confirmação, CSRF e revisão. A publicação usa `event-lifecycle-v1` 1.1.0;
+o servidor exige coordenação formal ativa e reavalia conflitos e horários.
+A tela publica sem solicitar exceções críticas; conflitos críticos precisam ser
+resolvidos antes da tentativa. [Publicação e limites](docs/events/fe-04-occurrence-publication.md).
+[Demais transições](docs/events/fe-04-occurrence-transitions.md).
 
 O detalhe da ocorrência oferece espaço e sobreposições de planejamento
 (`event-spaces-v1` 1.0.0): resumo global, candidatos paginados e configuração

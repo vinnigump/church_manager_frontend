@@ -10,7 +10,7 @@ import { canRequestTransition, isTransition, transitionOccurrence, transitionPer
 import { occurrenceRoute } from './OccurrencePages'
 import './occurrences.css'
 
-const labels: Record<Transition, string> = { unpublish: 'Despublicar ocorrência', cancel: 'Cancelar ocorrência', complete: 'Concluir ocorrência' }
+const labels: Record<Transition, string> = { publish: 'Publicar ocorrência', unpublish: 'Despublicar ocorrência', cancel: 'Cancelar ocorrência', complete: 'Concluir ocorrência' }
 function useTransitionCommand(churchId: string, action: Transition) {
   const [busy, setBusy] = useState(false)
   const [blocked, setBlocked] = useState(false)
@@ -25,16 +25,17 @@ function useTransitionCommand(churchId: string, action: Transition) {
     const controller = new AbortController(); pending.current = controller
     setBusy(true); setMessage(''); setFailed(false)
     try {
-      await transitionOccurrence(churchId, before, action, controller.signal)
+      const value = await transitionOccurrence(churchId, before, action, controller.signal)
       if (!controller.signal.aborted) {
-        setMessage({ unpublish: 'Ocorrência despublicada. O marco da primeira publicação e a configuração foram preservados.',
+        setMessage({ publish: `Publicação confirmada. Estado confirmado pelo servidor: ${value.status}.${value.publication?.preventive ? ' Alerta preventivo de planejamento.' : ''}${value.publication?.moderate ? ' Há sobreposição moderada.' : ''}${value.publication?.unresolved ? ' Há espaços indefinidos; o resultado não confirma disponibilidade ou reserva.' : ''}`,
+          unpublish: 'Ocorrência despublicada. O marco da primeira publicação e a configuração foram preservados.',
           cancel: 'Ocorrência cancelada. O histórico foi preservado.', complete: 'Ocorrência concluída. Presenças e histórico foram preservados.' }[action])
         setRevision(v => v + 1)
       }
     } catch (error) {
       if (!controller.signal.aborted) {
         needsRefresh.current = true; setBlocked(true); setFailed(true)
-        setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar o resultado da transição.'} Atualize e confira a ocorrência antes de tentar novamente.`)
+        setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar o resultado da transição.'}${action === 'publish' && error instanceof ApiError && error.status === 422 ? ' Confira a configuração, a coordenação formal ativa da igreja e os conflitos.' : ''} Atualize e confira a ocorrência antes de tentar novamente.`)
       }
     } finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
@@ -53,10 +54,12 @@ function TransitionRecords({ churchId, id, action, command }: { churchId: string
     <h2>Ocorrência {value.id}</h2><p>Estado registrado: {value.status} · Revisão: {value.revision}</p>
     <p>Início: <time dateTime={value.startsAt}>{value.startsAt}</time><br/>Término: <time dateTime={value.endsAt}>{value.endsAt}</time></p>
     {canRequestTransition(value, action) ? <>
-      <p>{action === 'unpublish' ? 'Somente antes do início. O calendário anual não será despublicado; a configuração permanece imutável após a primeira publicação.'
+      <p>{action === 'publish' ? 'O servidor exige exatamente um coordenador não liberado, membro formal ativo da própria igreja e pessoa ativa, e reavalia os conflitos na mesma operação. Publicar não abre inscrições ou check-in e não publica o calendário anual.'
+        : action === 'unpublish' ? 'Somente antes do início. O calendário anual não será despublicado; a configuração permanece imutável após a primeira publicação.'
         : action === 'cancel' ? 'O servidor permite cancelamento somente antes do início. Esta ação afeta apenas esta ocorrência, preserva os registros existentes e não encerra a série.'
           : 'O servidor reconcilia o horário e permite conclusão em andamento. Não reabre ocorrências finalizadas nem altera presenças.'}</p>
       <p>O estado e o horário são reavaliados pelo servidor na confirmação. O relógio deste navegador não concede autorização.</p>
+      {action === 'publish' && <><p>Esta confirmação não solicita exceções críticas. Se houver conflito crítico, o servidor recusará a publicação; resolva o conflito antes de uma nova tentativa. O estado pode ser reconciliado para em andamento ou concluído conforme os horários.</p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento`}>Conferir espaço e sobreposições antes de publicar</Link></>}
       {!confirmedSnapshot ? <button disabled={command.busy || command.blocked} onClick={() => setConfirmedSnapshot(value)}>{labels[action]}</button> : <div role="group" aria-label="Confirmar transição da ocorrência">
         <p>Confirmar {labels[action].toLocaleLowerCase('pt-BR')} na revisão {confirmedSnapshot.revision}?</p>
         <button disabled={command.busy || command.blocked || value.revision !== confirmedSnapshot.revision || value.status !== confirmedSnapshot.status} onClick={() => {
@@ -65,7 +68,8 @@ function TransitionRecords({ churchId, id, action, command }: { churchId: string
         }}>Confirmar transição</button>{' '}
         <button disabled={command.busy} onClick={() => setConfirmedSnapshot(null)}>Voltar sem alterar</button>
       </div>}
-    </> : <p>Esta transição não está disponível para o estado registrado. Estados legados não são convertidos e ocorrências finalizadas não são reabertas.</p>}
+    </> : action === 'publish' && value.status === 'DRAFT' && !value.configured ? <p>A ocorrência precisa de configuração explícita antes da publicação.</p>
+      : <p>Esta transição não está disponível para o estado registrado. Estados legados não são convertidos e ocorrências finalizadas não são reabertas.</p>}
   </>}</ReadResult>
 }
 function TransitionWorkspace({ churchId, id, action }: { churchId: string; id: string; action: Transition }) {

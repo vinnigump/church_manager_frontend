@@ -99,7 +99,7 @@ describe('fluxo administrativo de transições', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
   })
-  it.each(['publish', 'bad'])('ação %s não abre endpoint ou concessão por URL', async action => {
+  it.each(['reopen', 'bad'])('ação %s não abre endpoint ou concessão por URL', async action => {
     const fetcher = backend(); show(action)
     expect(await screen.findByRole('alert')).toHaveTextContent('acesso à transição é inválido')
     expect(fetcher).not.toHaveBeenCalled()
