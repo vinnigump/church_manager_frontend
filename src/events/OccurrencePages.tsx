@@ -9,6 +9,7 @@ import { listChurchCatalog } from './catalog-api'
 import { editableOccurrence, listOccurrences, readOccurrence, saveOccurrence, validateOccurrenceWrite, type Modality, type Occurrence, type OccurrenceWrite, type Participation } from './occurrence-api'
 import './events.css'
 import './occurrences.css'
+import { canRequestTransition, transitionPermission, type Transition } from './lifecycle-api'
 
 export const occurrenceRoute = (churchId: string) => `/eventos/igrejas/${churchId}/ocorrencias`
 const modalityLabel = (v: Occurrence['modality']) => v === null ? 'Não informada' : { IN_PERSON: 'Presencial', ONLINE: 'Online', HYBRID: 'Híbrido' }[v]
@@ -43,6 +44,7 @@ function OccurrenceDetails({ churchId, id }: { churchId: string; id: string }) {
   const query = useRead(`${churchId}:${id}`, load)
   return <ReadResult query={query} label="ocorrência">{value => <><h2>Ocorrência {value.id}</h2><Details value={value}/>
     <p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento`}>Consultar espaço e sobreposições</Link></p>
+    {(['unpublish', 'cancel', 'complete'] as Transition[]).filter(action => canRequestTransition(value, action)).map(action => <ResourceAccess key={action} permissionCode={transitionPermission[action]} resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/${id}/transicoes/${action}`}>{{ unpublish: 'Despublicar ocorrência', cancel: 'Cancelar ocorrência', complete: 'Concluir ocorrência' }[action]}</Link></p></ResourceAccess>)}
     {editableOccurrence(value) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento/espaco`}>Configurar espaço do rascunho</Link></p><Link to={`${occurrenceRoute(churchId)}/${id}/editar`}>Editar rascunho</Link></ResourceAccess>
       : <p>A edição aceita somente rascunhos sem marco de primeira publicação.</p>}
   </>}</ReadResult>

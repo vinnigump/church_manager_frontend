@@ -19,6 +19,11 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
+O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
+confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
+reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
+obrigatória ainda pendente. [Escopo/testes](docs/events/fe-04-occurrence-transitions.md).
+
 O detalhe da ocorrência oferece espaço e sobreposições de planejamento
 (`event-spaces-v1` 1.0.0): resumo global, candidatos paginados e configuração
 de espaço somente do rascunho com revisão compartilhada. Alertas não confirmam
