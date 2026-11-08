@@ -19,7 +19,7 @@ function Dates({ value }: { value: Occurrence }) {
   return <p>Início: <time dateTime={value.startsAt}>{value.startsAt}</time><br/>Término: <time dateTime={value.endsAt}>{value.endsAt}</time></p>
 }
 function Details({ value }: { value: Occurrence }) {
-  return <><Dates value={value}/><dl>
+  return <><Dates value={value}/><p><Link to={`${occurrenceRoute(value.churchId)}/${value.id}/audiencia`}>Consultar audiência da ocorrência</Link></p><dl>
     <dt>Estado registrado</dt><dd>{value.status}</dd><dt>Configuração</dt><dd>{value.configured ? 'Informada' : 'Incompleta; valores legados preservados'}</dd>
     <dt>Tipo vinculado</dt><dd>{value.eventTypeId}</dd><dt>Versão vinculada</dt><dd>{value.eventTypeVersionId ?? 'Sem versão vinculada'}</dd>
     <dt>Modalidade</dt><dd>{modalityLabel(value.modality)}</dd><dt>Participação</dt><dd>{participationLabel(value.participationMode)}</dd>
