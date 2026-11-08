@@ -25,8 +25,14 @@ const uuid = (value: unknown): value is string => typeof value === 'string' && i
 const invalid = () => new Error('Não foi possível validar os dados do template.')
 function instant(value: unknown): value is string {
   if (typeof value !== 'string') return false
-  const match = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(value)
+  const match = /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,9})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(value)
   return Boolean(match && Number.isFinite(Date.parse(value)) && new Date(`${match[1]}T00:00:00Z`).toISOString().slice(0, 10) === match[1])
+}
+const instantKey = (value: string) => `${Date.parse(value.replace(/\.\d+/, ''))}:${(/\.(\d+)/.exec(value)?.[1] ?? '').padEnd(9, '0')}`
+function sameDraft(a: TemplateVersion | null, b: TemplateVersion | null) {
+  if (a === null || b === null) return a === b
+  return a.id === b.id && a.number === b.number && a.name === b.name && a.revision === b.revision
+    && instantKey(a.createdAt) === instantKey(b.createdAt)
 }
 function parseVersion(value: unknown): TemplateVersion {
   if (!record(value) || !uuid(value.id) || !nonnegative(value.number) || value.number === 0
@@ -74,10 +80,15 @@ export async function changeTemplate(denominationId: string, template: EventTemp
     headers: { 'X-Expected-Revision': String(editing ? current.draft!.revision : current.revision), ...(body ? { 'Content-Type': 'application/json' } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}), signal,
   }), current.id)
-  if ((command === 'createDraft' && (!result.draft || result.status !== 'PUBLISHED'))
-    || (editing && (!result.draft || result.draft.id !== current.draft!.id || result.draft.name !== name!.trim()))
-    || (command === 'publish' && (result.status !== 'PUBLISHED' || result.publishedVersionId !== current.draft!.id || result.draft !== null))
-    || (command === 'discontinue' && result.status !== 'DISCONTINUED')) throw new Error('Não foi possível confirmar a alteração do template.')
+  const expectedStatus = command === 'publish' ? 'PUBLISHED' : command === 'discontinue' ? 'DISCONTINUED' : current.status
+  const expectedPublished = command === 'publish' ? current.draft!.id : current.publishedVersionId
+  if (result.status !== expectedStatus || result.publishedVersionId !== expectedPublished || result.revision !== current.revision + (editing ? 0 : 1)
+    || (command === 'createDraft' && (!result.draft || result.draft.revision !== 0))
+    || (editing && (!result.draft || result.draft.id !== current.draft!.id || result.draft.name !== name!.trim()
+      || result.draft.revision !== current.draft!.revision + 1 || result.draft.number !== current.draft!.number
+      || instantKey(result.draft.createdAt) !== instantKey(current.draft!.createdAt)))
+    || (command === 'publish' && result.draft !== null)
+    || (command === 'discontinue' && !sameDraft(current.draft, result.draft))) throw new Error('Não foi possível confirmar a alteração do template.')
   return result
 }
 export async function listTemplateHistory(denominationId: string, typeId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<TemplateHistory> {

@@ -29,7 +29,7 @@ function server(initial: EventTemplate = editing, write?: (url: string, init: Re
       const expected = init.method === 'PUT' ? current.draft?.revision : current.revision
       if (new Headers(init.headers).get('X-Expected-Revision') !== String(expected)) return json({}, 409)
       if (url.endsWith('/draft')) current = init.method === 'POST'
-        ? { ...current, revision: current.revision + 1, draft: structuredClone(draft) }
+        ? { ...current, revision: current.revision + 1, draft: { ...structuredClone(draft), revision: 0 } }
         : { ...current, draft: { ...current.draft!, name: body.name, revision: current.draft!.revision + 1 } }
       if (url.endsWith('/publish')) {
         const pending = current.draft
@@ -178,6 +178,7 @@ describe('gerência autorizada de versões', () => {
     async () => { throw new TypeError('network') },
     async () => new Response(null, { status: 500 }),
     async () => json({ invalid: true }),
+    async () => json({ ...editing, revision: 8, draft: { ...draft, name: 'Novo nome', revision: 4 } }),
   ])('resultado incerto não vira sucesso nem retry automático', async failure => {
     const fetcher = server(editing, failure)
     await show()
