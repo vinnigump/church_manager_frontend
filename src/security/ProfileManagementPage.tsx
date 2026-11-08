@@ -10,7 +10,14 @@ import { securityRoute } from './SecurityPages'
 import './security.css'
 
 type Operation = 'create' | 'copy' | 'edit' | 'publish' | 'deactivate' | 'reactivate'
+interface ManagementData { catalog: PermissionCatalog; profile: SecurityProfile | null; draft: ProfileVersionDetail | null }
+interface ProfileFields { name: string; code: string; scope: SecurityScope; codes: string[] }
+type ProfileSnapshot = Pick<ManagementData, 'profile' | 'draft'>
+function initialFields({ profile, draft }: ProfileSnapshot): ProfileFields {
+  return { name: draft?.name ?? '', code: '', scope: (profile?.scopeType as SecurityScope) ?? 'CHURCH', codes: draft?.permissionCodes ?? [] }
+}
 function useProfileMutation() {
+  const [editor, setEditor] = useState<{ snapshot: ProfileSnapshot; fields: ProfileFields } | null>(null)
   const [busy, setBusy] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [message, setMessage] = useState('')
@@ -29,6 +36,7 @@ function useProfileMutation() {
     try {
       const value = await execute(controller.signal)
       if (!active.current) return
+      setEditor(null)
       setResult(value)
       setMessage({ create: 'Perfil criado em rascunho. Nenhuma atribuição foi criada.', copy: 'Novo rascunho criado. As permissões efetivas não foram alteradas.',
         edit: 'Rascunho salvo. As permissões efetivas não foram alteradas.', publish: value.status === 'DISABLED' ? 'Versão publicada. O perfil continua desativado.' : 'Versão publicada. O servidor passa a usá-la nas novas decisões de acesso.',
@@ -49,10 +57,13 @@ function useProfileMutation() {
     if (failed) { setMessage(''); setFailed(false) }
     setRevision(value => value + 1)
   }
-  return { busy, blocked, message, failed, result, revision, run, refresh }
+  function changeFields(data: ManagementData, patch: Partial<ProfileFields>) {
+    setEditor(value => ({ snapshot: value?.snapshot ?? { profile: data.profile, draft: data.draft }, fields: { ...(value?.fields ?? initialFields(data)), ...patch } }))
+  }
+  function discardChanges() { if (!request.current) setEditor(null) }
+  return { busy, blocked, message, failed, result, revision, run, refresh, editor, changeFields, discardChanges }
 }
 type Mutation = ReturnType<typeof useProfileMutation>
-interface ManagementData { catalog: PermissionCatalog; profile: SecurityProfile | null; draft: ProfileVersionDetail | null }
 function PermissionPicker({ catalog, scope, selected, setSelected, disabled }: { catalog: PermissionCatalog; scope: string; selected: string[]; setSelected: (codes: string[]) => void; disabled: boolean }) {
   const choices = [...new Set([...catalog.permissions.filter(item => item.available && item.scopeTypes.includes(scope as SecurityScope)).map(item => item.code), ...selected])].sort()
   return <fieldset disabled={disabled} className="security-permissions"><legend>Permissões do perfil</legend>
@@ -68,34 +79,37 @@ function PermissionPicker({ catalog, scope, selected, setSelected, disabled }: {
 function ProfileControls({ denominationId, data, mutation }: { denominationId: string; data: ManagementData; mutation: Mutation }) {
   const id = useId()
   const { profile, draft, catalog } = data
-  const [name, setName] = useState(draft?.name ?? '')
-  const [code, setCode] = useState('')
-  const [scope, setScope] = useState<SecurityScope>((profile?.scopeType as SecurityScope) ?? 'CHURCH')
-  const [codes, setCodes] = useState<string[]>(draft?.permissionCodes ?? [])
+  const { name, code, scope, codes } = mutation.editor?.fields ?? initialFields(data)
   const [error, setError] = useState('')
   const [confirm, setConfirm] = useState<'publish' | 'deactivate' | 'reactivate' | null>(null)
   const creating = profile === null
   if (profile && (!['DRAFT', 'ACTIVE', 'DISABLED'].includes(profile.status) || !['CHURCH', 'DENOMINATION'].includes(profile.scopeType))) return <p>Este perfil legado ou de escopo não suportado exige tratamento administrativo específico. Nenhuma alteração está disponível nesta tela.</p>
-  const disabled = mutation.busy || mutation.blocked
+  const snapshot = mutation.editor?.snapshot
+  const stale = Boolean(snapshot && (snapshot.profile?.id !== profile?.id || snapshot.profile?.revision !== profile?.revision
+    || snapshot.profile?.status !== profile?.status || snapshot.profile?.scopeType !== profile?.scopeType
+    || snapshot.profile?.publishedVersionId !== profile?.publishedVersionId || snapshot.draft?.id !== draft?.id || snapshot.draft?.revision !== draft?.revision))
+  const disabled = mutation.busy || mutation.blocked || stale
   const unsupported = codes.some(value => !catalog.permissions.some(item => item.code === value && item.available && item.scopeTypes.includes(scope)))
   const dirty = draft && (name.trim() !== draft.name || JSON.stringify([...codes].sort()) !== JSON.stringify([...draft.permissionCodes].sort()))
   function changed() { setError(''); setConfirm(null) }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (disabled) return
     if (!name.trim() || name.trim().length > 160 || (creating && (!code.trim() || code.trim().length > 80)) || codes.length > 100 || unsupported) { setError('Revise nome, código e permissões disponíveis para o escopo.'); return }
     setError(''); setConfirm(null)
     if (creating) await mutation.run('create', signal => createProfile(denominationId, { code, scopeType: scope, name, permissionCodes: codes }, signal))
-    else if (draft) await mutation.run('edit', signal => replaceProfileDraft(denominationId, profile, draft, { name, permissionCodes: codes }, signal))
+    else if (draft) await mutation.run('edit', signal => replaceProfileDraft(denominationId, snapshot?.profile ?? profile, snapshot?.draft ?? draft, { name, permissionCodes: codes }, signal))
   }
   return <>
+    {stale && <p role="alert">O perfil mudou durante a edição. Descarte as alterações locais e atualize antes de salvar ou publicar.</p>}
     {profile && <><h2>{profile.name}</h2><p>Código: {profile.code} · Escopo: {profile.scopeType === 'CHURCH' ? 'Igreja' : 'Denominação'}</p><p>Estado atual: {{ DRAFT: 'Rascunho', ACTIVE: 'Ativo', DISABLED: 'Desativado' }[profile.status]}</p></>}
     {(creating || draft) && <section className="security-panel" aria-labelledby={`${id}-draft-title`}><h2 id={`${id}-draft-title`}>{creating ? 'Novo perfil com rascunho inicial' : `Editar rascunho da versão ${draft!.versionNumber}`}</h2>
       <p>Salvar um rascunho não publica permissões nem atribui o perfil a ninguém.</p>
       <form onSubmit={submit} aria-busy={mutation.busy}>
-        {creating && <><label htmlFor={`${id}-code`}>Código do perfil</label><input id={`${id}-code`} required maxLength={80} disabled={disabled} value={code} onChange={event => { setCode(event.target.value); changed() }}/>
-          <label htmlFor={`${id}-scope`}>Escopo do perfil</label><select id={`${id}-scope`} disabled={disabled} value={scope} onChange={event => { setScope(event.target.value as SecurityScope); changed() }}><option value="CHURCH">Igreja</option><option value="DENOMINATION">Denominação</option></select></>}
-        <label htmlFor={`${id}-name`}>Nome do rascunho do perfil</label><input id={`${id}-name`} required maxLength={160} disabled={disabled} value={name} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} onChange={event => { setName(event.target.value); changed() }}/>
-        <PermissionPicker catalog={catalog} scope={scope} selected={codes} setSelected={values => { setCodes(values); changed() }} disabled={disabled}/>
+        {creating && <><label htmlFor={`${id}-code`}>Código do perfil</label><input id={`${id}-code`} required maxLength={80} disabled={disabled} value={code} onChange={event => { mutation.changeFields(data, { code: event.target.value }); changed() }}/>
+          <label htmlFor={`${id}-scope`}>Escopo do perfil</label><select id={`${id}-scope`} disabled={disabled} value={scope} onChange={event => { mutation.changeFields(data, { scope: event.target.value as SecurityScope }); changed() }}><option value="CHURCH">Igreja</option><option value="DENOMINATION">Denominação</option></select></>}
+        <label htmlFor={`${id}-name`}>Nome do rascunho do perfil</label><input id={`${id}-name`} required maxLength={160} disabled={disabled} value={name} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} onChange={event => { mutation.changeFields(data, { name: event.target.value }); changed() }}/>
+        <PermissionPicker catalog={catalog} scope={scope} selected={codes} setSelected={values => { mutation.changeFields(data, { codes: values }); changed() }} disabled={disabled}/>
         {unsupported && <p role="alert">Há permissões indisponíveis ou incompatíveis selecionadas. Remova-as explicitamente antes de salvar ou publicar.</p>}
         {error && <p id={`${id}-error`} role="alert">{error}</p>}
         <button disabled={disabled || unsupported}>{creating ? 'Criar perfil em rascunho' : 'Salvar rascunho do perfil'}</button>
@@ -131,6 +145,7 @@ function ManagementRecords({ denominationId, profileId, mutation }: { denominati
   }, [denominationId, profileId])
   return <>
     <button disabled={mutation.busy} onClick={mutation.refresh}>Atualizar dados de gestão</button>
+    {mutation.editor && <button disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh() }}>Descartar alterações locais e atualizar gestão</button>}
     {!state ? <p role="status" aria-busy="true">Carregando gestão do perfil…</p> : state.kind === 'error' ? <p role="alert">{state.message}</p>
       : <ProfileControls denominationId={denominationId} data={state.data} mutation={mutation}/>}
   </>
