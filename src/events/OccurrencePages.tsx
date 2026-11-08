@@ -27,7 +27,7 @@ function Details({ value }: { value: Occurrence }) {
     <dt>Capacidade</dt><dd>{value.capacity === null ? 'Ilimitada' : value.capacity < 0 ? `Valor legado inválido: ${value.capacity}` : value.capacity}</dd>
     <dt>Primeira publicação</dt><dd>{value.firstPublishedAt ?? 'Sem marco registrado'}</dd>
     <dt>Série vinculada</dt><dd>{value.recurrenceRuleId ?? 'Sem série vinculada'}</dd><dt>Revisão</dt><dd>{value.revision}</dd>
-  </dl></>
+  </dl><p><Link to={`${occurrenceRoute(value.churchId)}/${value.id}/equipe`}>Consultar equipe da ocorrência</Link></p></>
 }
 function OccurrenceList({ churchId, control }: { churchId: string; control: OccurrenceFilterControl }) {
   const { page, setPage, filters } = control
@@ -51,7 +51,6 @@ function OccurrenceDetails({ churchId, id }: { churchId: string; id: string }) {
   const query = useRead(`${churchId}:${id}`, load)
   return <ReadResult query={query} label="ocorrência">{value => <><h2>Ocorrência {value.id}</h2><Details value={value}/>
     <p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento`}>Consultar espaço e sobreposições</Link></p>
-    <p><Link to={`${occurrenceRoute(churchId)}/${id}/equipe`}>Consultar equipe da ocorrência</Link></p>
     {(['unpublish', 'cancel', 'complete'] as Transition[]).filter(action => canRequestTransition(value, action)).map(action => <ResourceAccess key={action} permissionCode={transitionPermission[action]} resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/${id}/transicoes/${action}`}>{{ unpublish: 'Despublicar ocorrência', cancel: 'Cancelar ocorrência', complete: 'Concluir ocorrência' }[action]}</Link></p></ResourceAccess>)}
     {editableOccurrence(value) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/${id}/planejamento/espaco`}>Configurar espaço do rascunho</Link></p><Link to={`${occurrenceRoute(churchId)}/${id}/editar`}>Editar rascunho</Link></ResourceAccess>
       : <p>A edição aceita somente rascunhos sem marco de primeira publicação.</p>}
