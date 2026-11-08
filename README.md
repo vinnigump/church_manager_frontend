@@ -13,6 +13,11 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+O detalhe permite consultar o histórico paginado da equipe operacional com
+EVENT_VIEW, conforme `event-team-v1` 1.0.0. Exibe coordenação/apoio, liberação
+e elegibilidade do snapshot; total inclui atribuições históricas e não comprova
+coordenação apta a publicar. [Contrato e testes](docs/events/fe-04-occurrence-team-read.md).
+
 Ocorrências administrativas da igreja: lista/detalhe e criação/edição explícita
 de rascunhos integradas ao contrato `event-occurrences-v1` 1.0.0, com permissões
 próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autorizado;
