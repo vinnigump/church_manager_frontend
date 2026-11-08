@@ -49,6 +49,12 @@ do backend EVT-008 e contrato `event-planning-v1` 1.0.0. Fuso e ajustes são
 calculados no servidor; confirmação explícita e trava evitam retry automático
 de um endpoint sem idempotência. [Escopo e testes](docs/events/fe-04-annual-generation.md).
 
+Ocorrências vinculadas oferecem consulta e edição seletiva da série anual
+(`event-series-v1` 1.0.0). A prévia é calculada pelo servidor sem gravar;
+cada rascunho nunca publicado exige seleção e associação explícita a um destino.
+Publicadas e não selecionadas permanecem intactas; revisões obsoletas bloqueiam
+a confirmação. [Contrato, testes e limites](docs/events/fe-04-selective-series-edit.md).
+
 Inspecionado o backend local `../church_manager`: `SecurityConfiguration`, `AccountController`, `AccountModels`, `AccountAuthenticationService` e `docs/api/identity-v1.openapi.json`. O mecanismo atual é HTTP Basic, com credenciais mantidas somente na memória desta página. Recarregar exige novo login. Não existe JWT nem OTP implementado neste frontend.
 
 O login valida e projeta as respostas de conta/CSRF antes de estabelecer sessão; dados incompatíveis encerram a tentativa e limpam as credenciais em memória. O nome válido do cabeçalho CSRF vem do servidor. [Relatório de validação](docs/fe-01-session-contracts.md).

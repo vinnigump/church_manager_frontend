@@ -5,20 +5,25 @@ import { isCalendarYear } from './calendar-api'
 
 export type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
 export interface GenerationInput { year: number; frequency: Frequency; interval: number; firstStartsAt: string; through: string; durationMinutes: number; eventTypeId: string; capacity: number | null; modality: Modality; participationMode: Participation; checkInRequired: boolean }
+export type AnnualPattern = Pick<GenerationInput, 'year' | 'frequency' | 'interval' | 'firstStartsAt' | 'through' | 'durationMinutes'>
 export interface GeneratedItem { id: string; sourceOccurrenceId: null; startsAt: string; endsAt: string; status: 'DRAFT'; revision: 0; adjusted: boolean }
 export interface GenerationResult { churchId: string; year: number; timezone: string; recurrenceRuleId: string; items: GeneratedItem[] }
 const integer = (v: number, min: number, max: number) => Number.isSafeInteger(v) && v >= min && v <= max
-export function validateGeneration(input: GenerationInput): GenerationInput {
+export function validateAnnualPattern(input: AnnualPattern): AnnualPattern {
   const first = input.firstStartsAt.length === 16 ? `${input.firstStartsAt}:00` : input.firstStartsAt
   if (!isCalendarYear(input.year) || !['DAILY', 'WEEKLY', 'MONTHLY'].includes(input.frequency) || !integer(input.interval, 1, 366)
     || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$/.test(first) || !isInstant(`${first}Z`)
     || !/^\d{4}-\d{2}-\d{2}$/.test(input.through) || !isInstant(`${input.through}T00:00:00Z`)
     || Number(first.slice(0, 4)) !== input.year || Number(input.through.slice(0, 4)) !== input.year || input.through < first.slice(0, 10)
-    || !integer(input.durationMinutes, 1, 527040) || !isUuid(input.eventTypeId)
-    || (input.capacity !== null && !integer(input.capacity, 0, 2147483647))
+    || !integer(input.durationMinutes, 1, 527040)) throw new Error('Revise ano, intervalo, datas civis e duração da série.')
+  return { year: input.year, frequency: input.frequency, interval: input.interval, firstStartsAt: first, through: input.through, durationMinutes: input.durationMinutes }
+}
+export function validateGeneration(input: GenerationInput): GenerationInput {
+  const pattern = validateAnnualPattern(input)
+  if (!isUuid(input.eventTypeId) || (input.capacity !== null && !integer(input.capacity, 0, 2147483647))
     || !['IN_PERSON', 'ONLINE', 'HYBRID'].includes(input.modality) || !['REGISTRATION_REQUIRED', 'OPEN_EVENT'].includes(input.participationMode)
     || typeof input.checkInRequired !== 'boolean' || (input.participationMode === 'OPEN_EVENT' && input.checkInRequired)) throw new Error('Revise ano, intervalo, datas civis, duração e configuração da série. Evento aberto exige check-in Não.')
-  return { year: input.year, frequency: input.frequency, interval: input.interval, firstStartsAt: first, through: input.through, durationMinutes: input.durationMinutes,
+  return { ...pattern,
     eventTypeId: input.eventTypeId, capacity: input.capacity, modality: input.modality, participationMode: input.participationMode, checkInRequired: input.checkInRequired }
 }
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
