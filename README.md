@@ -18,6 +18,10 @@ EVENT_VIEW, conforme `event-team-v1` 1.0.0. Exibe coordenação/apoio, liberaç�
 e elegibilidade do snapshot; total inclui atribuições históricas e não comprova
 coordenação apta a publicar. [Contrato e testes](docs/events/fe-04-occurrence-team-read.md).
 
+Com EVENT_EDIT próprio, atribuições não liberadas oferecem liberação explícita,
+com confirmação, CSRF e revisão da ocorrência. Histórico e membresia permanecem;
+erro exige nova consulta antes de outra tentativa. [Liberação da equipe](docs/events/fe-04-occurrence-team-release.md).
+
 Ocorrências administrativas da igreja: lista/detalhe e criação/edição explícita
 de rascunhos integradas ao contrato `event-occurrences-v1` 1.0.0, com permissões
 próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autorizado;
