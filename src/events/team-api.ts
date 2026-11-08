@@ -5,6 +5,7 @@ import { instantNanos } from './occurrence-api'
 // Integrated event-team-v1 1.0.0; history, not a membership directory.
 export interface TeamAssignment { id: string; membershipId: string; role: 'COORDINATOR' | 'SUPPORT'; assignedAt: string; releasedAt: string | null; eligible: boolean }
 export interface TeamPage { occurrenceId: string; revision: number; items: TeamAssignment[]; page: number; size: number; total: number }
+export interface TeamChange { occurrenceId: string; assignmentId: string; revision: number }
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const integer = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0
 const uuid = (v: unknown): v is string => typeof v === 'string' && isUuid(v)
@@ -24,4 +25,14 @@ export async function readOccurrenceTeam(churchId: string, occurrenceId: string,
   })
   if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
   return { occurrenceId, revision: v.revision, items, page, size: 20, total: v.total }
+}
+export async function releaseOccurrenceTeam(churchId: string, occurrenceId: string, before: TeamPage, assignmentId: string, signal?: AbortSignal, client: ApiClient = api): Promise<TeamChange> {
+  if (!isUuid(churchId) || !isUuid(occurrenceId) || !isUuid(assignmentId) || before.occurrenceId !== occurrenceId
+    || !integer(before.revision) || !before.items.some(item => item.id === assignmentId && item.releasedAt === null)) throw invalid()
+  const v = await client.request<unknown>(`/events/churches/${churchId}/occurrences/${occurrenceId}/team/${assignmentId}`, {
+    method: 'DELETE', headers: { 'X-Expected-Revision': String(before.revision) }, signal,
+  })
+  if (!record(v) || v.occurrenceId !== occurrenceId || v.assignmentId !== assignmentId || !integer(v.revision)
+    || ![before.revision, before.revision + 1].includes(v.revision)) throw invalid()
+  return { occurrenceId, assignmentId, revision: v.revision }
 }

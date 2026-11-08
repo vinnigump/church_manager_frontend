@@ -19,7 +19,7 @@ function show(path = route) { return render(<MemoryRouter initialEntries={[path]
 function backend(handler?: (url: string) => Response | Promise<Response> | undefined, allowed = true) {
   const fetcher = vi.fn().mockImplementation(async (url: string) => {
     const custom = handler?.(url); if (custom !== undefined) return custom
-    if (url.includes('/authorization?')) return json({ allowed })
+    if (url.includes('/authorization?')) return json({ allowed: allowed && new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'EVENT_VIEW' })
     if (url.includes('/team?')) return json(page)
     throw new Error('Unexpected fixture request')
   }); vi.stubGlobal('fetch', fetcher); return fetcher

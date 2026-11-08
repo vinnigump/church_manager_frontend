@@ -5,9 +5,10 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { readOccurrenceTeam } from './team-api'
+import TeamReleaseControls, { useTeamRelease, type TeamReleaseCommand } from './TeamReleaseControls'
 import './events.css'
 
-function TeamRecords({ churchId, occurrenceId, page, setPage }: { churchId: string; occurrenceId: string; page: number; setPage: (page: number) => void }) {
+function TeamRecords({ churchId, occurrenceId, page, setPage, command }: { churchId: string; occurrenceId: string; page: number; setPage: (page: number) => void; command: TeamReleaseCommand }) {
   const load = useCallback((signal: AbortSignal) => readOccurrenceTeam(churchId, occurrenceId, page, signal), [churchId, occurrenceId, page])
   const query = useRead(`${churchId}:${occurrenceId}:${page}`, load)
   return <ReadResult query={query} label="histórico da equipe">{data => <>
@@ -20,14 +21,21 @@ function TeamRecords({ churchId, occurrenceId, page, setPage }: { churchId: stri
       <p>Atribuída em: <time dateTime={item.assignedAt}>{item.assignedAt}</time></p>
       {item.releasedAt === null ? <p>Não liberada · {item.eligible ? 'Elegível nesta consulta' : 'Não elegível nesta consulta'}</p>
         : <p>Liberada em: <time dateTime={item.releasedAt}>{item.releasedAt}</time></p>}
+      {item.releasedAt === null && <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional>
+        <TeamReleaseControls key={`${data.revision}:${item.id}`} data={data} item={item} command={command}/>
+      </ResourceAccess>}
     </li>)}</ul> : <p>Nenhuma atribuição nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas do histórico da equipe"/>
   </>}</ReadResult>
 }
 function TeamWorkspace({ churchId, occurrenceId }: { churchId: string; occurrenceId: string }) {
   const [page, setPage] = useState(0)
-  return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
-    <TeamRecords churchId={churchId} occurrenceId={occurrenceId} page={page} setPage={setPage}/>
+  const command = useTeamRelease(churchId, occurrenceId)
+  return <ResourceAccess key={command.version} permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
+    {command.message && <p role={command.failed ? 'alert' : 'status'}>{command.message}</p>}
+    {command.busy && <p role="status" aria-busy="true">Confirmando liberação…</p>}
+    <button disabled={command.busy} onClick={command.refresh}>Atualizar equipe e reavaliar acesso</button>
+    <TeamRecords churchId={churchId} occurrenceId={occurrenceId} page={page} setPage={setPage} command={command}/>
   </ResourceAccess>
 }
 export default function OccurrenceTeamPage() {
