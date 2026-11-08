@@ -13,6 +13,13 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+O detalhe da ocorrência oferece audiência administrativa (`event-audience-v1`
+1.0.0): legado sem política continua ausente, sem default público; configuração
+explícita de visibilidade, vínculo/membresia e idades usa confirmação, CSRF e revisão
+compartilhada. Referências existentes podem ser conservadas/removidas; novas
+seleções dependem de catálogos autorizados ainda ausentes. Não publica nem abre
+inscrições. [Contrato e testes](docs/events/fe-04-audience-policy.md).
+
 Vínculos próprios de participantes em ministérios/departamentos integram
 `group-memberships-v1` 1.0.0: consulta paginada, histórico restrito e desvinculação
 direta com confirmação/revisão/CSRF. Liderança no grupo exato é validada no

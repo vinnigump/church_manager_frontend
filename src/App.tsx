@@ -6,6 +6,7 @@ import HomePage from './HomePage'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
+import AudiencePage from './events/AudiencePage'
 import OccurrencePages from './events/OccurrencePages'
 import PlanningPage from './events/PlanningPage'
 import SpaceEditorPage from './events/SpaceEditorPage'
@@ -63,6 +64,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/editar" element={<OccurrencePages view="edit" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/transicoes/:action" element={<OccurrenceTransitionPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/equipe" element={<OccurrenceTeamPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/audiencia" element={<AudiencePage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
     <Route path="eventos/igrejas/:churchId/planejamento/copiar" element={<AnnualCopyPage />}/>
