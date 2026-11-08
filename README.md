@@ -13,6 +13,12 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+O detalhe oferece consulta/configuração/remoção da janela de inscrição conforme
+`event-registration-window-v1` 1.0.0: dois limites explícitos com fuso e precisão
+de microssegundos, fechamento até o início e modo com inscrição. Remoção não
+significa janela ilimitada. Confirmação, CSRF e revisão compartilhada protegem
+as escritas; a operação não inscreve pessoas. [Contrato e testes](docs/events/fe-04-registration-window.md).
+
 O detalhe da ocorrência oferece audiência administrativa (`event-audience-v1`
 1.0.0): legado sem política continua ausente, sem default público; configuração
 explícita de visibilidade, vínculo/membresia e idades usa confirmação, CSRF e revisão
