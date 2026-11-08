@@ -13,6 +13,12 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+Vínculos próprios de participantes em ministérios/departamentos integram
+`group-memberships-v1` 1.0.0: consulta paginada, histórico restrito e desvinculação
+direta com confirmação/revisão/CSRF. Liderança no grupo exato é validada no
+servidor. Inclusão e descoberta de pessoas/grupos ainda precisam de seleção
+autorizada; não há formulário de UUIDs. [Contrato e testes](docs/events/fe-04-group-memberships.md).
+
 O detalhe permite consultar o histórico paginado da equipe operacional com
 EVENT_VIEW, conforme `event-team-v1` 1.0.0. Exibe coordenação/apoio, liberação
 e elegibilidade do snapshot; total inclui atribuições históricas e não comprova
