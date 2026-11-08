@@ -132,7 +132,7 @@ contextuais usam apenas os metadados publicados; tentativa de leitura registrada
 não comprova recebimento. [Contrato e testes](docs/fe-01-security-audit.md).
 Shell RIO: uma navegação com estado ativo, lateral no desktop e inferior no mobile,
 preservando somente destinos reais, foco e proteção existentes. Navegação inferior
-permanece no fluxo. Homologação visual pendente.
+permanece no fluxo. Validação visual não é requisito dos PRs, conforme regra atual do AGENTS.md.
 [Escopo e evidências UI-RIO-02](docs/design/ui-rio-02-shell.md).
 
 Fontes de delegação: `/seguranca/denominacoes/:denominationId/delegacoes` lista
@@ -164,14 +164,42 @@ A revogação central está disponível pelo detalhe, com confirmação, revisã
 e reconsulta de permissão/dados. Falhas bloqueiam repetição até atualização.
 Concessão permanece em incremento próprio. [Revogação](docs/fe-01-assignment-revoke.md).
 
-1. #1 Fundação: implementação inicial; integração administrativa depende do contrato acima.
-2. #2 Acesso público/Minha Jornada: aguarda contratos OTP, sessão e backend #14/#15.
-3. #3 Trilhas e migração: depende de backend #14.
-4. #4 Catálogo e eventos: depende de backend #18.
-5. #5 Inscrições: depende de backend #15/#18.
-6. #6 Menores/presença: planejamento, com decisões funcionais deliberadamente pendentes.
+### Backlog e dependências atuais
 
-Não avançar implementando contratos fictícios para contornar dependências. Entrega da #1 deve seguir em PR rascunho, sem merge, com os bloqueios explícitos.
+Este quadro descreve implementação e dependências; não declara aceite ou conclusão
+formal de issues. Contratos e integração devem ser reconsultados antes de cada atividade.
+
+| Issue | Entregas existentes | Próxima dependência real |
+| --- | --- | --- |
+| #1 Fundação | React/TypeScript, Basic em memória, HTTP/CSRF, guardas, CI, segurança e auditoria integrados | Descoberta de contextos autorizados e contrato de sessão administrativa técnica; não inferir concessões do login |
+| #2 Acesso público/Minha Jornada | Login Basic existente pertence à fundação | Contratos de autocadastro com senha/canal exclusivo verificado, convite/ativação, recuperação, Jornada e dependentes; OTP-only é legado substituído por CF/AP-2026-11-08 |
+| #3 Trilhas/migração | Sem integração de migração | Contratos de versões/tarefas, prévia, migração, acompanhamento SSE/REST e permissões |
+| #4 Catálogo/eventos | Catálogos, versões, calendário, ocorrências, planejamento, espaços, equipe consultável/liberação, séries e política de audiência integrados | Descoberta contextual para novas referências de audiência e integrantes da equipe; avaliação autoritativa para exceções críticas de publicação; projeção pública |
+| #5 Inscrições | Componentes isolados de apresentação, sem inscrição real | APIs canônicas EVT-013..020 (backend #33..#40): inscrição individual, capacidade, fila, promoção e concorrência |
+| #6 Menores/presença | Avisos isolados de apresentação; decisões Eventos v1.0 registradas na issue | APIs canônicas EVT-021..026 (backend #43..#48), autorização por ocorrência, check-in e política de retenção backend #70 |
+
+A janela administrativa de inscrição possui contrato backend integrado
+`event-registration-window-v1` 1.0.0; a entrega frontend está no
+[PR #89](https://github.com/vinnigump/church_manager_frontend/pull/89).
+Conferir a integração desse PR antes de consumir seu código como dependência.
+Configurar janela não implementa inscrição, capacidade ou fila.
+
+As referências históricas a backend #14/#15/#18 não substituem o backlog canônico
+nem provam disponibilidade de API. Decisões posteriores das issues prevalecem:
+menores têm autorização por ocorrência, sem checkout; inscrição administrativa
+em IN_PROGRESS foi aprovada, mas ainda depende de orquestração real.
+
+UI-RIO #28–31 já possui entregas de identidade/shell/acesso/eventos; título READY
+de issue aberta não autoriza duplicá-las. #32 depende de definição dos indicadores;
+#33 depende do fluxo/perfil de cadastro e membresia. Person, membro e conta não são
+equivalentes. As APIs organizacionais existentes exigem `organization:manage`
+global; elas não concedem descoberta contextual ao portador de EVENT_EDIT.
+
+Ao encontrar um bloqueio, procurar outra demanda autorizada e independente,
+incluindo correções comprovadas. Não criar APIs ou tarefas artificiais para
+contornar dependências. Validação visual não é requisito dos PRs; Run local é
+solicitado somente por necessidade concreta, conforme AGENTS.md.
+[Reconciliação e evidências](docs/governance/current-backlog-20261108.md).
 
 Evidências atualizadas e checklist de integração: [revisão FE-01](docs/fe-01-review.md).
 
@@ -181,7 +209,7 @@ Atualização posterior com contrato real, testes e limites: [autorização por 
 
 Apresentação administrativa UI-RIO-04 aplica cartões, estados textuais e hierarquia
 aos catálogos, versões e planejamento anual existentes, sem mudar os contratos.
-Homologação visual pendente. [Escopo e verificação](docs/design/ui-rio-04-event-admin.md).
+Validação visual não é requisito dos PRs. [Escopo e evidências históricas](docs/design/ui-rio-04-event-admin.md).
 
 `/eventos` exige autenticação. Catálogo, calendário anual e ocorrências administrativas usam contratos publicados no backend. A agenda pública continua pendente.
 
@@ -227,7 +255,7 @@ metadados preservados em no-op, sem perder precisão temporal.
 ## Inscrições — preparação da #5
 
 A fatia UI-RIO-07 aplica cartões e hierarquia de avisos ao componente isolado de
-inscrição. Não adiciona rotas, API ou ações. Homologação visual pendente.
+inscrição. Não adiciona rotas, API ou ações. Validação visual não é requisito dos PRs.
 [Apresentação UI-RIO-07](docs/design/ui-rio-07-registration.md).
 
 `src/events/RegistrationViews.tsx` oferece resumos isolados de capacidade, situação individual e posição na espera. Não está conectado às rotas ou APIs, não permite gravação e não carrega dados fictícios em produção. Execute `npm test -- src/events/RegistrationViews.test.tsx` para os exemplos sintéticos de teste.
