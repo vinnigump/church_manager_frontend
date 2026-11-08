@@ -19,6 +19,12 @@ próprias, CSRF e revisão numérica. Acesso pelo catálogo ou calendário autor
 não representa agenda pública, publicação ou inscrições.
 [Relatório FE-04](docs/events/fe-04-occurrences.md).
 
+A lista administrativa de ocorrências permite aplicar limites UTC opcionais,
+modalidade e estado, conforme `event-occurrences-v1` 1.1.0. Filtros combinados
+e paginação usam o total do servidor; período inclui interseções positivas,
+sem reinterpretar OPEN/CLOSED ou abrir uma agenda pública.
+[Contrato e testes](docs/events/fe-04-occurrence-filters.md).
+
 O detalhe oferece despublicação, cancelamento e conclusão com permissão própria,
 confirmação, CSRF e revisão, conforme `event-lifecycle-v1` 1.0.0. O servidor
 reavalia horários e preserva histórico; a publicação aguarda o gate de equipe
@@ -221,3 +227,11 @@ continuam somente em memória, com nova autorização em cada operação no serv
 Evidências e limites: [consulta de versões FE-04](docs/events/fe-04-template-history.md).
 
 Gestão de versões: [relatório FE-04](docs/events/fe-04-template-lifecycle.md).
+
+## Cópia manual de planejamento anual
+
+O catálogo autorizado oferece cópia de até100 rascunhos selecionados manualmente,
+com revisões originais, confirmação e CSRF. O servidor valida os anos no fuso da
+igreja e cria destinos independentes, preservando as origens. Reenvio pode duplicar
+planejamento; a tela mantém trava após a tentativa e orienta conferir a lista.
+[Contrato, limites e testes](docs/events/fe-04-annual-copy.md).

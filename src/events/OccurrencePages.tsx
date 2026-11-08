@@ -6,7 +6,8 @@ import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { listChurchCatalog } from './catalog-api'
-import { editableOccurrence, listOccurrences, readOccurrence, saveOccurrence, validateOccurrenceWrite, type Modality, type Occurrence, type OccurrenceWrite, type Participation } from './occurrence-api'
+import { editableOccurrence, listFilteredOccurrences, readOccurrence, saveOccurrence, validateOccurrenceWrite, type Modality, type Occurrence, type OccurrenceWrite, type Participation } from './occurrence-api'
+import OccurrenceFiltersForm, { useOccurrenceFilters, type OccurrenceFilterControl } from './OccurrenceFilters'
 import './events.css'
 import './occurrences.css'
 import { canRequestTransition, transitionPermission, type Transition } from './lifecycle-api'
@@ -28,16 +29,22 @@ function Details({ value }: { value: Occurrence }) {
     <dt>Série vinculada</dt><dd>{value.recurrenceRuleId ?? 'Sem série vinculada'}</dd><dt>Revisão</dt><dd>{value.revision}</dd>
   </dl></>
 }
-function OccurrenceList({ churchId }: { churchId: string }) {
-  const [page, setPage] = useState(0)
-  const load = useCallback((signal: AbortSignal) => listOccurrences(churchId, page, signal), [churchId, page])
-  const query = useRead(`${churchId}:${page}`, load)
-  return <><ResourceAccess permissionCode="EVENT_CREATE" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/nova`}>Criar rascunho de ocorrência</Link></p></ResourceAccess>
+function OccurrenceList({ churchId, control }: { churchId: string; control: OccurrenceFilterControl }) {
+  const { page, setPage, filters } = control
+  const load = useCallback((signal: AbortSignal) => listFilteredOccurrences(churchId, filters, page, signal), [churchId, page, filters])
+  const query = useRead(JSON.stringify([churchId, page, filters]), load)
+  return <><p>Filtros aplicados: início {filters.from ?? 'sem limite'}, fim exclusivo {filters.to ?? 'sem limite'}, modalidade {filters.modality ?? 'todas'}, estado {filters.status ?? 'todos'}.</p><ResourceAccess permissionCode="EVENT_CREATE" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${occurrenceRoute(churchId)}/nova`}>Criar rascunho de ocorrência</Link></p></ResourceAccess>
     <ReadResult query={query} label="ocorrências">{data => <><p role="status">Página {data.page + 1} · {data.total} ocorrências.</p>
       {data.items.length ? <ul className="event-list">{data.items.map(value => <li key={value.id}><h2>Ocorrência {value.id}</h2><p>Estado registrado: {value.status}</p><Dates value={value}/>
         {!value.configured && <p>Configuração incompleta; legado preservado.</p>}<Link to={`${occurrenceRoute(churchId)}/${value.id}`}>Consultar ocorrência {value.id}</Link></li>)}</ul> : <p>Nenhuma ocorrência nesta página.</p>}
       <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das ocorrências"/>
     </>}</ReadResult></>
+}
+function OccurrenceListWorkspace({ churchId }: { churchId: string }) {
+  const control = useOccurrenceFilters()
+  return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
+    <OccurrenceFiltersForm control={control}/><OccurrenceList churchId={churchId} control={control}/>
+  </ResourceAccess>
 }
 function OccurrenceDetails({ churchId, id }: { churchId: string; id: string }) {
   const load = useCallback((signal: AbortSignal) => readOccurrence(churchId, id, signal), [churchId, id])
@@ -154,12 +161,12 @@ export default function OccurrencePages({ view }: { view: 'list' | 'detail' | 'c
   const title = { list: 'Ocorrências administrativas', detail: 'Detalhes da ocorrência', create: 'Criar rascunho de ocorrência', edit: 'Editar rascunho de ocorrência' }[view]
   const valid = isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(occurrenceId))
   return <div className="occurrences"><h1 data-page-title={title}>{title}</h1><Link to="/eventos">Voltar a Eventos</Link>
-    <p>Consulta administrativa de todos os períodos. Não é a agenda pública nem um filtro do planejamento anual. Não inclui links de acesso ou participantes.</p>
+    <p>Consulta administrativa; os filtros de ocorrências são independentes da publicação do planejamento anual. Não é agenda pública e não inclui links de acesso ou participantes.</p>
     {!valid ? <p role="alert">O acesso às ocorrências é inválido. Abra novamente o acesso da sua igreja.</p> : <>
       <nav aria-label="Navegação das ocorrências"><Link to={occurrenceRoute(churchId)}>Listar ocorrências</Link><Link to={`/eventos/igrejas/${churchId}/catalogo`}>Catálogo da igreja</Link></nav>
-      {view === 'create' || view === 'edit' ? <EditorWorkspace key={`${account?.id}:${churchId}:${occurrenceId}:${view}`} churchId={churchId} id={view === 'edit' ? occurrenceId : undefined}/> :
+      {view === 'list' ? <OccurrenceListWorkspace key={`${account?.id}:${churchId}`} churchId={churchId}/> : view === 'create' || view === 'edit' ? <EditorWorkspace key={`${account?.id}:${churchId}:${occurrenceId}:${view}`} churchId={churchId} id={view === 'edit' ? occurrenceId : undefined}/> :
         <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}><div key={`${account?.id}:${churchId}:${occurrenceId}:${view}`}>
-          {view === 'list' ? <OccurrenceList churchId={churchId}/> : <OccurrenceDetails churchId={churchId} id={occurrenceId}/>}
+          <OccurrenceDetails churchId={churchId} id={occurrenceId}/>
         </div></ResourceAccess>}
     </>}
   </div>

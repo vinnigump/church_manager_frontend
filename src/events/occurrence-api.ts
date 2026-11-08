@@ -1,7 +1,7 @@
 import { api, type ApiClient } from '../api'
 import { isUuid, isInstant as instant } from '../validation'
 
-// Backend event-occurrences-v1.openapi.json 1.0.0 + EventOccurrenceService.
+// Backend event-occurrences-v1 1.1.0 filters; existing write DTOs unchanged.
 export type Modality = 'IN_PERSON' | 'ONLINE' | 'HYBRID'
 export type Participation = 'REGISTRATION_REQUIRED' | 'OPEN_EVENT'
 export interface Occurrence {
@@ -15,6 +15,8 @@ export interface OccurrenceWrite {
   modality: Modality; participationMode: Participation; checkInRequired: boolean
 }
 export interface OccurrencePage { items: Occurrence[]; page: number; size: number; total: number }
+export const occurrenceStatuses = ['DRAFT', 'OPEN', 'CLOSED', 'PUBLISHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const
+export interface OccurrenceFilters { from?: string; to?: string; modality?: Modality; status?: typeof occurrenceStatuses[number] }
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const uuid = (v: unknown): v is string => typeof v === 'string' && isUuid(v)
 const nullableUuid = (v: unknown) => v === null || uuid(v)
@@ -47,14 +49,33 @@ function base(churchId: string, id?: string) {
   if (!isUuid(churchId) || (id !== undefined && !isUuid(id))) throw new Error('Contexto de ocorrência inválido.')
   return `/events/churches/${churchId}/occurrences${id ? `/${id}` : ''}`
 }
-export async function listOccurrences(churchId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<OccurrencePage> {
+export function validateOccurrenceFilters(filters: OccurrenceFilters): OccurrenceFilters {
+  if ((filters.from !== undefined && instantNanos(filters.from) % 1000n !== 0n)
+    || (filters.to !== undefined && instantNanos(filters.to) % 1000n !== 0n)
+    || (filters.from !== undefined && filters.to !== undefined && instantNanos(filters.to) <= instantNanos(filters.from))
+    || (filters.modality !== undefined && !modality(filters.modality))
+    || (filters.status !== undefined && !occurrenceStatuses.includes(filters.status))) throw new Error('Revise os filtros: limites válidos com até microssegundos, término posterior ao início e modalidade/estado conhecidos.')
+  return { ...(filters.from !== undefined && { from: filters.from }), ...(filters.to !== undefined && { to: filters.to }),
+    ...(filters.modality !== undefined && { modality: filters.modality }), ...(filters.status !== undefined && { status: filters.status }) }
+}
+export function listOccurrences(churchId: string, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<OccurrencePage> {
+  return listFilteredOccurrences(churchId, {}, page, signal, client)
+}
+export async function listFilteredOccurrences(churchId: string, filters: OccurrenceFilters = {}, page = 0, signal?: AbortSignal, client: ApiClient = api): Promise<OccurrencePage> {
   const path = base(churchId)
   if (!Number.isSafeInteger(page) || page < 0 || page > 100000) throw invalid()
-  const v = await client.request<unknown>(`${path}?page=${page}&size=20`, { signal })
+  const applied = validateOccurrenceFilters(filters)
+  const params = new URLSearchParams({ page: String(page), size: '20' })
+  for (const key of ['from', 'to', 'modality', 'status'] as const) if (applied[key] !== undefined) params.set(key, applied[key])
+  const v = await client.request<unknown>(`${path}?${params}`, { signal })
   if (!record(v) || !Array.isArray(v.items) || v.page !== page || v.size !== 20 || !Number.isSafeInteger(v.total)
     || (v.total as number) < 0 || v.items.length > 20 || (v.total as number) < v.items.length) throw invalid()
   const items = v.items.map(item => parseOccurrence(item, churchId))
-  if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
+  if (new Set(items.map(item => item.id)).size !== items.length || items.some(item =>
+    (applied.from !== undefined && instantNanos(item.endsAt) <= instantNanos(applied.from))
+    || (applied.to !== undefined && instantNanos(item.startsAt) >= instantNanos(applied.to))
+    || (applied.modality !== undefined && item.modality !== applied.modality)
+    || (applied.status !== undefined && item.status !== applied.status))) throw invalid()
   return { items, page, size: 20, total: v.total as number }
 }
 export async function readOccurrence(churchId: string, id: string, signal?: AbortSignal, client: ApiClient = api) {

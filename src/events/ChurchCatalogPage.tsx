@@ -52,6 +52,7 @@ function CatalogWorkspace({ churchId }: { churchId: string }) {
     <p><Link to={`/eventos/igrejas/${churchId}/ocorrencias`}>Ocorrências administrativas</Link></p>
     <ResourceAccess permissionCode="EVENT_CALENDAR_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><Link to={`/eventos/igrejas/${churchId}/calendarios`}>Calendário anual administrativo</Link></ResourceAccess>
     <LocalMutationResult churchId={churchId} mutation={mutation}/>
+    <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><p><Link to={`/eventos/igrejas/${churchId}/planejamento/copiar`}>Copiar rascunhos de planejamento</Link></p></ActionAccess>
     <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><CreateLocalTypeForm mutation={mutation}/></ActionAccess>
     <CatalogRecords churchId={churchId} mutation={mutation}/>
   </ResourceAccess>
