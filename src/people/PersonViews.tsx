@@ -2,7 +2,7 @@ import { useId, useRef, useState } from 'react'
 import './people.css'
 
 // Presentation models only. These are not HTTP DTOs or authorization decisions.
-export type PersonDraft = { fullName: string; cpf: string }
+export type PersonDraft = { fullName: string; cpf: string; email: string; phone: string; birthDate: string }
 export type PersonSummary = { fullName: string; preferredName?: string | null }
 export type PersonCreationResult =
   | { kind: 'confirmed'; person: PersonSummary }
@@ -13,6 +13,7 @@ export type PersonFormProps = {
   onSubmit: (draft: PersonDraft) => Promise<PersonCreationResult>
   // Supplied only after acceptance by the caller; no document catalog is inferred.
   acceptedAlternativeDocument?: { label: string }
+  birthDateRequired?: boolean
 }
 
 export function PersonRecord({ person }: { person: PersonSummary }) {
@@ -41,9 +42,9 @@ export function PersonView({ state }: { state: PersonViewState }) {
 
 // Mount with a new key when context/access changes; unmount on loss of access.
 // Caller owns authorization, persistence and reconciliation of uncertain results.
-export function PersonForm({ onSubmit, acceptedAlternativeDocument }: PersonFormProps) {
+export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateRequired = false }: PersonFormProps) {
   const id = useId()
-  const [draft, setDraft] = useState<PersonDraft>({ fullName: '', cpf: '' })
+  const [draft, setDraft] = useState<PersonDraft>({ fullName: '', cpf: '', email: '', phone: '', birthDate: '' })
   const [result, setResult] = useState<PersonCreationResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [invalid, setInvalid] = useState(false)
@@ -51,7 +52,11 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument }: PersonForm
   const alternative = acceptedAlternativeDocument?.label.trim()
   async function submit() {
     if (locked.current) return
-    if (!draft.fullName.trim() || (!draft.cpf.trim() && !alternative)) { setInvalid(true); return }
+    if (!draft.fullName.trim() || (!draft.cpf.trim() && !alternative)
+      || (!draft.email.trim() && !draft.phone.trim()) || (birthDateRequired && !draft.birthDate)) {
+      setInvalid(true)
+      return
+    }
     locked.current = true
     setBusy(true)
     setInvalid(false)
@@ -75,13 +80,29 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument }: PersonForm
         aria-describedby={`${id}-document${invalid ? ` ${id}-validation` : ''}`}
         value={draft.cpf} onChange={event => setDraft({ ...draft, cpf: event.target.value })}/>
       <p id={`${id}-document`}>{alternative ? `Documento alternativo aceito: ${alternative}.` : 'Informe CPF ou forneça um documento alternativo aceito pelo serviço responsável.'} A validação do documento cabe ao serviço responsável.</p>
-      {invalid && <p id={`${id}-validation`} role="alert">Informe nome completo e CPF, salvo documento alternativo aceito.</p>}
+      <p id={`${id}-contact`}>Informe pelo menos um contato, e-mail ou telefone.</p>
+      <label htmlFor={`${id}-email`}>E-mail</label>
+      <input id={`${id}-email`} type="email" autoComplete="off" disabled={busy}
+        aria-invalid={invalid && !draft.email.trim() && !draft.phone.trim()}
+        aria-describedby={`${id}-contact`}
+        value={draft.email} onChange={event => setDraft({ ...draft, email: event.target.value })}/>
+      <label htmlFor={`${id}-phone`}>Telefone</label>
+      <input id={`${id}-phone`} type="tel" autoComplete="off" disabled={busy}
+        aria-invalid={invalid && !draft.email.trim() && !draft.phone.trim()}
+        aria-describedby={`${id}-contact`}
+        value={draft.phone} onChange={event => setDraft({ ...draft, phone: event.target.value })}/>
+      <label htmlFor={`${id}-birth`}>Nascimento{birthDateRequired ? ' (obrigatório)' : ' (opcional)'}</label>
+      <input id={`${id}-birth`} type="date" required={birthDateRequired} autoComplete="off" disabled={busy}
+        aria-invalid={invalid && birthDateRequired && !draft.birthDate}
+        value={draft.birthDate} onChange={event => setDraft({ ...draft, birthDate: event.target.value })}/>
+      {invalid && <p id={`${id}-validation`} role="alert">Informe nome completo, CPF ou documento alternativo aceito, pelo menos um contato e nascimento quando obrigatório.</p>}
       {busy && <p role="status">Aguardando confirmação do cadastro…</p>}
       {result?.kind === 'conflict' && <p role="alert">Não foi possível confirmar o cadastro por conflito. Confira os dados com o serviço responsável antes de nova tentativa.</p>}
       {result?.kind === 'error' && <p role="alert">Não foi possível confirmar o cadastro. Confira o resultado com o serviço responsável antes de nova tentativa.</p>}
       <button type="submit" disabled={blocked}>Cadastrar pessoa</button>
       {blocked && !busy && <p role="status">Novo envio bloqueado até reconciliação pelo chamador.</p>}
     </form>
+    <p>Rascunho temporário mantido apenas em memória. Sair ou perder o contexto descarta os dados. A edição não cria uma pessoa.</p>
     <p>Cadastrar a pessoa não envia convite nem cria membresia.</p>
   </section>
 }
