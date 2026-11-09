@@ -21,7 +21,8 @@ export default function AppLayout() {
   useEffect(() => {
     const titles: Record<string, string> = { '/': 'Início', '/entrar': 'Entrar', '/sair': 'Sair', '/conta': 'Minha conta', '/eventos': 'Eventos', '/admin': 'Administração' }
     const title = main.current?.querySelector('h1[data-page-title]')?.getAttribute('data-page-title')
-    document.title = `${title ?? titles[pathname] ?? 'Página não encontrada'} | Church Manager`
+    const pageTitle = title ?? titles[pathname]
+    document.title = pageTitle ? `${pageTitle} | Church Manager` : 'Church Manager'
     main.current?.focus()
   }, [pathname, guest])
   return <><a className="skip" href="#conteudo">Ir para o conteúdo</a><div className={`app-shell${guest ? ' app-shell--guest' : ''}`}>
