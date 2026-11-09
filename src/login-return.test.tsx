@@ -10,11 +10,11 @@ const path = `/eventos/igrejas/${church}/catalogo`
 const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const item = { id: '00000000-0000-0000-0000-000000000002', scopeType: 'DENOMINATION', name: 'Encontro autorizado', mandatory: true, enabled: true }
 const json = (value: unknown) => new Response(JSON.stringify(value))
-function server(allowed = true) {
+function server(allowed: boolean | (() => boolean) = true) {
   const fetcher = vi.fn().mockImplementation(async (url: string) => {
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
-    if (url.includes('/authorization?')) return json({ allowed })
+    if (url.includes('/authorization?')) return json({ allowed: typeof allowed === 'function' ? allowed() : allowed })
     return json({ items: [item], page: 0, size: 20, total: 1 })
   })
   vi.stubGlobal('fetch', fetcher)
@@ -57,6 +57,7 @@ describe('retorno após autenticação', () => {
     signIn()
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso indisponível')
     expect(screen.queryByRole('heading', { name: 'Administração' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Voltar ao início' })).toHaveAttribute('href', '/')
   })
   it('login direto sem destino usa Home logada', async () => {
     server()
@@ -90,6 +91,24 @@ describe('retorno após autenticação', () => {
     signIn()
     expect(await screen.findByText(item.name)).toBeInTheDocument()
   })
+  it('nega o retorno após revogação durante a sessão expirada e oferece a Home', async () => {
+    let allowed = true
+    const fetcher = server(() => allowed)
+    show(path)
+    signIn()
+    await screen.findByText(item.name)
+    allowed = false
+    fetcher.mockImplementationOnce(async () => new Response(null, { status: 401 }))
+    await act(async () => { await expect(api.request('/accounts/me')).rejects.toMatchObject({ status: 401 }) })
+    expect(screen.queryByText(item.name)).not.toBeInTheDocument()
+    fetcher.mockClear()
+    signIn()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/events/churches/'))).toBe(false)
+    fireEvent.click(screen.getByRole('link', { name: 'Voltar ao início' }))
+    expect(await screen.findByRole('heading', { name: 'Bem-vindo' })).toBeInTheDocument()
+    expect(screen.getByText('Conectado como ana.')).toBeInTheDocument()
+  })
   it('não copia query, fragmento ou state anterior para o destino de login', async () => {
     server()
     render(<MemoryRouter initialEntries={[{ pathname: path, search: '?token=privado', hash: '#segredo', state: { secret: 'privado' } }]}><AuthProvider><Probe/><App/></AuthProvider></MemoryRouter>)
@@ -103,6 +122,7 @@ describe('retorno após autenticação', () => {
     { returnTo: '/\\evil.test' }, { returnTo: '/%2f%2fevil.test' },
     { returnTo: '/eventos?token=privado' }, { returnTo: '/eventos#privado' },
     { returnTo: '/entrar' }, { returnTo: '/entrar/' }, { returnTo: '/eventos\n' },
+    { returnTo: '/ENTRAR/' }, { returnTo: '/sair' }, { returnTo: '/SAIR/' },
     { returnTo: '/a/../entrar' }, { returnTo: 123 }, [], 'invalid',
   ])('destino inválido %j recai em Home logada sem loop', async state => {
     server()

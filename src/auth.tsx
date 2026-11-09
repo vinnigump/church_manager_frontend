@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { api, type Account } from './api'
 
 export interface Grant { permission: string; scope: string }
@@ -30,13 +30,16 @@ export function LoginRedirect() {
 }
 export function loginDestination(state: unknown): string {
   const path = typeof state === 'object' && state !== null && 'returnTo' in state ? state.returnTo : null
-  // Caminhos relativos à origem, sem esquemas, escapes, query ou ciclo no login.
+  // Aceita só caminhos internos, sem retornar às rotas de entrada e saída.
   return typeof path === 'string' && path.trim() === path && /^\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]*$/.test(path)
-    && path.replace(/\/$/, '') !== '/entrar' ? path : '/'
+    && !/^\/(?:entrar|sair)\/?$/i.test(path) ? path : '/'
 }
 export function Guard({ permission, scope }: { permission?: string; scope?: string }) {
   const { account, grants } = useAuth()
   if (!account) return <LoginRedirect />
-  if (permission && (!scope || !hasGrant(grants, permission, scope))) return <p role="alert">Acesso indisponível para esta permissão e escopo.</p>
+  if (permission && (!scope || !hasGrant(grants, permission, scope))) return <>
+    <p role="alert">Acesso indisponível para esta permissão e escopo.</p>
+    <Link to="/">Voltar ao início</Link>
+  </>
   return <Outlet />
 }
