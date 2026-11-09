@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { api, type Account, type ApiClient } from './api'
 import { LoginRedirect, useAuth } from './auth'
 
@@ -49,6 +50,9 @@ export function ResourceAccess({ permissionCode, resourceType, resourceId, child
     return <p role="status" aria-busy="true">Verificando permissão…</p>
   }
   if (checked.decision === 'error') return optional ? <>{fallback}</> : <><p role="alert">Não foi possível confirmar sua permissão. O acesso permanece bloqueado.</p><button onClick={() => setAttempt(value => value + 1)}>Verificar novamente</button></>
-  if (checked.decision === 'denied') return optional ? <>{fallback}</> : <p role="alert">Acesso não autorizado para este recurso.</p>
+  if (checked.decision === 'denied') return optional ? <>{fallback}</> : <>
+    <p role="alert">Acesso não autorizado para este recurso.</p>
+    <Link to="/">Voltar ao início</Link>
+  </>
   return <>{children}</>
 }
