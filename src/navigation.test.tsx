@@ -4,9 +4,33 @@ import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { AuthContext, AuthProvider } from './auth'
 
+const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'nome-privado', status: 'ACTIVE' }
+
 describe('orientação após navegação', () => {
+  it('usa título genérico em rota válida sem metadado, sem copiar URL ou dados da conta', () => {
+    render(<MemoryRouter initialEntries={['/eventos/?contexto=privado']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: 'Eventos' })).toBeInTheDocument()
+    expect(document.title).toBe('Church Manager')
+    expect(screen.getByRole('main')).toHaveFocus()
+  })
+
+  it('orienta o foco e o título ao abrir a troca de senha e voltar à conta', () => {
+    render(<MemoryRouter initialEntries={['/conta/']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
+    expect(document.title).toBe('Minha conta | Church Manager')
+    const open = screen.getByRole('link', { name: 'Alterar minha senha' })
+    open.focus()
+    fireEvent.click(open)
+    expect(document.title).toBe('Alterar minha senha | Church Manager')
+    expect(screen.getByRole('main')).toHaveFocus()
+    const back = screen.getByRole('link', { name: 'Voltar à minha conta' })
+    back.focus()
+    fireEvent.click(back)
+    expect(document.title).toBe('Minha conta | Church Manager')
+    expect(screen.getByRole('main')).toHaveFocus()
+  })
+
   it('atualiza foco e título ao navegar entre páginas autenticadas', () => {
-    render(<MemoryRouter initialEntries={['/conta']}><AuthContext.Provider value={{ account: { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'nome-privado', status: 'ACTIVE' }, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/conta']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
     expect(document.title).toBe('Minha conta | Church Manager')
     expect(screen.getByRole('main')).toHaveFocus()
     const link = screen.getByRole('link', { name: 'Eventos' })

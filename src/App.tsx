@@ -79,5 +79,5 @@ export default function App() {
     <Route path="eventos/denominacoes/:denominationId/templates/:typeId" element={<TemplateHistoryPage />}/>
     <Route element={<Guard permission="organization:manage" scope="global" />}>
     <Route path="admin" element={<h1>Administração</h1>}/></Route></Route>
-    <Route path="*" element={<><h1>Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
+    <Route path="*" element={<><h1 data-page-title="Página não encontrada">Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
