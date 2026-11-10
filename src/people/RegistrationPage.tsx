@@ -31,7 +31,7 @@ export default function RegistrationPage() {
   return <><h1>Cadastrar pessoa</h1><p>Cadastro com associação à igreja deste contexto, sem criar membresia ou conta.</p>
     <p>Cadastro sem associação à igreja indisponível enquanto a autorização global não estiver definida.</p>
     {!isUuid(churchId) ? <p role="alert">Contexto inválido. Abra um recurso autorizado.</p>
-      : <ResourceAccess permissionCode="identity:person:contextual:create" resourceType="CHURCH" resourceId={churchId}>
+      : <ResourceAccess preserveDuringRecheck permissionCode="identity:person:contextual:create" resourceType="CHURCH" resourceId={churchId}>
         <Registration key={churchId}/>
       </ResourceAccess>}
   </>

@@ -25,8 +25,8 @@ beforeEach(async () => {
   vi.stubGlobal('fetch', fetcher)
   await api.login('test', 'test-password')
 })
-function tree() {
-  return <AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}>
+function tree(currentAccount = account) {
+  return <AuthContext.Provider value={{ account: currentAccount, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}>
     <MemoryRouter initialEntries={[`/pessoas/igrejas/${church}/cadastrar`]}><Routes>
       <Route path="pessoas/igrejas/:churchId/cadastrar" element={<RegistrationPage/>}/>
     </Routes></MemoryRouter>
@@ -68,6 +68,54 @@ describe('cadastro administrativo integrado', () => {
     allowed = false; render(tree())
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument()
+  })
+  it.each([400, 409, 500])('preserva edição e trava ao recuperar foco após HTTP %s', async status => {
+    post = async () => response({}, status)
+    render(tree()); await fill(); submit()
+    await screen.findByRole('alert')
+    fireEvent.change(screen.getByLabelText('Nome completo (obrigatório)'), { target: { value: 'Correção preservada' } })
+    let authorize!: (value: Response) => void
+    fetcher.mockImplementationOnce(() => new Promise<Response>(resolve => { authorize = resolve }))
+    fireEvent(window, new Event('focus'))
+    expect(screen.getByRole('status')).toHaveTextContent('Verificando permissão')
+    expect(screen.queryByRole('textbox', { name: 'CPF' })).not.toBeInTheDocument()
+    const field = screen.getByLabelText('CPF')
+    expect(field.closest('[hidden]')).toHaveAttribute('inert')
+    await act(async () => authorize(response({ allowed: true })))
+    expect(screen.getByLabelText('CPF')).toBe(field)
+    expect(screen.getByLabelText('CPF')).toHaveValue('529.982.247-25')
+    expect(screen.getByLabelText('Nome completo (obrigatório)')).toHaveValue('Correção preservada')
+    expect(screen.getByRole('button', { name: 'Cadastrar pessoa' })).toBeDisabled()
+    // Even a programmatic submit cannot bypass the preserved submission lock.
+    fireEvent.submit(screen.getByRole('button', { name: 'Cadastrar pessoa' }).closest('form')!)
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith('/people/administrative-registrations'))).toHaveLength(1)
+  })
+  it('preserva rascunho ainda não enviado ao revalidar com acesso mantido', async () => {
+    render(tree()); await fill()
+    fireEvent(window, new Event('focus'))
+    await screen.findByRole('button', { name: 'Cadastrar pessoa' })
+    expect(screen.getByLabelText('Nome completo (obrigatório)')).toHaveValue('Nome digitado')
+    expect(screen.getByRole('button', { name: 'Cadastrar pessoa' })).toBeEnabled()
+  })
+  it('descarta rascunho revogado mesmo se o acesso for concedido novamente', async () => {
+    render(tree()); await fill()
+    allowed = false
+    fireEvent(window, new Event('focus'))
+    await screen.findByRole('alert')
+    expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument()
+    allowed = true
+    fireEvent(window, new Event('focus'))
+    expect(await screen.findByLabelText('CPF')).toHaveValue('')
+  })
+  it('descarta rascunho e resposta pendente quando a sessão muda', async () => {
+    let finish!: (value: Response) => void
+    post = () => new Promise(resolve => { finish = resolve })
+    const view = render(tree()); await fill(); submit()
+    view.rerender(tree({ ...account }))
+    expect(await screen.findByLabelText('CPF')).toHaveValue('')
+    await act(async () => finish(response({ personId, fullName: 'Nome confirmado', churchId: church }, 201)))
+    expect(screen.queryByText('Cadastro confirmado.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('CPF')).toHaveValue('')
   })
   it.each([{}, { personId, fullName: 'Nome confirmado', churchId: null }, { personId: 'inválido', fullName: 'Nome confirmado', churchId: church }])('rejeita confirmação 201 inválida %j', async data => {
     post = async () => response(data, 201)

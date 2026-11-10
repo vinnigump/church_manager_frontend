@@ -23,7 +23,7 @@ interface CheckedDecision { account: Account; key: string; attempt: number; deci
 
 // Guarda de UX. Cada operação do backend deve autorizar novamente o recurso real.
 // Não substitui descoberta de contextos nem concede acesso por vínculo familiar.
-export function ResourceAccess({ permissionCode, resourceType, resourceId, children, optional = false, fallback = null }: AuthorizationQuery & { children: ReactNode; optional?: boolean; fallback?: ReactNode }) {
+export function ResourceAccess({ permissionCode, resourceType, resourceId, children, optional = false, fallback = null, preserveDuringRecheck = false }: AuthorizationQuery & { children: ReactNode; optional?: boolean; fallback?: ReactNode; preserveDuringRecheck?: boolean }) {
   const { account } = useAuth()
   const [checked, setChecked] = useState<CheckedDecision | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -46,6 +46,11 @@ export function ResourceAccess({ permissionCode, resourceType, resourceId, child
   if (!account) return <LoginRedirect />
   // Comparação durante o render evita um quadro com concessão do contexto anterior.
   if (!checked || checked.account !== account || checked.key !== key || checked.attempt !== attempt) {
+    // Keep the draft and submission lock only for the same previously allowed
+    // session/resource. Hidden content cannot be read or operated while checking.
+    if (preserveDuringRecheck && checked?.account === account && checked.key === key && checked.decision === 'allowed') {
+      return <><div hidden inert>{children}</div><p role="status" aria-busy="true">Verificando permissão…</p></>
+    }
     if (optional) return <>{fallback}</>
     return <p role="status" aria-busy="true">Verificando permissão…</p>
   }
@@ -54,5 +59,5 @@ export function ResourceAccess({ permissionCode, resourceType, resourceId, child
     <p role="alert">Acesso não autorizado para este recurso.</p>
     <Link to="/">Voltar ao início</Link>
   </>
-  return <>{children}</>
+  return preserveDuringRecheck ? <><div>{children}</div></> : <>{children}</>
 }
