@@ -31,7 +31,7 @@ export class ApiClient {
       return account
     } catch (error) { if (generation === this.generation) this.clear(); throw error }
   }
-  async request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  async request<T>(path: string, init: RequestInit = {}, expectedStatus?: number): Promise<T> {
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) throw new Error('Caminho inválido.')
     const generation = this.generation
     const headers = new Headers(init.headers)
@@ -48,6 +48,7 @@ export class ApiClient {
       if (response.status === 401) { this.clear(); this.onUnauthorized?.() }
       throw new ApiError(response.status)
     }
+    if (expectedStatus !== undefined && response.status !== expectedStatus) throw new Error('Não foi possível confirmar a operação.')
     let result: unknown
     try { result = response.status === 204 ? undefined : await response.json() }
     catch {

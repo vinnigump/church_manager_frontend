@@ -32,6 +32,7 @@ export async function discoverResources(signal?: AbortSignal): Promise<Authorize
 function ResourceLinks({ resource }: { resource: AuthorizedResource }) {
   const { resourceType, resourceId } = resource
   const links = resourceType === 'CHURCH' ? [
+    ['identity:person:contextual:create', `/pessoas/igrejas/${resourceId}/cadastrar`, 'Cadastrar pessoa'],
     ['EVENT_VIEW', `/eventos/igrejas/${resourceId}/catalogo`, 'Catálogo de eventos'],
     ['EVENT_VIEW', `/eventos/igrejas/${resourceId}/ocorrencias`, 'Ocorrências administrativas'],
     ['EVENT_CALENDAR_MANAGE', `/eventos/igrejas/${resourceId}/calendarios`, 'Calendário anual'],
