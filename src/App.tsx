@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import { Guard } from './auth'
 import LoginPage from './LoginPage'
+import RegistrationPage from './people/RegistrationPage'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import SignOutPage from './SignOutPage'
@@ -37,6 +38,7 @@ export default function App() {
     <Route path="entrar" element={<LoginPage />}/>
     <Route path="sair" element={<SignOutPage />}/>
     <Route element={<Guard />}>
+    <Route path="pessoas/igrejas/:churchId/cadastrar" element={<RegistrationPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria/:resourceType/:resourceId" element={<AuditPage />}/>

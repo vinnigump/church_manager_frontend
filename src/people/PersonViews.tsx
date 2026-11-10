@@ -14,6 +14,7 @@ export type PersonFormProps = {
   // Supplied only after acceptance by the caller; no document catalog is inferred.
   acceptedAlternativeDocument?: { label: string }
   birthDateRequired?: boolean
+  administrative?: boolean
 }
 
 export function PersonRecord({ person }: { person: PersonSummary }) {
@@ -42,13 +43,14 @@ export function PersonView({ state }: { state: PersonViewState }) {
 
 // Mount with a new key when context/access changes; unmount on loss of access.
 // Caller owns authorization, persistence and reconciliation of uncertain results.
-export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateRequired = false }: PersonFormProps) {
+export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateRequired = false, administrative = false }: PersonFormProps) {
   const id = useId()
   const [draft, setDraft] = useState<PersonDraft>({ fullName: '', cpf: '', email: '', phone: '', birthDate: '' })
   const [result, setResult] = useState<PersonCreationResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [invalid, setInvalid] = useState(false)
   const locked = useRef(false)
+  const [documentType, setDocumentType] = useState<'CPF' | 'CIN_CPF'>('CPF')
   const alternative = acceptedAlternativeDocument?.label.trim()
   async function submit() {
     if (locked.current) return
@@ -61,11 +63,13 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
     setBusy(true)
     setInvalid(false)
     setResult(null)
-    try { setResult(await onSubmit({ ...draft, fullName: draft.fullName.trim() })) }
+    try { setResult(await onSubmit({ ...draft, fullName: draft.fullName.trim(), ...(administrative ? { documentType } : {}) })) }
     catch { setResult({ kind: 'error' }) }
     finally { setBusy(false) }
   }
-  if (result?.kind === 'confirmed') return <><p role="status">Cadastro confirmado.</p><PersonRecord person={result.person}/></>
+  if (result?.kind === 'confirmed') return <><p role="status">Cadastro confirmado.</p>{administrative
+    ? <section aria-label="Confirmação do cadastro"><h2>Cadastro realizado</h2><p>{result.person.fullName}</p><p>Esta confirmação não concede consulta à ficha. Convite e membresia são ações separadas.</p></section>
+    : <PersonRecord person={result.person}/>}</>
   const blocked = busy || result?.kind === 'error' || result?.kind === 'conflict'
   return <section className="access-panel person-panel" aria-labelledby={`${id}-title`}>
     <h2 id={`${id}-title`}>Cadastrar pessoa</h2>
@@ -74,6 +78,7 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
       <input id={`${id}-name`} required maxLength={200} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.fullName.trim()} aria-describedby={invalid ? `${id}-validation` : undefined}
         value={draft.fullName} onChange={event => setDraft({ ...draft, fullName: event.target.value })}/>
+      {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => setDocumentType(e.target.value as 'CPF' | 'CIN_CPF')}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option></select></label>}
       <label htmlFor={`${id}-cpf`}>CPF{alternative ? ' (opcional)' : ''}</label>
       <input id={`${id}-cpf`} maxLength={20} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.cpf.trim() && !alternative}

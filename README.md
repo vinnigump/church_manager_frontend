@@ -13,6 +13,11 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+Cadastro administrativo CPF/CIN com igreja autorizada usa o contrato integrado
+`administrative-registration-v1`. A confirmação de 201 é independente da ficha;
+cadastro sem igreja aguarda concessão global explícita no backend #72.
+[Escopo, testes e pendência](docs/fe-cad-cpf-cin-confirmacao-evidence.md).
+
 A Home autenticada descobre igrejas e denominações pelo contrato integrado
 `self-authorization-contexts-v1` 1.0.0, sem seletor geral. Cada destino exige
 sua permissão própria; as rotas revalidam o acesso ao recurso. Atualização
