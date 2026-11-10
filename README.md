@@ -13,6 +13,12 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+A Home autenticada descobre igrejas e denominações pelo contrato integrado
+`self-authorization-contexts-v1` 1.0.0, sem seletor geral. Cada destino exige
+sua permissão própria; as rotas revalidam o acesso ao recurso. Atualização
+explícita, retorno do foco e nova sessão descartam snapshots anteriores.
+[Escopo e evidências NAV-02](docs/fe-nav-contexto-seg.md).
+
 O detalhe oferece consulta/configuração/remoção da janela de inscrição conforme
 `event-registration-window-v1` 1.0.0: dois limites explícitos com fuso e precisão
 de microssegundos, fechamento até o início e modo com inscrição. Remoção não
