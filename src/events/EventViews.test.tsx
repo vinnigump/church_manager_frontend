@@ -127,21 +127,20 @@ describe('agenda isolada', () => {
   })
 })
 
-describe('entrada de eventos sem descoberta de contexto', () => {
+describe('entrada de eventos', () => {
   it('redireciona visitante e não faz requests de eventos', () => {
     const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/eventos']}><AuthProvider><App /></AuthProvider></MemoryRouter>)
     expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(fetcher).not.toHaveBeenCalled()
   })
-  it('conta sem contexto vê orientação de acesso e limite público, sem catálogo, ações ou mocks', () => {
-    const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
+  it('conta sem contexto recebe estado vazio real, sem ações de gestão ou publicação', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ contexts: [] }))); vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/eventos']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App /></AuthContext.Provider></MemoryRouter>)
-    expect(screen.getByRole('status')).toHaveTextContent('A agenda pública ainda não está disponível.')
-    expect(screen.getByText(/catálogo, o calendário anual e as ocorrências administrativas/)).toBeInTheDocument()
+    expect(await screen.findByText('Você ainda não tem acesso à gestão de eventos de uma igreja.')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Catálogo de eventos' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /publicar|criar|cancelar|inscrever/i })).not.toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher).toHaveBeenCalledExactlyOnceWith('/api/v1/accounts/me/authorization/contexts', expect.any(Object))
     fireEvent.click(screen.getByRole('link', { name: 'Minha conta' }))
     expect(screen.getByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
   })
