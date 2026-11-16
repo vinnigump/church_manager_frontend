@@ -1,5 +1,6 @@
 import { useId, useState, type ReactNode } from 'react'
 import { canDisplayAgenda, dateTime, localDate, type AgendaItem, type CatalogItem, type ChurchContext, type ViewState } from './presentation'
+import EventAccess from './EventAccess'
 import './events.css'
 
 function Result<T>({ state, children }: { state: ViewState<T>; children: (items: readonly T[]) => ReactNode }) {
@@ -59,5 +60,5 @@ export function EventAgenda({ church, timeZone, state }: { church: ChurchContext
 }
 
 export default function EventsPage() {
-  return <><h1>Eventos</h1><p role="status">A agenda pública ainda não está disponível.</p><p>Para consultar o catálogo, o calendário anual e as ocorrências administrativas, abra o acesso autorizado da sua igreja. O detalhe da ocorrência oferece a consulta de espaço e sobreposições de planejamento.</p></>
+  return <><h1>Eventos</h1><p>Consulte os eventos e acesse a organização da sua igreja.</p><EventAccess /></>
 }
