@@ -15,6 +15,7 @@ import ChurchGroupPages from './membership/ChurchGroupPages'
 import RosterPages from './rosters/RosterPages'
 import AudiencePage from './events/AudiencePage'
 import RegistrationWindowPage from './events/RegistrationWindowPage'
+import ParticipantCheckInPage from './events/ParticipantCheckInPage'
 import OccurrencePages from './events/OccurrencePages'
 import EventRecordPages from './events/EventRecordPages'
 import PlanningPage from './events/PlanningPage'
@@ -102,6 +103,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/equipe" element={<OccurrenceTeamPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/audiencia" element={<AudiencePage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/janela-inscricao" element={<RegistrationWindowPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/check-in" element={<ParticipantCheckInPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
     <Route path="eventos/igrejas/:churchId/planejamento/copiar" element={<AnnualCopyPage />}/>
