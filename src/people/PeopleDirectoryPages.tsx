@@ -7,6 +7,7 @@ import { ContextOperation } from '../components/ContextOperation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { isUuid } from '../validation'
 import { listPeople } from './people-directory-api'
+import { personEditPermission } from './person-edit-api'
 import '../events/occurrences.css'
 const read = 'identity:person:contextual:read', create = 'identity:person:contextual:create'
 function Access() {
@@ -31,6 +32,8 @@ function Access() {
   </>
 }
 function Directory({ church }: { church: string }) {
+  const [canEdit, setCanEdit] = useState(false)
+  useEffect(() => { const controller = new AbortController(); void consultAuthorization({ permissionCode: personEditPermission, resourceType: 'CHURCH', resourceId: church }, controller.signal).then(v => { if (!controller.signal.aborted) setCanEdit(v) }).catch(() => { if (!controller.signal.aborted) setCanEdit(false) }); return () => controller.abort() }, [church])
   const [field, setField] = useState(''), [search, setSearch] = useState(''), [page, setPage] = useState(0)
   const load = useCallback((signal: AbortSignal) => listPeople(church, search, page, signal), [church, search, page])
   const query = useRead(JSON.stringify([church, search, page]), load)
@@ -43,6 +46,7 @@ function Directory({ church }: { church: string }) {
       {p.preferredName?.trim() && <p>{p.fullName}</p>}
       <p>{p.status === 'ACTIVE' ? 'Cadastro ativo' : p.status === 'INACTIVE' ? 'Cadastro inativo' : `Situação registrada: ${p.status}`}</p>
       <p>{p.membershipStatus === 'ACTIVE' ? 'Membresia ativa nesta igreja' : p.membershipStatus === 'SUSPENDED' ? 'Membresia suspensa nesta igreja' : 'Sem membresia ativa ou suspensa nesta igreja'}</p>
+      {canEdit && p.status !== 'MERGED' && <Link to={`/pessoas/igrejas/${church}/${p.id}/editar`}>Editar dados de {p.preferredName?.trim() || p.fullName}</Link>}
     </li>)}</ul> : <p>Nenhuma pessoa encontrada.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das pessoas"/>
   </>}</ReadResult></>
