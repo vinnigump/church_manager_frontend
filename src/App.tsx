@@ -8,6 +8,7 @@ import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import OwnTrailPages from './trails/OwnTrailPages'
+import SequentialTrailPages from './trails/SequentialTrailPages'
 import WorkItemPages from './tasks/WorkItemPages'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
@@ -85,6 +86,11 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="minhas-trilhas" element={<OwnTrailPages />}/>
+    <Route path="minhas-trilhas/participar" element={<SequentialTrailPages view="enroll" />}/>
+    <Route path="minhas-trilhas/:trailId/atividades" element={<SequentialTrailPages view="own" />}/>
+    <Route path="trilhas/gestao" element={<SequentialTrailPages view="access" />}/>
+    <Route path="trilhas/igrejas/:churchId" element={<SequentialTrailPages view="church" />}/>
+    <Route path="trilhas/denominacoes/:denominationId" element={<SequentialTrailPages view="denomination" />}/>
     <Route path="minhas-escalas" element={<RosterPages view="own" />}/>
     <Route path="ministerios/escalas" element={<RosterPages view="access" />}/>
     <Route path="ministerios/igrejas/:churchId/escalas" element={<RosterPages view="list" />}/>

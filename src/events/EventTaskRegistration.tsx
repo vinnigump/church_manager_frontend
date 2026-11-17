@@ -8,6 +8,7 @@ import { confirmRegistration, registrationOptions, type OwnRegistration, type Re
 export interface EventTaskRegistrationProps {
   churchId: string; eventTypeId: string; taskInstanceId: string
   onRegistered?: (registration: OwnRegistration) => void
+  onBusyChange?: (busy: boolean) => void
 }
 /** Mount only in an available own EVENT step. Server validates persisted tuple independently. */
 export default function EventTaskRegistration(props: EventTaskRegistrationProps) {
@@ -15,11 +16,12 @@ export default function EventTaskRegistration(props: EventTaskRegistrationProps)
   if (!isUuid(props.churchId) || !isUuid(props.eventTypeId) || !isUuid(props.taskInstanceId)) return <p role="alert">Etapa de evento indisponível.</p>
   return <Picker key={`${account?.id}:${props.churchId}:${props.eventTypeId}:${props.taskInstanceId}`} {...props}/>
 }
-function Picker({ churchId, eventTypeId, taskInstanceId, onRegistered }: EventTaskRegistrationProps) {
+function Picker({ churchId, eventTypeId, taskInstanceId, onRegistered, onBusyChange }: EventTaskRegistrationProps) {
   const [page, setPage] = useState(0), [epoch, setEpoch] = useState(0), [selected, setSelected] = useState<RegistrationOption | null>(null)
   const [busy, setBusy] = useState(false), [attempted, setAttempted] = useState(false), [message, setMessage] = useState(''), [result, setResult] = useState<OwnRegistration | null>(null)
   const pending = useRef<AbortController | null>(null)
   useEffect(() => () => pending.current?.abort(), [])
+  useEffect(() => { onBusyChange?.(busy); return () => onBusyChange?.(false) }, [busy, onBusyChange])
   const load = useCallback((signal: AbortSignal) => registrationOptions(churchId, eventTypeId, page, signal), [churchId, eventTypeId, page])
   const query = useRead(JSON.stringify([churchId, eventTypeId, taskInstanceId, page, epoch]), load)
   async function confirm() {
