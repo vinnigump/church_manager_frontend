@@ -1,0 +1,8 @@
+.rosters { min-width: 0; overflow-wrap: anywhere; }
+.rosters .roster-check { display: flex; align-items: center; gap: .6rem; }
+.rosters .roster-check input { flex-shrink: 0; width: 1.2rem; height: 1.2rem; }
+.rosters .roster-event { padding: .6rem; border-inline-start: .25rem solid var(--rio-color-primary); background: var(--rio-color-surface); }
+.rosters article { padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); }
+.rosters article > ul { padding-inline-start: 1.2rem; }
+.rosters article li { margin-block: 1rem; }
+@media (max-width: 40rem) { .rosters nav { flex-direction: column; align-items: stretch; } }
