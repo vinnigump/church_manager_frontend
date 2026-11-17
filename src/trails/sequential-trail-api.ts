@@ -95,14 +95,17 @@ export async function ownedVersions(scope: Scope, signal: AbortSignal) { return 
 export async function executions(church: string, signal: AbortSignal) { return array(await read(`${base({ kind: 'CHURCH', id: church })}/executions`, signal), v => execution(v, { church }), v => v.id) }
 export async function readPublication(church: string, versionId: string, signal: AbortSignal) { return publication(await read(`${base({ kind: 'CHURCH', id: church })}/versions/${id(versionId)}/publication`, signal), church, versionId) }
 export async function savePublication(before: Publication, enabled: boolean, bindings: Binding[], signal: AbortSignal) {
-  return publication(await write(`${base({ kind: 'CHURCH', id: before.churchId })}/versions/${id(before.versionId)}/publication?revision=${revision(before.revision)}`, 'PUT', { enabled, bindings }, signal), before.churchId, before.versionId)
+  if (bindings.length > 100 || new Set(bindings.map(v => v.stepId)).size !== bindings.length || bindings.some(v => !uuid(v.stepId) || !uuid(v.destinationId) || !destinations.includes(v.destinationKind))) throw invalid()
+  const result = publication(await write(`${base({ kind: 'CHURCH', id: before.churchId })}/versions/${id(before.versionId)}/publication?revision=${revision(before.revision)}`, 'PUT', { enabled, bindings }, signal), before.churchId, before.versionId)
+  if (result.enabled !== enabled || result.bindings.length !== bindings.length || result.bindings.some(v => !bindings.some(b => b.stepId === v.stepId && b.destinationKind === v.destinationKind && b.destinationId === v.destinationId))) throw invalid()
+  return result
 }
 export async function saveVersion(scope: Scope, input: Definition, signal: AbortSignal, before?: Version, revise = false) {
   if (!uuid(input.requestId) || !text(input.name, 200) || !input.steps.length || input.steps.length > 100) throw invalid()
   const body = { requestId: input.requestId, name: input.name.trim(), steps: input.steps.map(v => { const s = step(v); return { ...s, name: s.name.trim(), instructions: s.instructions.trim() } }) }
   const suffix = before ? `/${id(before.id)}${revise ? '/revisions' : `?revision=${revision(before.revision)}`}` : ''
   const result = version(await write(`${base(scope)}/versions${suffix}`, before && !revise ? 'PUT' : 'POST', body, signal))
-  if (result.id !== (before && !revise ? before.id : input.requestId)) throw invalid(); return result
+  if (result.id !== (before && !revise ? before.id : input.requestId) || result.name !== body.name || JSON.stringify(result.steps.map(v => v.definition)) !== JSON.stringify(body.steps)) throw invalid(); return result
 }
 export async function publish(scope: Scope, before: Version, signal: AbortSignal) {
   const result = version(await write(`${base(scope)}/versions/${id(before.id)}/publish?revision=${revision(before.revision)}`, 'POST', undefined, signal))

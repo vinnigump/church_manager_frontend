@@ -31,19 +31,20 @@ function AvailableList({ church, write, begin }: { church: string; write: Return
 }
 export function OwnExecution({ id, person }: { id: string; person: string }) {
   const [value, setValue] = useState<trails.Execution | null>(null)
+  const [eventBusy, setEventBusy] = useState(false)
   const write = useTrailWrite()
   const load = useCallback(async (signal: AbortSignal) => {
     try { return await trails.ownExecution(id, person, signal) }
     catch (error) { if (error instanceof ApiError && error.status === 404) return null; throw error }
   }, [id, person])
   const query = useRead(`${id}:${person}`, load)
-  return <><Feedback write={write}/><Query query={query} busy={write.busy} label="percurso" refresh={() => { write.reset(); setValue(null); query.refresh() }}>{data => {
+  return <><Feedback write={write}/><Query query={query} busy={write.busy || eventBusy} label="percurso" refresh={() => { write.reset(); setValue(null); query.refresh() }}>{data => {
     const run = value ?? data
     if (!run) return <p>Este percurso não está disponível para execução. <Link to={`/minhas-trilhas/${id}`}>Consultar o registro do percurso</Link>.</p>
     return <>
       <h2>{run.name}</h2><p>{stateLabel[run.status] ?? 'Situação em conferência'}</p>
       {blockLabel(run.blockReason) && <p role="status">{blockLabel(run.blockReason)}</p>}
-      <button type="button" disabled={write.busy || write.blocked} onClick={() => void write.run(signal => trails.refresh(id, person, signal), setValue, 'Andamento conferido.')}>Conferir andamento</button>
+      <button type="button" disabled={write.busy || eventBusy || write.blocked} onClick={() => void write.run(signal => trails.refresh(id, person, signal), setValue, 'Andamento conferido.')}>Conferir andamento</button>
       <ol className="event-list">{run.steps.map(s => <li key={s.id}>
         <h3>{s.position}. {s.name}</h3><p>{kindLabel[s.kind]} · {stateLabel[s.status] ?? 'Situação em conferência'}</p>
         <p className="trail-instructions">{s.instructions}</p>
@@ -52,7 +53,7 @@ export function OwnExecution({ id, person }: { id: string; person: string }) {
         {s.available && run.status === 'IN_PROGRESS' && <>
           {s.kind === 'MANUAL' && <p>O responsável conclui esta tarefa em <Link to="/minhas-tarefas">Minhas tarefas</Link>. Se a tarefa pertence à equipe, aguarde a pessoa responsável.</p>}
           {s.kind === 'QUESTIONNAIRE' && s.requirementId && <Link to={`/questionarios/igrejas/${run.churchId}/responder/${s.requirementId}?taskInstanceId=${s.id}`}>Responder questionário desta etapa</Link>}
-          {s.kind === 'EVENT_PARTICIPATION' && s.requirementId && <EventTaskRegistration churchId={run.churchId} eventTypeId={s.requirementId} taskInstanceId={s.id}/>}
+          {s.kind === 'EVENT_PARTICIPATION' && s.requirementId && <fieldset disabled={write.busy || write.blocked}><legend>Participação em evento</legend><EventTaskRegistration churchId={run.churchId} eventTypeId={s.requirementId} taskInstanceId={s.id} onBusyChange={setEventBusy}/></fieldset>}
         </>}
       </li>)}</ol>
     </>

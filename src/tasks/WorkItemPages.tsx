@@ -45,6 +45,7 @@ function List({ actor, church, epoch }: { actor: string; church?: string; epoch:
     <ReadResult query={query} label="tarefas">{data => <>
       <p role="status">{data.total} tarefas · Página {page + 1}</p>
       {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.title}</h2><p>{label[v.state]}</p>
+        {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
         {v.canClaim && <p>Você pode assumir esta tarefa da equipe.</p>}
         <Link to={church ? `${route(church)}/${v.id}` : `/minhas-tarefas/${v.id}`}>Ver tarefa {v.title}</Link>
       </li>)}</ul> : <p>Nenhuma tarefa nesta consulta.</p>}
@@ -79,6 +80,7 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
   const v = control.value && control.value.revision >= query.state.data.revision ? control.value : query.state.data
   return <article>{message}<button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button><h2>{v.title}</h2>
     <p>{label[v.state]} · {destinationLabel[v.destinationKind]}</p><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
+    {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
     {v.completionMode === 'ADMINISTRATIVE' && <p>Conclusão administrativa registrada.</p>}
     {control.busy && <p role="status" aria-busy="true">Registrando operação…</p>}
     {!church && <>

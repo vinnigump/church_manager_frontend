@@ -14,7 +14,7 @@ function List() {
   const [page, setPage] = useState(0)
   const load = useCallback((signal: AbortSignal) => listOwnTrails(page, signal), [page])
   const query = useRead(`own-trails:${page}`, load)
-  return <ReadResult query={query} label="minhas trilhas">{data => <>
+  return <><p><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link></p><p><Link to="/trilhas/gestao">Acesso da equipe às trilhas</Link></p><ReadResult query={query} label="minhas trilhas">{data => <>
     <p role="status">{data.total} percursos · Página {page + 1}</p>
     {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}>
       <h2>{v.name}</h2><p>{v.churchName} · {trailLabel[v.status]}</p>
@@ -22,7 +22,7 @@ function List() {
       <Link to={`/minhas-trilhas/${v.id}`}>Acompanhar {v.name}</Link>
     </li>)}</ul> : <p>Você ainda não tem percursos registrados.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das minhas trilhas"/>
-  </>}</ReadResult>
+  </>}</ReadResult></>
 }
 function Detail({ id }: { id: string }) {
   const [page, setPage] = useState(0)
@@ -33,6 +33,7 @@ function Detail({ id }: { id: string }) {
   const query = useRead(`${id}:${page}`, load)
   return <ReadResult query={query} label="meu percurso">{({ trail, tasks }) => <>
     <h2>{trail.name}</h2><p>{trail.churchName} · {trailLabel[trail.status]}</p>
+    <p><Link to={`/minhas-trilhas/${id}/atividades`}>Abrir atividades do percurso</Link></p>
     <p>Versão {trail.versionNumber} · {trail.completedTaskCount} de {trail.taskCount} etapas com conclusão registrada.</p>
     <p>Acompanhe as etapas abaixo. Uma atividade pode ser realizada por outra pessoa responsável pelo seu percurso.</p>
     {tasks.items.length ? <ol className="event-list">{tasks.items.map(v => <li key={v.id}>

@@ -1,0 +1,13 @@
+.sequential-trails section { margin-block: 1.25rem; }
+.sequential-trails label { display: block; margin-block: .8rem; }
+.sequential-trails input:not([type="checkbox"]), .sequential-trails textarea, .sequential-trails select { display: block; width: 100%; max-width: 44rem; box-sizing: border-box; margin-top: .3rem; padding: .6rem; font: inherit; }
+.sequential-trails fieldset { min-width: 0; margin-block: 1rem; padding: 1rem; border: 1px solid #ccd4df; border-radius: .5rem; }
+.sequential-trails .trail-step-editor { padding: 1rem; border: 1px solid #ccd4df; border-radius: .5rem; background: #f8fafc; }
+.sequential-trails .trail-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-block: .8rem; }
+.sequential-trails button { margin: .3rem .5rem .3rem 0; }
+.sequential-trails .trail-instructions { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sequential-trails .trail-checkbox { display: flex; gap: .6rem; align-items: center; }
+.sequential-trails details { margin-block: 1rem; }
+.sequential-trails summary { cursor: pointer; font-weight: 600; }
+.sequential-trails li > h3, .sequential-trails li > h4 { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .sequential-trails fieldset, .sequential-trails .trail-step-editor { padding: .65rem; } }
