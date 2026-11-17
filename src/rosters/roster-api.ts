@@ -58,8 +58,12 @@ export async function listRosters(church: string, index: number, signal?: AbortS
 export async function readRoster(church: string, id: string, signal?: AbortSignal, client: ApiClient = api) {
   const result = parseRoster(await client.request<unknown>(base(church, id), { signal }), church); if (result.id !== id) throw invalid(); return result
 }
-export async function ownRosters(index: number, signal?: AbortSignal, client: ApiClient = api) {
-  return page(await client.request<unknown>(`/service-rosters/me?${paging(index)}`, { signal }), index, parseOwn)
+export async function ownRosters(index: number, signal?: AbortSignal, client: ApiClient = api, upcoming = false) {
+  const raw = await client.request<unknown>(`/service-rosters/me?${paging(index)}&upcoming=${upcoming}`, { signal })
+  if (!object(raw) || !isInstant(raw.referenceAt) || raw.upcoming !== upcoming) throw invalid()
+  const result = page(raw, index, parseOwn)
+  if (upcoming && result.items.some(v => instantNanos(v.endsAt) <= instantNanos(raw.referenceAt as string))) throw invalid()
+  return { ...result, referenceAt: raw.referenceAt, upcoming }
 }
 export async function selectAccounts(church: string, query: string, index: number, signal?: AbortSignal, client: ApiClient = api) {
   if (query.length > 120) throw invalid()
