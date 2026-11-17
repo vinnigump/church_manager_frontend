@@ -35,8 +35,8 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
       <section aria-label="Contagem de crachás"><h2>Faltam recolher {s.pendingTotal} crachás</h2>
         <p>Dia {s.day.split('-').reverse().join('/')} · {s.timeZone} · consulta do servidor às {date(s.referenceAt)}.</p>
         <dl className="reception-counters"><div><dt>Distribuídos hoje</dt><dd>{s.distributed}</dd></div><div><dt>Devolvidos das entregas de hoje</dt><dd>{s.returned}</dd></div>
-          <div><dt>Perdidos das entregas de hoje</dt><dd>{s.lost}</dd></div><div><dt>Pendentes das entregas de hoje</dt><dd>{s.pending}</dd></div><div><dt>Pendentes de dias anteriores</dt><dd>{s.pendingFromEarlierDays}</dd></div>
-        </dl><p>As entregas de outros dias continuam pendentes até devolução ou registro de perda.</p>
+          <div><dt>Perdidos das entregas de hoje</dt><dd>{s.lost}</dd></div><div><dt>A recolher · total</dt><dd>{s.pendingTotal}</dd></div><div><dt>Pendentes de dias anteriores</dt><dd>{s.pendingFromEarlierDays}</dd></div>
+        </dl><p>{s.pending} entregas de hoje ainda pendentes. As entregas de outros dias continuam pendentes até devolução ou registro de perda.</p>
       </section>
       <section aria-label="Crachás a recolher"><h2>Crachás a recolher</h2><p>{deliveries.total} entregas abertas · página {page + 1}</p>
         {deliveries.items.length ? <ul className="reception-pending">{deliveries.items.map(v => <li key={v.id}><h3>Crachá {v.badgeLabel} · {v.personName}</h3>
@@ -74,7 +74,7 @@ function Workspace({ church }: { church: string }) {
 export default function ReceptionPages() {
   const { churchId } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <div className="reception"><h1 data-page-title="Recepção">Recepção</h1><p>Entregue e recolha os crachás de atuação da igreja.</p>
+  return <div className="reception"><header className="reception-heading"><span className="reception-eyebrow">Atendimento e atuação ministerial</span><h1 data-page-title="Recepção">Recepção — Controle de crachás</h1><p>Entrega e devolução de crachás físicos com identificação por QR Code.</p></header>
     {churchId === undefined ? <Access key={scope.epoch}/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Volte à recepção e selecione novamente.</p> : <>
       <p><Link to="/recepcao">Trocar igreja</Link></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
         <Workspace key={`${scope.epoch}:${churchId}`} church={churchId}/>

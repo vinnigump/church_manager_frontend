@@ -73,8 +73,9 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
     : <PersonRecord person={result.person}/>}</>
   const blocked = busy || result?.kind === 'error' || result?.kind === 'conflict'
   return <section className="access-panel person-panel" aria-labelledby={`${id}-title`}>
-    <h2 id={`${id}-title`}>Cadastrar pessoa</h2>
+    <h2 id={`${id}-title`}>Dados da pessoa</h2>
     <form noValidate aria-busy={busy} onSubmit={event => { event.preventDefault(); void submit() }}>
+      <div className="people-form-section"><h3><span>1</span> Identificação básica</h3><p>Identificação principal para o cadastro institucional.</p>
       <label htmlFor={`${id}-name`}>Nome completo (obrigatório)</label>
       <input id={`${id}-name`} required maxLength={200} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.fullName.trim()} aria-describedby={invalid ? `${id}-validation` : undefined}
@@ -88,6 +89,7 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
         value={draft.cpf} onChange={event => setDraft({ ...draft, cpf: event.target.value })}/>
       <p id={`${id}-document`}>{alternative ? `Documento alternativo aceito: ${alternative}.` : 'Informe CPF ou forneça um documento alternativo aceito pelo serviço responsável.'} A validação do documento cabe ao serviço responsável.</p>
       </>}
+      </div><div className="people-form-section"><h3><span>2</span> Dados de contato</h3>
       <p id={`${id}-contact`}>Informe pelo menos um contato, e-mail ou telefone.</p>
       <label htmlFor={`${id}-email`}>E-mail</label>
       <input id={`${id}-email`} type="email" autoComplete="off" disabled={busy}
@@ -99,10 +101,12 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
         aria-invalid={invalid && !draft.email.trim() && !draft.phone.trim()}
         aria-describedby={`${id}-contact`}
         value={draft.phone} onChange={event => setDraft({ ...draft, phone: event.target.value })}/>
+      </div><div className="people-form-section"><h3><span>3</span> Informações complementares</h3>
       <label htmlFor={`${id}-birth`}>Nascimento{birthDateRequired ? ' (obrigatório)' : ' (opcional)'}</label>
       <input id={`${id}-birth`} type="date" required={birthDateRequired} autoComplete="off" disabled={busy}
         aria-invalid={invalid && birthDateRequired && !draft.birthDate}
         value={draft.birthDate} onChange={event => setDraft({ ...draft, birthDate: event.target.value })}/>
+      </div>
       {invalid && <p id={`${id}-validation`} role="alert">{noDocument ? 'Informe nome completo, pelo menos um contato e nascimento quando obrigatório.' : 'Informe nome completo, CPF ou documento alternativo aceito, pelo menos um contato e nascimento quando obrigatório.'}</p>}
       {busy && <p role="status">Aguardando confirmação do cadastro…</p>}
       {result?.kind === 'conflict' && <p role="alert">Não foi possível confirmar o cadastro por conflito. Confira os dados com o serviço responsável antes de nova tentativa.</p>}

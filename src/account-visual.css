@@ -1,0 +1,7 @@
+.app-content .account-page .account-actions {display:grid;grid-template-columns:1fr;gap:0;padding-top:8px;}
+.app-content .account-page .account-actions a {display:flex;gap:14px;padding:16px 0;text-decoration:none;color:#00513c;font-size:14px;border-bottom:1px solid #e0eae4;}
+.app-content .account-page .account-actions a span {flex:1;}
+.app-content .account-page .account-actions a > svg:last-child {width:17px;height:17px;}
+.app-content .account-page .account-actions a:hover {color:#003d2d;}
+.app-content .account-page .account-signout {justify-self:start;margin-top:20px;padding-inline:20px;color:#923e30;border-color:#e0d8d4;border-radius:8px;}
+@media(max-width:600px){.app-content .account-page .account-card {padding:20px;}.app-content .account-page .account-signout {width:100%;}}

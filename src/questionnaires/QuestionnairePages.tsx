@@ -1,3 +1,4 @@
+import './questionnaires.css'
 import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -62,7 +63,7 @@ export default function QuestionnairePages({ view }: { view: View }) {
   const [session, setSession] = useState({ account, epoch: 0 })
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   if (view !== 'access' && !isUuid(churchId) || ['begin', 'version'].includes(view) && !isUuid(versionId) || ['application', 'response'].includes(view) && !isUuid(applicationId) || view === 'history' && !isUuid(questionnaireId)) return <p role="alert">Endereço de questionário inválido.</p>
-  return <section className="occurrences" key={`${session.epoch}:${view}:${churchId}:${versionId}:${applicationId}:${questionnaireId}`}><h1 data-page-title="Questionários">Questionários</h1><p><Link to="/">Início</Link> · <Link to="/questionarios">Questionários</Link>{churchId && <> · <Link to={route(churchId)}>Minhas respostas nesta igreja</Link></>}</p>
+  return <section className={`occurrences questionnaire-workspace questionnaire-${view}`} key={`${session.epoch}:${view}:${churchId}:${versionId}:${applicationId}:${questionnaireId}`}><header className="questionnaire-page-heading"><p className="questionnaire-eyebrow">Formação e acompanhamento</p><h1 data-page-title="Questionários">Questionários</h1><p>Modelos, respostas e acompanhamento dos questionários da igreja.</p></header><p><Link to="/">Início</Link> · <Link to="/questionarios">Questionários</Link>{churchId && <> · <Link to={route(churchId)}>Minhas respostas nesta igreja</Link></>}</p>
     {view === 'access' ? <Access/> : view === 'own' ? <OwnCatalog church={churchId}/> : view === 'begin' ? <Begin church={churchId} versionId={versionId}/> : view === 'application' || view === 'response' ? <QuestionnaireResponse church={churchId} applicationId={applicationId} staff={view === 'response'}/> : view === 'manage' ? <Management church={churchId}/> : view === 'create' || view === 'version' ? <QuestionnaireEditor church={churchId} versionId={view === 'version' ? versionId : undefined}/> : view === 'history' ? <History church={churchId} id={questionnaireId}/> : view === 'responses' ? <Responses church={churchId}/> : <Export church={churchId}/>}
   </section>
 }

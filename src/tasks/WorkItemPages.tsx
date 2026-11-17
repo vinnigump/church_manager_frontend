@@ -44,7 +44,7 @@ function List({ actor, church, epoch }: { actor: string; church?: string; epoch:
   return <><Filter value={state} change={v => { setState(v); setPage(0) }}/>
     <ReadResult query={query} label="tarefas">{data => <>
       <p role="status">{data.total} tarefas · Página {page + 1}</p>
-      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.title}</h2><p>{label[v.state]}</p>
+      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} data-task-state={v.state}><span className="task-state">{label[v.state]}</span><h2>{v.title}</h2>
         {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
         {v.canClaim && <p>Você pode assumir esta tarefa da equipe.</p>}
         <Link to={church ? `${route(church)}/${v.id}` : `/minhas-tarefas/${v.id}`}>Ver tarefa {v.title}</Link>
@@ -79,7 +79,7 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
   if (query.state.kind === 'error') return <>{message}<p role="alert">{query.state.message}</p><button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button></>
   const v = control.value && control.value.revision >= query.state.data.revision ? control.value : query.state.data
   return <article>{message}<button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button><h2>{v.title}</h2>
-    <p>{label[v.state]} · {destinationLabel[v.destinationKind]}</p><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
+    <p className="task-detail-meta"><span className="task-state">{label[v.state]}</span> {destinationLabel[v.destinationKind]}</p><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
     {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
     {v.completionMode === 'ADMINISTRATIVE' && <p>Conclusão administrativa registrada.</p>}
     {control.busy && <p role="status" aria-busy="true">Registrando operação…</p>}
@@ -139,7 +139,7 @@ export default function WorkItemPages({ view }: { view: 'mine' | 'ownDetail' | '
   const personal = view === 'mine' || view === 'ownDetail', detail = view === 'ownDetail' || view === 'detail'
   const valid = (personal || isUuid(churchId)) && (!detail || isUuid(taskId))
   const title = view === 'create' ? 'Criar tarefa' : personal ? 'Minhas tarefas' : 'Tarefas da igreja'
-  return <div className="occurrences task-workspace"><h1 data-page-title={title}>{title}</h1><nav aria-label="Navegação das tarefas">
+  return <div className="occurrences task-workspace"><header className="task-page-header"><span className="task-eyebrow">Organização e cuidado</span><h1 data-page-title={title}>{title}</h1><p>{view === 'create' ? 'Defina as instruções e o destino da tarefa para organizar o trabalho da equipe.' : 'Acompanhe as atividades, assuma responsabilidades e registre as conclusões.'}</p></header><nav aria-label="Navegação das tarefas">
     <Link to="/">Voltar ao Início</Link><Link to="/minhas-tarefas">Minhas tarefas</Link>
     {!personal && valid && <ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={churchId} optional><Link to={route(churchId)}>Tarefas da igreja</Link></ResourceAccess>}
   </nav>

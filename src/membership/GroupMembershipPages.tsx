@@ -1,3 +1,5 @@
+import UiIcon from '../components/UiIcon'
+import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -55,7 +57,7 @@ function List({ context, page, setPage, filter }: { context: GroupContext; page:
   const query = useRead(JSON.stringify([context, filter, page]), load)
   return <ReadResult query={query} label="vínculos do grupo">{data => <>
     <p>Página {data.page + 1} · {data.total} vínculos no filtro {filter === 'ACTIVE' ? 'ativos' : filter === 'INACTIVE' ? 'inativos' : 'todos, incluindo histórico'}.</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}>
+    {data.items.length ? <ul className="event-list ministry-members-list">{data.items.map(item => <li key={item.id}><span className="ministry-member-avatar"><UiIcon kind="account"/></span>
       <h2>{item.displayName}</h2><p>Estado {item.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}.</p>
       <p>Ingresso registrado em <time dateTime={item.linkedAt}>{new Date(item.linkedAt).toLocaleString('pt-BR')}</time>.</p>
       <Link to={`${groupRoute(context)}/${item.id}`}>Consultar vínculo de {item.displayName}</Link>
@@ -122,7 +124,7 @@ export default function GroupMembershipPages() {
   const valid = isUuid(churchId) && isGroupKind(kind) && isUuid(groupId) && (membershipId === undefined || isUuid(membershipId))
   // Remount the entire context, including pending commands, when route/account changes.
   const context = valid ? { churchId, kind, groupId } as GroupContext : null
-  return <div className="occurrences"><h1 data-page-title="Integrantes">Integrantes do ministério ou departamento</h1><Link to="/">Voltar ao início</Link>
+  return <div className="occurrences ministry-visual"><h1 data-page-title="Integrantes">Integrantes do ministério ou departamento</h1><Link to="/">Voltar ao início</Link>
     {valid && <p><Link to={`/ministerios/igrejas/${churchId}`}>Voltar aos ministérios e departamentos</Link></p>}
     <p>Vínculo de grupo não concede cargo, permissão ou presença e não substitui membresia formal. O estado ativo não expira por data histórica.</p>
     {!context ? <p role="alert">O acesso ao grupo é inválido. Abra um contexto autorizado de ministério ou departamento.</p> : <Workspace key={`${session.epoch}:${churchId}:${kind}:${groupId}:${membershipId ?? ''}`} context={context} id={membershipId}/>}

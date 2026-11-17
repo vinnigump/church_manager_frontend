@@ -1,3 +1,5 @@
+import UiIcon from '../components/UiIcon'
+import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -38,7 +40,7 @@ function List({ church }: { church: string }) {
   return <><p><Link to={`${groupManagementRoute(church)}/novo`}>Criar grupo</Link></p>
     <form onSubmit={e => { e.preventDefault(); setSearch(field); setPage(0) }}><label>Pesquisar grupo<input type="search" maxLength={120} value={field} onChange={e => setField(e.target.value)}/></label><button>Pesquisar</button></form>
     <ReadResult query={query} label="grupos">{data => <><p role="status">{data.total} grupos · Página {page + 1}</p>
-      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.name}</h2>{v.archivedAt && <p>Arquivado</p>}<p>{v.description}</p><Link to={`${groupManagementRoute(church)}/${v.id}`}>Ver grupo {v.name}</Link></li>)}</ul> : <p>Nenhum grupo encontrado.</p>}
+      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><span className="ministry-card-symbol"><UiIcon kind="ministries"/></span><h2>{v.name}</h2>{v.archivedAt && <p>Arquivado</p>}<p>{v.description}</p><Link to={`${groupManagementRoute(church)}/${v.id}`}>Ver grupo {v.name}</Link></li>)}</ul> : <p>Nenhum grupo encontrado.</p>}
       <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos grupos"/></>}</ReadResult>
   </>
 }
@@ -136,8 +138,8 @@ export default function ChurchGroupPages({ view }: { view: 'churches' | 'list' |
   const [session, setSession] = useState({ account, epoch: 0 })
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   const valid = view === 'churches' || isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(groupId))
-  return <div className="occurrences"><h1 data-page-title="Grupos">Grupos</h1><p>Grupos de trabalho independentes de ministérios e departamentos.</p>
-    <nav aria-label="Navegação dos grupos"><Link to="/ministerios">Ministérios</Link>{view !== 'churches' && <Link to="/grupos">Igrejas</Link>}{valid && view !== 'churches' && <Link to={groupManagementRoute(churchId)}>Todos os grupos</Link>}</nav>
+  return <div className="occurrences ministry-visual"><header className="ministry-heading"><span className="ministry-eyebrow">Comunidade e serviço</span><h1 data-page-title="Grupos">Grupos de trabalho</h1><p>Grupos independentes de ministérios e departamentos.</p></header>
+    <nav className="ministry-tabs" aria-label="Navegação dos grupos"><Link to="/ministerios">Ministérios</Link>{view !== 'churches' && <Link to="/grupos">Igrejas</Link>}{valid && view !== 'churches' && <Link to={groupManagementRoute(churchId)}>Todos os grupos</Link>}</nav>
     {!valid ? <p role="alert">Acesso inválido. Escolha novamente uma igreja e um grupo.</p> : <div key={`${session.epoch}:${churchId}:${groupId}:${view}`}>
       {view === 'churches' ? <Access/> : view === 'list' ? <ResourceAccess permissionCode={permission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><List church={churchId}/></ResourceAccess>
         : view === 'detail' ? <Detail church={churchId} id={groupId}/> : <Editor church={churchId} id={view === 'edit' ? groupId : undefined}/>}

@@ -1,3 +1,4 @@
+import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -61,7 +62,7 @@ function Workspace({ church }: { church: string }) {
 export default function MinistryManagementPages({ directory = false }: { directory?: boolean }) {
   const { churchId = '' } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <section key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>
+  return <section className="ministry-visual" key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida.</p> : <ResourceAccess permissionCode={ministryManagePermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace church={churchId}/></ResourceAccess>}
   </section>
 }

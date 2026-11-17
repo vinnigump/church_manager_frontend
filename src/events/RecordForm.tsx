@@ -32,7 +32,7 @@ export default function RecordForm({ church, before, fields, change, offset, bus
     onSave(button?.value !== 'available')
   }
   return <form aria-label="Cadastro de evento" onSubmit={submit}><fieldset disabled={busy || blocked}>
-    <legend>Dados do evento</legend>
+    <legend>Dados do evento</legend><section className="record-form-section"><h2><span>1</span>Dados essenciais</h2>
     <label>Nome do evento<input required maxLength={180} value={fields.name} onChange={e => set('name', e.target.value)}/></label>
     <TypePicker church={church} fields={fields} change={change} fixed={Boolean(before?.recurrenceRuleId)}/>
     <label>Local ou endereço de acesso público<input required maxLength={500} value={fields.location} onChange={e => set('location', e.target.value)} aria-describedby="record-location-help"/></label>
@@ -48,7 +48,7 @@ export default function RecordForm({ church, before, fields, change, offset, bus
     <label>Modalidade<select required value={fields.modality} onChange={e => set('modality', e.target.value)}>
       <option value="">Selecione</option><option value="IN_PERSON">Presencial</option><option value="ONLINE">Online</option><option value="HYBRID">Híbrido</option>
     </select></label>
-    <h2>Participação</h2>
+    </section><section className="record-form-section"><h2><span>2</span>Inscrição e capacidade</h2>
     <label>Como as pessoas participam?<select required value={fields.participationMode} onChange={e => change({ ...fields, participationMode: e.target.value,
       checkInRequired: e.target.value === 'OPEN_EVENT' ? false : fields.checkInRequired })}>
       <option value="">Selecione</option><option value="OPEN_EVENT">Entrada livre, sem inscrição</option><option value="REGISTRATION_REQUIRED">Com inscrição</option>
@@ -60,7 +60,7 @@ export default function RecordForm({ church, before, fields, change, offset, bus
     <details><summary>Limite de participantes</summary>
       <label>Capacidade (vazia: sem limite)<input type="number" min="0" max="2147483647" step="1" value={fields.capacity} onChange={e => set('capacity', e.target.value)}/></label>
     </details>
-    <h2>Público</h2>
+    </section><section className="record-form-section"><h2><span>3</span>Audiência e acesso</h2>
     <label>Quem pode ver o evento?<select required value={fields.visibility} onChange={e => set('visibility', e.target.value)}>
       <option value="">Selecione o público</option>{Object.entries(visibilityLabel).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
     </select></label>
@@ -73,7 +73,7 @@ export default function RecordForm({ church, before, fields, change, offset, bus
       {audienceCategories.filter(key => before?.audience?.[key].length).map(key => <p key={key}>{categories[key]}: {fields[key].length} seleções existentes preservadas.</p>)}
       <p>Novas seleções de ministérios, departamentos e funções ainda não estão disponíveis neste formulário.</p>
     </details>
-    <p>Rascunhos ficam ocultos. Salvar como disponível mostra o evento conforme o público escolhido.</p>
+    </section><p>Rascunhos ficam ocultos. Salvar como disponível mostra o evento conforme o público escolhido.</p>
     <div className="record-actions"><button type="submit" value="draft">Salvar rascunho</button><button type="submit" value="available">Salvar e disponibilizar</button></div>
   </fieldset></form>
 }

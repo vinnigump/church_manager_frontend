@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import PeoplePageHeader from './PeoplePageHeader'
 import { ApiError } from '../api'
 import { ResourceAccess } from '../authorization'
 import { useAuth } from '../auth'
@@ -18,7 +19,7 @@ function Form({ person, church, saved, onBusy }: { person: BasicPerson; church: 
     catch (error) { if (!controller.signal.aborted) setMessage(error instanceof ApiError && error.status === 409 ? 'O cadastro mudou. Consulte novamente antes de editar.' : 'Não foi possível confirmar a gravação. Consulte novamente antes de outra tentativa.') }
     finally { pending.current = null; if (!controller.signal.aborted) { setBusy(false); onBusy(false) } }
   }
-  return <form onSubmit={e => { e.preventDefault(); void submit() }} aria-busy={busy}>
+  return <form className="people-edit-form" onSubmit={e => { e.preventDefault(); void submit() }} aria-busy={busy}>
     <fieldset disabled={busy || blocked}><legend>Dados básicos</legend>
       <label>Nome completo<input required maxLength={200} value={draft.fullName} onChange={e => setDraft({ ...draft, fullName: e.target.value })}/></label>
       <label>Nome de preferência<input maxLength={150} value={draft.preferredName} onChange={e => setDraft({ ...draft, preferredName: e.target.value })}/></label>
@@ -46,7 +47,7 @@ export default function PersonBasicEditPage() {
   const { churchId = '', personId = '' } = useParams(), { account } = useAuth()
   const [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <><h1>Editar pessoa</h1><Link to={`/pessoas/igrejas/${churchId}`}>Voltar a Pessoas</Link>
+  return <div className="people-page people-edit-page"><PeoplePageHeader title="Editar pessoa" description="Consulte e atualize a identificação e os contatos do cadastro."/><Link className="people-back-link" to={`/pessoas/igrejas/${churchId}`}>← Voltar a Pessoas</Link>
     {!isUuid(churchId) || !isUuid(personId) ? <p role="alert">Cadastro inválido.</p> : <ResourceAccess permissionCode={personEditPermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace key={`${scope.epoch}:${churchId}:${personId}`} church={churchId} person={personId}/></ResourceAccess>}
-  </>
+  </div>
 }

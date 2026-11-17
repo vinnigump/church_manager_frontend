@@ -1,3 +1,4 @@
+import '../membership/membership-visual.css'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -122,7 +123,7 @@ export default function RosterPages({ view }: { view: 'access' | 'list' | 'detai
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   const valid = view === 'access' || view === 'own' || isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(rosterId))
   const title = { access: 'Escalas', list: 'Escalas da igreja', detail: 'Detalhes da escala', create: 'Criar escala', edit: 'Editar escala', own: 'Minhas escalas' }[view]
-  return <div className="occurrences rosters"><h1 data-page-title={title}>{title}</h1><nav aria-label="Navegação de escalas"><Link to="/ministerios">Ministérios</Link><Link to="/ministerios/escalas">Gestão de escalas</Link><Link to="/minhas-escalas">Minhas escalas</Link></nav>
+  return <div className="occurrences rosters ministry-visual"><h1 data-page-title={title}>{title}</h1><nav className="ministry-tabs" aria-label="Navegação de escalas"><Link to="/ministerios">Ministérios</Link><Link to="/ministerios/escalas">Gestão de escalas</Link><Link to="/minhas-escalas">Minhas escalas</Link></nav>
     {!valid ? <p role="alert">Acesso à escala inválido. Escolha novamente sua igreja.</p> : <div key={`${scope.epoch}:${churchId}:${rosterId}:${view}`}>
       {view === 'access' ? <Access/> : view === 'own' ? <OwnServiceRosters full/> : <>
         <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={rosterRoute(churchId)}>Listar escalas desta igreja</Link></p></ResourceAccess>

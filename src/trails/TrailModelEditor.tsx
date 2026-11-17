@@ -21,9 +21,9 @@ export default function TrailModelEditor({ scope, before, revise = false, done, 
     <Feedback write={write}/>
     {write.blocked && <p>Confira a lista de modelos antes de iniciar outro cadastro. Suas informações continuam visíveis abaixo.</p>}
     <form onSubmit={submit}><fieldset disabled={write.busy || write.blocked}>
-      <legend>Modelo e etapas</legend><label>Nome da trilha<input required maxLength={200} value={name} onChange={e => setName(e.target.value)}/></label>
+      <legend>Informações do modelo</legend><label>Nome da trilha<input required maxLength={200} value={name} onChange={e => setName(e.target.value)}/></label>
       {steps.map(({ key, step }, index) => <section key={key} className="trail-step-editor">
-        <h3>Etapa {index + 1}</h3>
+        <h3><span className="trail-step-number">{index + 1}</span> Etapa {index + 1}</h3>
         <label>Nome da etapa<input required maxLength={180} value={step.name} onChange={e => update(key, { name: e.target.value })}/></label>
         <label>O que deve ser feito<textarea required maxLength={10000} rows={4} value={step.instructions} onChange={e => update(key, { instructions: e.target.value })}/></label>
         <label>Tipo<select value={step.kind} onChange={e => { const kind = e.target.value as trails.Kind; update(key, { kind, assignment: kind === 'MANUAL' ? 'PARTICIPANT' : null, requirementId: null }) }}>
