@@ -89,6 +89,7 @@ export default function GroupMembershipPages() {
   // Remount the entire context, including pending commands, when route/account changes.
   const context = valid ? { churchId, kind, groupId } as GroupContext : null
   return <div className="occurrences"><h1 data-page-title="Vínculos do grupo">Vínculos de participantes com o grupo</h1><Link to="/">Voltar ao início</Link>
+    {valid && <p><Link to={`/ministerios/igrejas/${churchId}`}>Voltar aos ministérios e departamentos</Link></p>}
     <p>Vínculo de grupo não concede cargo, permissão ou presença e não substitui membresia formal. O estado ativo não expira por data histórica.</p>
     {!context ? <p role="alert">O acesso ao grupo é inválido. Abra um contexto autorizado de ministério ou departamento.</p> : <Workspace key={`${account?.id}:${churchId}:${kind}:${groupId}:${membershipId ?? ''}`} context={context} id={membershipId}/>}
   </div>

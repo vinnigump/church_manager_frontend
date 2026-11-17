@@ -36,7 +36,7 @@ describe('Home pública e autenticada', () => {
     expect(await screen.findByRole('heading', { name: 'Bem-vindo' })).toBeInTheDocument()
     expect(screen.getByTestId('route')).toHaveTextContent(/^\/$/)
     expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page')
-    expect(within(screen.getByRole('navigation', { name: 'Principal' })).getAllByRole('link')).toHaveLength(3)
+    expect(within(screen.getByRole('navigation', { name: 'Principal' })).getAllByRole('link')).toHaveLength(4)
     await waitFor(() => {
       expect(document.title).toBe('Início | Church Manager')
       expect(screen.getByRole('main')).toHaveFocus()

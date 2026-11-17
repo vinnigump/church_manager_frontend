@@ -13,6 +13,12 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+Ministérios agora tem entrada própria: descobre igrejas autorizadas, pesquisa
+ministérios/departamentos pelo nome e abre a gestão de vínculos existente sem
+digitar UUID. Reutiliza GROUP_MEMBERSHIP_MANAGE/LED e o diretório integrado no
+backend #169; não representa CRUD completo nem os Grupos independentes.
+[Escopo e evidências](docs/events/fe-v4-ministry-directory.md).
+
 A entrada Eventos descobre as igrejas autorizadas e valida EVENT_VIEW antes de
 abrir a nova lista com nome, local e estado. O cadastro usa event-records-v1:
 nome/local, público e opções de participação juntos, com Salvar rascunho ou
