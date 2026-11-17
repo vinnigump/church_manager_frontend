@@ -13,7 +13,7 @@ describe('shell RIO e navegação real', () => {
   it('mantém uma navegação com destinos reais e ícones decorativos', () => {
     show()
     const nav = screen.getByRole('navigation', { name: 'Principal' })
-    expect(within(nav).getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/', '/eventos', '/ministerios', '/conta'])
+    expect(within(nav).getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/', '/pessoas', '/eventos', '/ministerios', '/conta'])
     expect(screen.getAllByRole('navigation', { name: 'Principal' })).toHaveLength(1)
     expect(within(nav).queryByRole('link', { name: /Membros|Administração|Igreja/ })).not.toBeInTheDocument()
     expect(nav.querySelectorAll('svg[aria-hidden="true"][focusable="false"]')).toHaveLength(4)
