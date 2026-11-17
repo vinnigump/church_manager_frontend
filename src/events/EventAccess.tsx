@@ -35,7 +35,7 @@ export default function EventAccess() {
       if (state.kind === 'error') return <p role="alert">Não foi possível carregar seus acessos a eventos. Tente atualizar os acessos.</p>
       return state.data.length ? <ul className="event-list">{state.data.map(church => <li key={church.resourceId}>
         <h3>{church.label}</h3>
-        <Link to={`/eventos/igrejas/${church.resourceId}/ocorrencias`}>Consultar eventos de {church.label}</Link>
+        <Link to={`/eventos/igrejas/${church.resourceId}/cadastro`}>Consultar eventos de {church.label}</Link>
       </li>)}</ul> : <p role="status">Você ainda não tem acesso à gestão de eventos de uma igreja.</p>
     }}</ContextOperation>
   </section>

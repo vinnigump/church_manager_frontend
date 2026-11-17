@@ -28,7 +28,7 @@ describe('acessos reais à gestão de eventos', () => {
   it('mostra somente igrejas com EVENT_VIEW, sem seleção global ou calendário anual', async () => {
     const fetcher = mockAccess()
     render(tree())
-    expect(await screen.findByRole('link', { name: 'Consultar eventos de Igreja A' })).toHaveAttribute('href', `/eventos/igrejas/${churchA.resourceId}/ocorrencias`)
+    expect(await screen.findByRole('link', { name: 'Consultar eventos de Igreja A' })).toHaveAttribute('href', `/eventos/igrejas/${churchA.resourceId}/cadastro`)
     expect(screen.queryByText(churchB.label)).not.toBeInTheDocument()
     expect(screen.queryByText(denomination.label)).not.toBeInTheDocument()
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()

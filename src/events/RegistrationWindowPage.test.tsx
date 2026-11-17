@@ -79,6 +79,11 @@ describe('contrato de janela de inscrição', () => {
 })
 
 describe('administração autorizada da janela', () => {
+  it('retorna ao novo evento quando a janela foi aberta pelo cadastro v4', async () => {
+    server(); show(`${route}?retorno=cadastro`)
+    expect(await screen.findByRole('link', { name: 'Voltar ao evento' })).toHaveAttribute('href', `/eventos/igrejas/${church}/cadastro/${id}`)
+    expect(screen.queryByRole('link', { name: 'Voltar à ocorrência' })).not.toBeInTheDocument()
+  })
   it('configura ocorrência publicada com limite inclusivo, confirmação, CSRF e nova consulta', async () => {
     const fetcher = server(); await api.login('ana', 'fixture-password'); show(); await prepare()
     expect(writes(fetcher)).toHaveLength(0); expect(screen.getByText('Revisão compartilhada original: 7.')).toBeInTheDocument()
