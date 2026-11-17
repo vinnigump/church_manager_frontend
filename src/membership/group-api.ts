@@ -5,11 +5,13 @@ import { instantNanos } from '../events/occurrence-api'
 export type GroupKind = 'MINISTRY' | 'DEPARTMENT'
 export type GroupStatus = 'ACTIVE' | 'INACTIVE'
 export interface GroupContext { churchId: string; kind: GroupKind; groupId: string }
-export interface GroupMembership extends GroupContext { id: string; personId: string; status: GroupStatus; revision: number; linkedAt: string; linkedBy: string; releasedAt: string | null; releasedBy: string | null }
-export interface GroupHistory { id: string; action: 'LINKED' | 'RELEASED'; beforeStatus: string | null; afterStatus: GroupStatus; revision: number; actorId: string; occurredAt: string; reason: string | null }
+export interface GroupMembership extends GroupContext { id: string; personId: string; status: GroupStatus; revision: number; linkedAt: string; linkedBy: string; releasedAt: string | null; releasedBy: string | null; displayName: string; linkedByName: string | null; releasedByName: string | null }
+export interface GroupHistory { id: string; action: 'LINKED' | 'RELEASED'; beforeStatus: string | null; afterStatus: GroupStatus; revision: number; actorId: string; occurredAt: string; reason: string | null; actorName: string | null }
 export interface GroupPage<T> { items: T[]; page: number; size: number; total: number }
 const record = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const uuid = (v: unknown): v is string => typeof v === 'string' && isUuid(v)
+const text = (v: unknown): v is string => typeof v === 'string' && Boolean(v.trim())
+const nullableText = (v: unknown) => v === null || text(v)
 const integer = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0
 export const isGroupKind = (v: unknown): v is GroupKind => v === 'MINISTRY' || v === 'DEPARTMENT'
 const status = (v: unknown): v is GroupStatus => v === 'ACTIVE' || v === 'INACTIVE'
@@ -21,11 +23,12 @@ function base(context: GroupContext) {
 export function groupRoute(c: GroupContext) { return `/igrejas/${c.churchId}/grupos/${c.kind}/${c.groupId}/vinculos` }
 export function parseGroupMembership(v: unknown, context: GroupContext): GroupMembership {
   if (!record(v) || !uuid(v.id) || v.churchId !== context.churchId || v.kind !== context.kind || v.groupId !== context.groupId || !uuid(v.personId)
+    || !text(v.displayName) || !nullableText(v.linkedByName) || !nullableText(v.releasedByName)
     || !status(v.status) || !integer(v.revision) || !isInstant(v.linkedAt) || !uuid(v.linkedBy)
     || (v.releasedAt !== null && !isInstant(v.releasedAt)) || (v.releasedBy !== null && !uuid(v.releasedBy))
     || (v.status === 'ACTIVE' ? v.releasedAt !== null || v.releasedBy !== null : v.releasedAt === null || v.releasedBy === null)) throw invalid()
   if (v.releasedAt !== null && instantNanos(v.releasedAt as string) < instantNanos(v.linkedAt)) throw invalid()
-  return { ...context, id: v.id, personId: v.personId, status: v.status, revision: v.revision, linkedAt: v.linkedAt, linkedBy: v.linkedBy, releasedAt: v.releasedAt as string | null, releasedBy: v.releasedBy as string | null }
+  return { ...context, id: v.id, personId: v.personId, status: v.status, revision: v.revision, linkedAt: v.linkedAt, linkedBy: v.linkedBy, releasedAt: v.releasedAt as string | null, releasedBy: v.releasedBy as string | null, displayName: v.displayName, linkedByName: v.linkedByName as string | null, releasedByName: v.releasedByName as string | null }
 }
 function parsePage<T extends { id: string }>(v: unknown, page: number, parse: (v: unknown) => T): GroupPage<T> {
   if (!record(v) || !Array.isArray(v.items) || v.page !== page || v.size !== 20 || !integer(v.total)
@@ -51,10 +54,10 @@ export async function readGroupMembership(context: GroupContext, id: string, sig
 export async function readGroupHistory(context: GroupContext, before: GroupMembership, page = 0, signal?: AbortSignal, client: ApiClient = api) {
   const path = base(context); paging(page); parseGroupMembership(before, context)
   return parsePage(await client.request<unknown>(`${path}/group-memberships/${before.id}/history?page=${page}&size=20`, { signal }), page, (v): GroupHistory => {
-    if (!record(v) || !uuid(v.id) || !uuid(v.actorId) || !integer(v.revision) || !isInstant(v.occurredAt)
+    if (!record(v) || !uuid(v.id) || !uuid(v.actorId) || !nullableText(v.actorName) || !integer(v.revision) || !isInstant(v.occurredAt)
       || (v.reason !== null && (typeof v.reason !== 'string' || v.reason.length > 500))
       || (v.action === 'LINKED' ? v.beforeStatus !== null || v.afterStatus !== 'ACTIVE' : v.action !== 'RELEASED' || v.beforeStatus !== 'ACTIVE' || v.afterStatus !== 'INACTIVE')) throw invalid()
-    return { id: v.id, action: v.action as GroupHistory['action'], beforeStatus: v.beforeStatus as string | null, afterStatus: v.afterStatus as GroupStatus, revision: v.revision, actorId: v.actorId, occurredAt: v.occurredAt, reason: v.reason as string | null }
+    return { id: v.id, action: v.action as GroupHistory['action'], beforeStatus: v.beforeStatus as string | null, afterStatus: v.afterStatus as GroupStatus, revision: v.revision, actorId: v.actorId, occurredAt: v.occurredAt, reason: v.reason as string | null, actorName: v.actorName as string | null }
   })
 }
 export async function releaseGroupMember(context: GroupContext, before: GroupMembership, reason: string, signal?: AbortSignal, client: ApiClient = api) {
@@ -67,4 +70,29 @@ export async function releaseGroupMember(context: GroupContext, before: GroupMem
   if (raw.changed !== changed || value.id !== before.id || value.personId !== before.personId || value.linkedAt !== before.linkedAt || value.linkedBy !== before.linkedBy
     || value.status !== 'INACTIVE' || value.revision !== before.revision + (changed ? 1 : 0)) throw invalid()
   return { membership: value, changed }
+}
+
+export interface MinistryUnitInfo { groupId: string; kind: GroupKind; name: string; ministryName: string; churchName: string; active: boolean }
+export interface EligiblePerson { personId: string; displayName: string }
+export async function readMinistryUnit(context: GroupContext, signal?: AbortSignal, client: ApiClient = api): Promise<MinistryUnitInfo> {
+  const v = await client.request<unknown>(`${base(context)}/groups/${context.kind}/${context.groupId}`, { signal })
+  if (!record(v) || v.groupId !== context.groupId || v.kind !== context.kind || !text(v.name) || !text(v.ministryName) || !text(v.churchName) || typeof v.active !== 'boolean') throw invalid()
+  return { groupId: context.groupId, kind: context.kind, name: v.name, ministryName: v.ministryName, churchName: v.churchName, active: v.active }
+}
+export async function listEligibleMinistryPeople(context: GroupContext, search: string, page: number, signal?: AbortSignal, client: ApiClient = api): Promise<GroupPage<EligiblePerson>> {
+  const path = base(context); paging(page); if (search.length > 120) throw invalid()
+  const params = new URLSearchParams({ q: search.trim(), page: String(page), size: '20' })
+  const v = await client.request<unknown>(`${path}/groups/${context.kind}/${context.groupId}/eligible-people?${params}`, { signal })
+  if (!record(v) || !Array.isArray(v.items) || v.page !== page || v.size !== 20 || !integer(v.total) || v.items.length !== Math.min(20, Math.max(0, v.total - page * 20))) throw invalid()
+  const items = v.items.map(raw => { if (!record(raw) || !uuid(raw.personId) || !text(raw.displayName)) throw invalid(); return { personId: raw.personId, displayName: raw.displayName } })
+  if (new Set(items.map(p => p.personId)).size !== items.length) throw invalid()
+  return { items, page, size: 20, total: v.total }
+}
+export async function includeMinistryPerson(context: GroupContext, person: EligiblePerson, reason: string, signal?: AbortSignal, client: ApiClient = api) {
+  if (!uuid(person.personId) || !text(person.displayName) || reason.length > 500) throw invalid()
+  const raw = await client.request<unknown>(`${base(context)}/groups/${context.kind}/${context.groupId}/members`, { method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ personId: person.personId, reason: reason.trim() || null }) })
+  if (!record(raw) || typeof raw.changed !== 'boolean') throw invalid()
+  const value = parseGroupMembership(raw.membership, context)
+  if (value.personId !== person.personId || value.status !== 'ACTIVE') throw invalid()
+  return { membership: value, changed: raw.changed }
 }

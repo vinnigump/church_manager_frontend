@@ -8,9 +8,9 @@ import { listGroupMembers, parseGroupMembership, readGroupHistory, readGroupMemb
 
 const church = '00000000-0000-0000-0000-000000000001', group = '00000000-0000-0000-0000-000000000002', id = '00000000-0000-0000-0000-000000000003', person = '00000000-0000-0000-0000-000000000004', other = '00000000-0000-0000-0000-000000000005'
 const context = { churchId: church, kind: 'MINISTRY' as const, groupId: group }
-const item: GroupMembership = { ...context, id, personId: person, status: 'ACTIVE', revision: 0, linkedAt: '2020-01-01T13:00:00.000001Z', linkedBy: person, releasedAt: null, releasedBy: null }
-const inactive: GroupMembership = { ...item, status: 'INACTIVE', revision: 1, releasedAt: '2032-01-01T13:00:00Z', releasedBy: person }
-const history = { id: other, action: 'LINKED', beforeStatus: null, afterStatus: 'ACTIVE', revision: 0, actorId: person, occurredAt: item.linkedAt, reason: 'Motivo reservado' }
+const item: GroupMembership = { ...context, id, personId: person, status: 'ACTIVE', revision: 0, linkedAt: '2020-01-01T13:00:00.000001Z', linkedBy: person, releasedAt: null, releasedBy: null, displayName: 'Participante sintético', linkedByName: 'Equipe sintética', releasedByName: null }
+const inactive: GroupMembership = { ...item, status: 'INACTIVE', revision: 1, releasedAt: '2032-01-01T13:00:00Z', releasedBy: person, releasedByName: 'Equipe sintética' }
+const history = { id: other, action: 'LINKED', beforeStatus: null, afterStatus: 'ACTIVE', revision: 0, actorId: person, occurredAt: item.linkedAt, reason: 'Motivo reservado', actorName: 'Equipe sintética' }
 const account = { id: person, personId: person, login: 'ana', status: 'ACTIVE' }
 const route = `/igrejas/${church}/grupos/MINISTRY/${group}/vinculos`
 const json = (v: unknown) => new Response(JSON.stringify(v))
@@ -23,6 +23,7 @@ function server(handler?: (url: string, init: RequestInit) => Response | Promise
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-GROUP-CSRF', token: 'fixture' })
     if (url.includes('/authorization?')) return json({ allowed: permissions.includes(new URL(url, 'https://example.test').searchParams.get('permissionCode') ?? '') })
+    if (/\/groups\/(MINISTRY|DEPARTMENT)\/[^/?]+$/.test(url)) { const path = new URL(url, 'https://example.test').pathname.split('/'); return json({ groupId: path.at(-1), kind: path.at(-2), name: 'Unidade sintética', ministryName: 'Ministério sintético', churchName: 'Igreja sintética', active: true }) }
     if (url.includes('/members?')) return json(page([item]))
     if (url.includes('/history?')) return json(page([history]))
     if (url.endsWith('/release')) return json({ membership: inactive, changed: true })
@@ -39,7 +40,7 @@ describe('contrato de vínculos próprios do grupo', () => {
     expect(parseGroupMembership({ ...item, name: 'private', contact: 'private' }, context)).toEqual(item)
   })
   it.each([{ churchId: other }, { groupId: other }, { kind: 'DEPARTMENT' }, { personId: 'bad' }, { revision: -1 }, { linkedAt: 'bad' }, { linkedBy: null },
-    { releasedAt: inactive.releasedAt }, { releasedBy: person }, { status: 'INACTIVE' }, { status: 'PENDING' }])('rejeita vínculo incompatível %j', patch => {
+    { releasedAt: inactive.releasedAt }, { releasedBy: person, releasedByName: 'Equipe sintética' }, { status: 'INACTIVE' }, { status: 'PENDING' }])('rejeita vínculo incompatível %j', patch => {
     expect(() => parseGroupMembership({ ...item, ...patch }, context)).toThrow('validar')
   })
   it('envia estado/página ao servidor e recusa página fora do filtro sem retornar parcial', async () => {
@@ -138,7 +139,7 @@ describe('gestão contextual de participantes do grupo', () => {
       const rows = [first, ...Array.from({ length: 19 }, (_, index) => ({ ...first, id: `10000000-0000-0000-0000-${String(index).padStart(12, '0')}` }))]
       return json(page(n ? [] : rows, n, n ? 20 : 21))
     }); show(route)
-    await screen.findByRole('link', { name: `Consultar vínculo ${id}` })
+    await screen.findAllByRole('link', { name: 'Consultar vínculo de Participante sintético' })
     fireEvent.change(screen.getByLabelText('Estado do vínculo'), { target: { value: 'INACTIVE' } })
     expect(new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams.has('status')).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtro de vínculos' }))
