@@ -3,6 +3,7 @@ import { Guard } from './auth'
 import LoginPage from './LoginPage'
 import QuestionnairePages from './questionnaires/QuestionnairePages'
 import RegistrationPage from './people/RegistrationPage'
+import PersonBasicEditPage from './people/PersonBasicEditPage'
 import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
@@ -51,6 +52,7 @@ export default function App() {
     <Route path="pessoas" element={<PeopleDirectoryPages />}/>
     <Route path="pessoas/igrejas/:churchId" element={<PeopleDirectoryPages directory />}/>
     <Route path="pessoas/igrejas/:churchId/cadastrar" element={<RegistrationPage />}/>
+    <Route path="pessoas/igrejas/:churchId/:personId/editar" element={<PersonBasicEditPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria/:resourceType/:resourceId" element={<AuditPage />}/>
