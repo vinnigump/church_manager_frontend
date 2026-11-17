@@ -1,3 +1,4 @@
+import VisitorRegistrationPage, { PublicRegistrationSettingsPage } from './events/VisitorRegistrationPage'
 import { Link, Route, Routes } from 'react-router-dom'
 import { Guard } from './auth'
 import LoginPage from './LoginPage'
@@ -53,6 +54,7 @@ export default function App() {
     <Route element={<AppLayout />}>
     <Route index element={<HomePage />}/>
     <Route path="entrar" element={<LoginPage />}/>
+    <Route path="eventos-publicos/igrejas/:churchId/eventos/:occurrenceId/inscricao" element={<VisitorRegistrationPage />}/>
     <Route path="primeiro-acesso" element={<FirstAccessRedeemPage />}/>
     <Route path="sair" element={<SignOutPage />}/>
     <Route element={<Guard />}>
@@ -136,6 +138,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/editar" element={<OccurrencePages view="edit" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/transicoes/:action" element={<OccurrenceTransitionPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/equipe" element={<OccurrenceTeamPage />}/>
+    <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/inscricao-publica" element={<PublicRegistrationSettingsPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/audiencia" element={<AudiencePage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/janela-inscricao" element={<RegistrationWindowPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/check-in" element={<ParticipantCheckInPage />}/>
@@ -155,3 +158,4 @@ export default function App() {
     <Route path="admin" element={<h1>Administração</h1>}/></Route></Route>
     <Route path="*" element={<><h1 data-page-title="Página não encontrada">Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
+
