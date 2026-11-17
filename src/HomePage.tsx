@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth'
 import LoginPage from './LoginPage'
-import AuthorizedResources from './AuthorizedResources'
+import { DEFAULT_TIME_ZONE } from './time'
 import OwnServiceRosters from './rosters/OwnServiceRosters'
 import OwnUpcomingEvents from './events/OwnUpcomingEvents'
 import UiIcon, {type IconKind} from './components/UiIcon'
@@ -16,7 +16,7 @@ export default function HomePage(){
  const {account}=useAuth()
  if(!account)return <LoginPage/>
  return <section className="home-page" aria-labelledby="home-title">
-  <div className="home-welcome"><div><div className="home-welcome-meta"><span className="home-community-pill">Sua comunidade</span><span>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric'}).format(new Date())}</span></div>
+  <div className="home-welcome"><div><div className="home-welcome-meta"><span className="home-community-pill">Sua comunidade</span><span>{new Intl.DateTimeFormat('pt-BR',{timeZone:DEFAULT_TIME_ZONE,day:'numeric',month:'long',year:'numeric'}).format(new Date())}</span></div>
    <h1 id="home-title" data-page-title="Início">Bem-vindo</h1><p className="home-description">Acompanhe seus eventos, suas atuações e os próximos passos da sua caminhada.</p><p className="home-account">Conectado como {account.login}.</p>
   </div><span className="home-welcome-symbol" aria-hidden="true"><UiIcon kind="church"/></span></div>
   <div className="home-workspace"><div className="home-main-column"><OwnUpcomingEvents/><OwnServiceRosters/></div>
@@ -25,6 +25,5 @@ export default function HomePage(){
     <div className="home-community-note"><UiIcon kind="church"/><p>Um espaço para conectar pessoas e acompanhar a vida da igreja.</p></div>
    </aside>
   </div>
-  <details className="home-administration"><summary>Administração da equipe</summary><AuthorizedResources/></details>
  </section>
 }

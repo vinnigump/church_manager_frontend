@@ -36,10 +36,9 @@ describe('descoberta integrada de recursos', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(data)))
     await expect(discoverResources()).rejects.toThrow('validar os recursos')
   })
-  it('abre Home sem seletor e só mostra destinos com permissão própria', async () => {
+  it('componente de recursos mostra somente destinos com permissão própria', async () => {
     mockResources()
-    render(tree(account, true))
-    expect(screen.getByRole('heading', { name: 'Bem-vindo' })).toBeInTheDocument()
+    render(tree())
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('link', { name: 'Catálogo de eventos' })).toHaveLength(2))
     const item = screen.getByRole('heading', { name: a.label }).closest('li')!
@@ -48,11 +47,10 @@ describe('descoberta integrada de recursos', () => {
     expect(screen.queryByRole('link', { name: 'Perfis de acesso' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Calendário anual' })).not.toBeInTheDocument()
   })
-  it('lista vazia mantém conta e navegação sem seleção obrigatória', async () => {
+  it('lista vazia do componente não impõe seleção obrigatória', async () => {
     mockResources([])
-    render(tree(account, true))
+    render(tree())
     expect(await screen.findByText('Nenhum recurso autorizado disponível.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /^Acessar minha conta/ })).toBeInTheDocument()
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   })
   it('falha suspende opções e permite recuperação explícita sem exibir corpo sensível', async () => {
@@ -127,14 +125,14 @@ describe('descoberta integrada de recursos', () => {
     expect(pendingSignal?.aborted).toBe(false)
     allowed = false
     fireEvent.focus(window)
-    expect(pendingSignal?.aborted).toBe(true)
+    await waitFor(() => expect(pendingSignal?.aborted).toBe(true))
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     await act(async () => { resolve(response({ items: [{ name: 'Conteúdo antigo' }], total: 1, page: 0, size: 20 })) })
     expect(screen.queryByText('Conteúdo antigo')).not.toBeInTheDocument()
     expect(screen.queryByText('Carregando catálogo…')).not.toBeInTheDocument()
   })
   it('acesso direto indevido consulta permissão e nunca busca o catálogo', async () => {
-    const fetcher = vi.fn().mockResolvedValue(response({ allowed: false }))
+    const fetcher = vi.fn<(url: string) => Promise<Response>>(async () => response({ allowed: false }))
     vi.stubGlobal('fetch', fetcher)
     render(tree(account, true, `/eventos/igrejas/${a.resourceId}/catalogo`))
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')

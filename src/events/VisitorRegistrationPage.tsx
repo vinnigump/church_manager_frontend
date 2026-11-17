@@ -1,3 +1,5 @@
+import EventEditorReadAccess from './EventEditorReadAccess'
+import { formatDateTime } from '../time'
 import './stitch-events.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -27,7 +29,7 @@ function VisitorForm({church,event}:{church:string;event:string}) {
   finally{pending.current=null;if(!controller.signal.aborted)setBusy(false)}
  }
  return <section className="events-panel visitor-registration"><h1 data-page-title="Inscrição pública">Inscrição pública</h1>
- {done?<><p role="status">Sua inscrição está confirmada. Ela não representa presença nem membresia.</p>{done.firstAccess?<><p>Crie seu acesso para acompanhar a inscrição. Este link é individual e só pode ser utilizado uma vez.</p><Link to={done.firstAccess.relativeUrl}>Criar meu acesso</Link><p>Válido até {new Date(done.firstAccess.expiresAt).toLocaleString('pt-BR')}.</p></>:<p>A solicitação já havia sido concluída. Use o link de primeiro acesso recebido anteriormente ou procure a equipe para receber outro.</p>}</>:account?<><p>Você já está conectado. Use a inscrição vinculada ao seu cadastro.</p><Link to={`/eventos/participar/igrejas/${church}`}>Participar com meu cadastro</Link></>:<ReadResult query={query} label="evento público">{value=><><h2>{value.name}</h2><p>{new Date(value.startsAt).toLocaleString('pt-BR')} (horário deste dispositivo)</p><p>Para quem ainda não possui cadastro. Se você já tem cadastro, entre com sua conta ou procure a equipe. Não informe dados de outra pessoa.</p><Link to="/entrar">Já tenho acesso</Link>
+ {done?<><p role="status">Sua inscrição está confirmada. Ela não representa presença nem membresia.</p>{done.firstAccess?<><p>Crie seu acesso para acompanhar a inscrição. Este link é individual e só pode ser utilizado uma vez.</p><Link to={done.firstAccess.relativeUrl}>Criar meu acesso</Link><p>Válido até {formatDateTime(done.firstAccess.expiresAt)}.</p></>:<p>A solicitação já havia sido concluída. Use o link de primeiro acesso recebido anteriormente ou procure a equipe para receber outro.</p>}</>:account?<><p>Você já está conectado. Use a inscrição vinculada ao seu cadastro.</p><Link to={`/eventos/participar/igrejas/${church}`}>Participar com meu cadastro</Link></>:<ReadResult query={query} label="evento público">{value=><><h2>{value.name}</h2><p>{formatDateTime(value.startsAt)} (horário de Brasília)</p><p>Para quem ainda não possui cadastro. Se você já tem cadastro, entre com sua conta ou procure a equipe. Não informe dados de outra pessoa.</p><Link to="/entrar">Já tenho acesso</Link>
  <form onSubmit={e=>{e.preventDefault();void submit()}}><fieldset disabled={busy||blocked||frozen!==null}><legend>Meus dados</legend>
  <label>Nome completo<input required maxLength={180} autoComplete="name" value={fullName} onChange={e=>setName(e.target.value)}/></label>
  <label>Nascimento<input required type="date" autoComplete="bday" value={birthDate} onChange={e=>setBirth(e.target.value)}/></label>
@@ -41,7 +43,7 @@ function VisitorForm({church,event}:{church:string;event:string}) {
 }
 export function PublicRegistrationSettingsPage(){
  const {churchId='',occurrenceId=''}=useParams()
- return <section className="visitor-registration"><h1 data-page-title="Inscrição pública">Inscrição sem cadastro prévio</h1>{!isUuid(churchId)||!isUuid(occurrenceId)?<p role="alert">Evento inválido.</p>:<ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Settings key={`${churchId}:${occurrenceId}`} church={churchId} event={occurrenceId}/></ResourceAccess>}</section>
+ return <section className="visitor-registration"><h1 data-page-title="Inscrição pública">Inscrição sem cadastro prévio</h1>{!isUuid(churchId)||!isUuid(occurrenceId)?<p role="alert">Evento inválido.</p>:<EventEditorReadAccess church={churchId}><Settings key={`${churchId}:${occurrenceId}`} church={churchId} event={occurrenceId}/></EventEditorReadAccess>}</section>
 }
 function Settings({church,event}:{church:string;event:string}){
  const [epoch,setEpoch]=useState(0),[busy,setBusy]=useState(false),[attempted,setAttempted]=useState(false),[message,setMessage]=useState('')

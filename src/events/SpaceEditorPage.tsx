@@ -65,15 +65,13 @@ function SpaceWorkspace({ churchId, occurrenceId }: { churchId: string; occurren
       if (!controller.signal.aborted) { setBlocked(true); setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar a alteração do espaço.'} Recarregue e confira os dados antes de nova tentativa.`) }
     } finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
-  return <ResourceAccess key={attempt} permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
-    <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId}>
+  return <ResourceAccess key={attempt} permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId}>
       {message && <p role={saved ? 'status' : 'alert'}>{message}</p>}{busy && <p role="status" aria-busy="true">Salvando espaço…</p>}
       {saved ? <Link to={`/eventos/igrejas/${churchId}/ocorrencias/${occurrenceId}/planejamento`}>Consultar planejamento atualizado</Link> : <>
         <button disabled={busy} onClick={() => { setDraft(null); setBlocked(false); setMessage(''); setAttempt(v => v + 1) }}>Recarregar espaço e descartar alterações locais</button>
         <SpaceEditorRecords key={attempt} churchId={churchId} occurrenceId={occurrenceId} control={{ draft, initialize, change, busy, blocked, submit }}/>
       </>}
     </ResourceAccess>
-  </ResourceAccess>
 }
 export default function SpaceEditorPage() {
   const { churchId = '', occurrenceId = '' } = useParams()

@@ -151,7 +151,7 @@ describe('consulta de template e histórico', () => {
     expect(await within(historyRegion).findByText('Versão 1 · Encontro original')).toBeInTheDocument()
     expect(within(historyRegion).getByText('Versão publicada de referência na última consulta do template.')).toBeInTheDocument()
     expect(within(historyRegion).queryByText(/Novo nome/)).not.toBeInTheDocument()
-    expect(within(historyRegion).getByText(/12:30:00 UTC/)).toBeInTheDocument()
+    expect(within(historyRegion).getByText(/09:30.*Brasília/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeInTheDocument()
     expect(fetcher.mock.calls.every(([, init]) => !init.method || init.method === 'GET')).toBe(true)
   })

@@ -127,10 +127,11 @@ describe('configuração explícita com revisão compartilhada', () => {
     expect(screen.queryByRole('button', { name: 'Revisar política de audiência' })).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(0)
   })
-  it('edição sem leitura não consulta política', async () => {
+  it('edição sem VIEW consulta a própria política sem escrita implícita', async () => {
     const fetcher = server(undefined, ['EVENT_EDIT']); show()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
+    await screen.findByLabelText('Visibilidade')
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/audience-policy'))).toBe(true)
+    expect(writes(fetcher)).toHaveLength(0)
   })
   it('foco conserva rascunho mas descarta confirmação', async () => {
     server(); show(); await prepare(); fireEvent(window, new Event('focus'))

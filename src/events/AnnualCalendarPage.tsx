@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -107,8 +108,8 @@ function CalendarRecords({ churchId, year, mutation }: { churchId: string; year:
       <button disabled={mutation.busy || mutation.blocked} onClick={() => { void mutation.run(null) }}>Criar calendário anual</button>
     </> : <section className="events-panel" aria-labelledby="annual-calendar-title">
       <h2 id="annual-calendar-title">Planejamento de {year}</h2><p className="event-state" data-state={result.calendar.status}>Estado do planejamento: {result.calendar.status === 'PUBLISHED' ? 'Publicado' : 'Rascunho'}</p>
-      <p>Criado em <time dateTime={result.calendar.createdAt}>{new Date(result.calendar.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
-      {result.calendar.publishedAt && <p>Publicado em <time dateTime={result.calendar.publishedAt}>{new Date(result.calendar.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
+      <p>Criado em <time dateTime={result.calendar.createdAt}>{formatDateTime(result.calendar.createdAt)} (Brasília)</time></p>
+      {result.calendar.publishedAt && <p>Publicado em <time dateTime={result.calendar.publishedAt}>{formatDateTime(result.calendar.publishedAt)} (Brasília)</time></p>}
       <PublicationAction key={`${result.calendar.id}:${result.calendar.revision}`} calendar={result.calendar} mutation={mutation}/>
     </section>}
   </>

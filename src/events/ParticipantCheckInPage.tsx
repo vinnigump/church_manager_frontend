@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -35,11 +36,11 @@ function Workspace({ church, occurrence }: { church: string; occurrence: string 
     {busy && <p role="status" aria-busy="true">Registrando presença…</p>}{message && <p role="status">{message}</p>}
     <ResourceAccess key={epoch} permissionCode="EVENT_ATTENDANCE_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
       <ReadResult query={query} label="participantes">{data => <>
-        <h2>{data.name}</h2><p><time dateTime={data.startsAt}>{data.startsAt}</time> até <time dateTime={data.endsAt}>{data.endsAt}</time></p>
+        <h2>{data.name}</h2><p><time dateTime={data.startsAt}>{formatDateTime(data.startsAt)}</time> até <time dateTime={data.endsAt}>{formatDateTime(data.endsAt)}</time></p>
         <p>{data.total} inscrições · página {page + 1}</p>
         {data.content.length ? <ul className="event-list">{data.content.map(person => <li key={person.registrationId}>
           <h3>{person.displayName}</h3>
-          {person.presence ? <p>Presença registrada em <time dateTime={person.presence.checkedInAt}>{person.presence.checkedInAt}</time>{person.presence.validated ? '.' : ' · registro legado sem evidência validada.'}</p>
+          {person.presence ? <p>Presença registrada em <time dateTime={person.presence.checkedInAt}>{formatDateTime(person.presence.checkedInAt)}</time>{person.presence.validated ? '.' : ' · registro legado sem evidência validada.'}</p>
             : person.status === 'CONFIRMED' ? <button disabled={busy || blocked} onClick={() => { setSelected(person); setReason('') }}>Conferir presença de {person.displayName}</button> : <p>Inscrição sem confirmação; presença indisponível.</p>}
         </li>)}</ul> : <p>Nenhuma inscrição encontrada nesta página.</p>}
         <Pagination page={page} total={data.total} setPage={value => { if (!pending.current) { setPage(value); setSelected(null); setReason('') } }} label="Páginas dos participantes"/>
@@ -58,7 +59,7 @@ export default function ParticipantCheckInPage() {
   return <div className="occurrences"><h1 data-page-title="Presença no evento">Presença no evento</h1>
     <Link to="/eventos">Eventos</Link>
     {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente o evento autorizado.</p> : <>
-      <p><Link to={`/eventos/igrejas/${churchId}/cadastro/${occurrenceId}${recordSearch(search)}`}>Voltar ao evento</Link></p>
+      <p><Link to={`/eventos?acao=presencas&igreja=${churchId}`}>Eventos para presença</Link></p><ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`/eventos/igrejas/${churchId}/cadastro/${occurrenceId}${recordSearch(search)}`}>Voltar ao evento</Link></p></ResourceAccess>
       <ResourceAccess permissionCode="EVENT_ATTENDANCE_MANAGE" resourceType="CHURCH" resourceId={churchId}>
         <Workspace key={`${account?.id}:${churchId}:${occurrenceId}`} church={churchId} occurrence={occurrenceId}/>
       </ResourceAccess>

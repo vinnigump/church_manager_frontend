@@ -1,3 +1,4 @@
+import { inputDateTime } from '../time'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -37,7 +38,7 @@ async function fill() {
   fireEvent.change(screen.getByLabelText('Tipo da série'), { target: { value: type } })
   fireEvent.change(screen.getByLabelText('Ano da série'), { target: { value: '2032' } })
   fireEvent.change(screen.getByLabelText('Frequência'), { target: { value: 'DAILY' } })
-  fireEvent.change(screen.getByLabelText('Primeiro início (hora civil da igreja)'), { target: { value: input.firstStartsAt } })
+  fireEvent.change(screen.getByLabelText('Primeiro início (Brasília)'), { target: { value: input.firstStartsAt } })
   fireEvent.change(screen.getByLabelText('Última data nominal inclusiva'), { target: { value: input.through } })
   fireEvent.change(screen.getByLabelText('Duração de cada ocorrência (minutos)'), { target: { value: '60' } })
   fireEvent.change(screen.getByLabelText('Modalidade'), { target: { value: 'ONLINE' } })
@@ -87,7 +88,7 @@ describe('geração administrativa explícita', () => {
     expect(screen.getByLabelText('Ano da série')).toHaveValue(2032)
     confirm()
     await screen.findByRole('heading', { name: 'Série criada em rascunho' })
-    expect(screen.getByText(/fuso America\/Fortaleza/)).toBeInTheDocument()
+    expect(screen.getByText(/horário de Brasília/i)).toBeInTheDocument()
     expect(screen.getByText(/Data ou horário ajustado pelo servidor/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: `Consultar ocorrência ${id}` })).toHaveAttribute('href', `/eventos/igrejas/${church}/ocorrencias/${id}`)
     const call = writes(fetcher)[0][1]
@@ -118,7 +119,7 @@ describe('geração administrativa explícita', () => {
     const fetcher = backend(); show(); await fill()
     fireEvent.click(screen.getByRole('button', { name: 'Revisar geração' }))
     fireEvent(window, new Event('focus')); await screen.findByLabelText('Tipo da série')
-    expect(screen.getByLabelText('Primeiro início (hora civil da igreja)')).toHaveValue(input.firstStartsAt)
+    expect(screen.getByLabelText('Primeiro início (Brasília)')).toHaveValue(inputDateTime(input.firstStartsAt))
     expect(screen.queryByRole('button', { name: 'Confirmar criação da série' })).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(0)
   })

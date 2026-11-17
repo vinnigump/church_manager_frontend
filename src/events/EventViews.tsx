@@ -40,7 +40,7 @@ export function EventAgenda({ church, timeZone, state }: { church: ChurchContext
   const id = useId()
   const invalid = Boolean(start && end && start > end)
   return <section className="events-panel" aria-labelledby={`${id}-title`} aria-busy={state.kind === 'loading'}>
-    <h2 id={`${id}-title`}>Agenda de eventos</h2><p>Igreja: {church.name} · Fuso horário: {timeZone}</p>
+    <h2 id={`${id}-title`}>Agenda de eventos</h2><p>Igreja: {church.name} · Horário de Brasília</p>
     <fieldset className="event-filters"><legend>Filtrar por período</legend>
       <label htmlFor={`${id}-start`}>Data inicial<input id={`${id}-start`} type="date" value={start} onChange={event => setStart(event.target.value)} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}/></label>
       <label htmlFor={`${id}-end`}>Data final<input id={`${id}-end`} type="date" value={end} onChange={event => setEnd(event.target.value)} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}/></label>

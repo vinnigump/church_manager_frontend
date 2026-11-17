@@ -1,3 +1,4 @@
+import EventEditorReadAccess from './EventEditorReadAccess'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -90,13 +91,13 @@ function Records({ churchId, occurrenceId, control }: { churchId: string; occurr
 }
 function Workspace({ churchId, occurrenceId }: { churchId: string; occurrenceId: string }) {
   const control = useAudience(churchId, occurrenceId)
-  return <ResourceAccess key={control.epoch} permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
+  return <EventEditorReadAccess key={control.epoch} church={churchId}>
     <button disabled={control.busy} onClick={control.reload}>Descartar tentativa e recarregar audiência</button>
     {control.stale && <p role="alert">A revisão da ocorrência mudou. Descarte o rascunho e recarregue antes de continuar; a revisão original não foi substituída.</p>}
     {control.busy && <p role="status" aria-busy="true">Confirmando política…</p>}{control.message && <p role="alert">{control.message}</p>}
     {control.result && <p role="status">Política confirmada pelo servidor na revisão {control.result.revision}. Nenhuma inscrição ou publicação foi criada por esta operação.</p>}
     <Records churchId={churchId} occurrenceId={occurrenceId} control={control}/>
-  </ResourceAccess>
+  </EventEditorReadAccess>
 }
 export default function AudiencePage() {
   const { churchId = '', occurrenceId = '' } = useParams(); const { account } = useAuth()

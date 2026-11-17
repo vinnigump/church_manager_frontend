@@ -43,8 +43,14 @@ describe('espaço do rascunho', () => {
     expect(init.headers.get('X-Expected-Revision')).toBe('7')
     expect(JSON.parse(init.body)).toEqual({ code: 'MAIN', name: 'Salão' })
   })
-  it.each([{ permissions: ['EVENT_VIEW'] }, { permissions: ['EVENT_EDIT'] }, { permissions: [] }])('não lê nem escreve sem permissões distintas %j', async ({ permissions }) => {
+  it.each([{ permissions: ['EVENT_VIEW'] }, { permissions: ['EVENT_EDIT'] }, { permissions: [] }])('carrega apoios apenas para a permissão própria de edição %j', async ({ permissions }) => {
     const fetcher = backend(undefined, permissions); show()
+    if (permissions.includes('EVENT_EDIT')) {
+      await screen.findByLabelText('Código do espaço')
+      expect(fetcher.mock.calls.some(([url]) => url.endsWith('/space'))).toBe(true)
+      expect(writes(fetcher)).toHaveLength(0)
+      return
+    }
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
   })

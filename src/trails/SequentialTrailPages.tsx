@@ -1,3 +1,4 @@
+import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { LoginRedirect, useAuth } from '../auth'
@@ -23,7 +24,7 @@ export default function SequentialTrailPages({ view }: { view: View }) {
   const kind = view === 'denomination' ? 'DENOMINATION' : 'CHURCH', scopeId = kind === 'CHURCH' ? churchId : denominationId
   const title = view === 'enroll' ? 'Participar de uma trilha' : view === 'own' ? 'Atividades do percurso' : view === 'access' ? 'Gestão de trilhas' : view === 'denomination' ? 'Modelos da denominação' : 'Trilhas da igreja'
   return <div className="occurrences sequential-trails"><TrailPageHeader title={title} description={view === 'own' ? 'Acompanhe seu percurso e realize cada atividade disponível.' : view === 'enroll' ? 'Escolha a igreja e conheça as trilhas disponíveis para você.' : 'Organize modelos, etapas e acompanhe os percursos da igreja.'}/>
-    <nav aria-label="Navegação das trilhas"><Link to="/minhas-trilhas">Minhas trilhas</Link><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link>{view !== 'access' && <Link to="/trilhas/gestao">Acesso da equipe</Link>}</nav>
+    <nav aria-label="Navegação das trilhas"><Link to="/minhas-trilhas">Minhas trilhas</Link><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link>{view !== 'access' && <Link to="/trilhas/gestao?selecionar=1">Trocar igreja</Link>}</nav>
     <div key={`${session.generation}:${view}:${scopeId}:${trailId}`}>
       {view === 'enroll' ? <Enroll person={account.personId}/> : view === 'access' ? <ManagementAccess/> : view === 'own' ? isUuid(trailId) ? <OwnExecution id={trailId} person={account.personId}/> : <p role="alert">Abra o percurso pela lista de suas trilhas.</p> : !isUuid(scopeId) ? <p role="alert">Abra a gestão de trilhas pelo acesso da equipe.</p> :
         <ResourceAccess permissionCode={kind === 'DENOMINATION' ? 'TRAIL_TEMPLATE_MANAGE' : 'TRAIL_MANAGE'} resourceType={kind} resourceId={scopeId} preserveDuringRecheck>
@@ -39,7 +40,7 @@ function ManagementAccess() {
     return (await Promise.all(resources.map(async resource => ({ resource, allowed: await consultAuthorization({ permissionCode: resource.resourceType === 'DENOMINATION' ? 'TRAIL_TEMPLATE_MANAGE' : 'TRAIL_MANAGE', resourceType: resource.resourceType, resourceId: resource.resourceId }, signal) })))).filter(v => v.allowed).map(v => v.resource)
   }, [])
   const query = useRead('trail-management-resources', load)
-  return <Query query={query} label="acessos da equipe">{rows => rows.length ? <ul className="event-list">{rows.map(v => <li key={`${v.resourceType}:${v.resourceId}`}><h2>{v.label}</h2>
+  return <Query query={query} label="acessos da equipe">{rows => rows.length ? <DefaultChurchAccess  options={rows.filter(v => v.resourceType === 'CHURCH').map(v => ({ churchId: v.resourceId, path: `/trilhas/igrejas/${v.resourceId}` }))}><ul className="event-list">{rows.map(v => <li key={`${v.resourceType}:${v.resourceId}`}><h2>{v.label}</h2>
     <Link to={`/trilhas/${v.resourceType === 'DENOMINATION' ? 'denominacoes' : 'igrejas'}/${v.resourceId}`}>{v.resourceType === 'DENOMINATION' ? 'Gerir modelos da denominação' : 'Gerir trilhas e participantes'}</Link>
-  </li>)}</ul> : <p>Você não possui acesso de gestão de trilhas.</p>}</Query>
+  </li>)}</ul></DefaultChurchAccess> : <p>Você não possui acesso de gestão de trilhas.</p>}</Query>
 }

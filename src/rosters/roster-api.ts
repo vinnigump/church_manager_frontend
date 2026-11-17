@@ -10,6 +10,7 @@ export interface Presence { rosterId: string; assignmentId: string; accountId: s
 export interface OwnRoster { rosterId: string; churchId: string; churchName: string; ministryName: string; departmentName: string | null; eventLinked: boolean;
   eventId: string | null; eventName: string | null; startsAt: string; endsAt: string; timeZone: string; present: boolean; recordedAt: string | null }
 export interface Page<T> { items: T[]; page: number; size: number; total: number }
+export interface EventOption { id: string; name: string; startsAt: string; endsAt: string }
 export interface AccountOption { accountId: string; displayName: string }
 export interface Unit { id: string; kind: 'MINISTRY' | 'DEPARTMENT'; ministryId: string; name: string; ministryName: string }
 export interface Units extends Page<Unit> { timeZone: string }
@@ -65,6 +66,19 @@ export async function ownRosters(index: number, signal?: AbortSignal, client: Ap
   if (upcoming && result.items.some(v => instantNanos(v.endsAt) <= instantNanos(raw.referenceAt as string))) throw invalid()
   return { ...result, referenceAt: raw.referenceAt, upcoming }
 }
+function parseEventOption(v: unknown): EventOption {
+  if (!object(v) || !uuid(v.id) || !text(v.name) || !dates(v)) throw invalid()
+  return { id: v.id, name: v.name, startsAt: v.startsAt as string, endsAt: v.endsAt as string }
+}
+export async function selectEvents(church: string, index: number, signal?: AbortSignal, client: ApiClient = api) {
+  return page(await client.request<unknown>(`${base(church)}/events?${paging(index)}`, { signal }), index, parseEventOption)
+}
+export async function selectedEvent(church: string, id: string, signal?: AbortSignal, client: ApiClient = api) {
+  if (!uuid(id)) throw invalid()
+  const result = parseEventOption(await client.request<unknown>(`${base(church)}/events/${id}`, { signal }))
+  if (result.id !== id) throw invalid()
+  return result
+}
 export async function selectAccounts(church: string, query: string, index: number, signal?: AbortSignal, client: ApiClient = api) {
   if (query.length > 120) throw invalid()
   return page(await client.request<unknown>(`${base(church)}/accounts?${paging(index)}&q=${encodeURIComponent(query)}`, { signal }), index, v => {
@@ -94,7 +108,8 @@ export async function saveRoster(church: string, input: RosterWrite, before: Ros
   if (before && (before.churchId !== church || before.participants.some(p => p.present))) throw new Error('A escala tem presença registrada. Este cadastro não permite correção.')
   const result = parseRoster(await client.request<unknown>(base(church, before?.id), { method: before ? 'PUT' : 'POST', signal,
     headers: { 'Content-Type': 'application/json', ...(before ? { 'X-Expected-Revision': String(before.revision) } : {}) }, body: JSON.stringify(body) }), church)
-  if (!same(result, body) || result.revision !== (before ? before.revision + (same(before, body) ? 0 : 1) : 0)
+  const confirmed = body.eventId ? { ...body, startsAt: result.startsAt, endsAt: result.endsAt } : body
+  if (!same(result, confirmed) || result.revision !== (before ? before.revision + (same(before, confirmed) ? 0 : 1) : 0)
     || before && result.id !== before.id || result.participants.some(p => p.present)) throw new Error('Não foi possível confirmar a gravação. Confira a lista antes de tentar novamente.')
   return result
 }

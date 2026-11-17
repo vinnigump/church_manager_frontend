@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
@@ -42,7 +43,7 @@ function Picker({ churchId, eventTypeId, taskInstanceId, onRegistered, onBusyCha
       {busy && <p role="status" aria-busy="true">Confirmando inscrição…</p>}{message && <p role="alert">{message}</p>}
       <ReadResult query={query} label="opções de evento">{data => <>
         {data.items.length ? <ul className="event-list">{data.items.map(option => <li key={option.id}>
-          <h4>{option.name}</h4><p><time dateTime={option.startsAt}>{option.startsAt}</time> até <time dateTime={option.endsAt}>{option.endsAt}</time></p><p>{option.location ?? 'Local ainda não informado'}</p>
+          <h4>{option.name}</h4><p><time dateTime={option.startsAt}>{formatDateTime(option.startsAt)}</time> até <time dateTime={option.endsAt}>{formatDateTime(option.endsAt)}</time></p><p>{option.location ?? 'Local ainda não informado'}</p>
           <button disabled={busy || attempted} onClick={() => setSelected(option)}>Escolher {option.name}</button>
         </li>)}</ul> : <p>Nenhuma ocorrência disponível para sua inscrição nesta página.</p>}
         <Pagination page={page} total={data.total} setPage={value => { if (!pending.current) { setSelected(null); setPage(value) } }} label="Páginas das opções de evento"/>

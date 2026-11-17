@@ -28,7 +28,7 @@ function show(path = route) {
   render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
 }
 describe('auditoria estruturada denominacional', () => {
-  it('exige permissão específica e mostra somente metadados UTC', async () => {
+  it('exige permissão específica e mostra somente metadados no horário de Brasília', async () => {
     const fetcher = server(); show()
     expect(await screen.findByRole('heading', { name: 'PROFILE_PUBLISHED' })).toBeInTheDocument()
     expect(screen.getByText('Resultado: Sucesso')).toBeInTheDocument()
@@ -43,23 +43,23 @@ describe('auditoria estruturada denominacional', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
-  it('filtra tipo e período UTC apenas ao aplicar, recuperando página vazia', async () => {
+  it('filtra tipo e período de Brasília apenas ao aplicar, recuperando página vazia', async () => {
     const fetcher = server(); show()
     fireEvent.click(await screen.findByRole('button', { name: 'Próxima página' }))
     await screen.findByText('Nenhum registro de auditoria nesta página e filtros.')
     fireEvent.change(screen.getByLabelText('Tipo de recurso'), { target: { value: 'ACCESS_ROLE' } })
-    fireEvent.change(screen.getByLabelText('Início inclusivo (UTC)'), { target: { value: '2026-11-07T00:00' } })
-    fireEvent.change(screen.getByLabelText('Fim exclusivo (UTC)'), { target: { value: '2026-11-08T00:00' } })
+    fireEvent.change(screen.getByLabelText('Início inclusivo (horário de Brasília)'), { target: { value: '2026-11-07T00:00' } })
+    fireEvent.change(screen.getByLabelText('Fim exclusivo (horário de Brasília)'), { target: { value: '2026-11-08T00:00' } })
     expect(fetcher).toHaveBeenCalledTimes(3)
     fireEvent.submit(screen.getByRole('button', { name: 'Aplicar filtros de auditoria' }).closest('form')!)
     await screen.findByRole('heading', { name: 'PROFILE_PUBLISHED' })
     const params = new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams
-    expect(Object.fromEntries(params)).toEqual({ page: '0', size: '20', resourceType: 'ACCESS_ROLE', from: '2026-11-07T00:00:00Z', to: '2026-11-08T00:00:00Z' })
+    expect(Object.fromEntries(params)).toEqual({ page: '0', size: '20', resourceType: 'ACCESS_ROLE', from: '2026-11-07T00:00:00-03:00', to: '2026-11-08T00:00:00-03:00' })
   })
   it('intervalo inválido não consulta', async () => {
     const fetcher = server(); show(); await screen.findByText('Resultado: Sucesso')
-    fireEvent.change(screen.getByLabelText('Início inclusivo (UTC)'), { target: { value: '2026-11-08T00:00' } })
-    fireEvent.change(screen.getByLabelText('Fim exclusivo (UTC)'), { target: { value: '2026-11-07T00:00' } })
+    fireEvent.change(screen.getByLabelText('Início inclusivo (horário de Brasília)'), { target: { value: '2026-11-08T00:00' } })
+    fireEvent.change(screen.getByLabelText('Fim exclusivo (horário de Brasília)'), { target: { value: '2026-11-07T00:00' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Aplicar filtros de auditoria' }).closest('form')!)
     expect(screen.getByRole('alert')).toHaveTextContent('posterior')
     expect(fetcher).toHaveBeenCalledTimes(2)

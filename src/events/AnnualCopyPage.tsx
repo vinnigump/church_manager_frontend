@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -60,7 +61,7 @@ function Candidates({ churchId, control, changed }: { churchId: string; control:
     <p>Página {data.page + 1} · {data.total} ocorrências em todos os estados. Somente DRAFT pode ser selecionado. O total não representa quantidade de rascunhos.</p>
     {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}>
       <label><input type="checkbox" checked={Boolean(control.selected[item.id])} disabled={control.attempted || (!control.selected[item.id] && (item.status !== 'DRAFT' || Object.keys(control.selected).length >= 100))} onChange={e => { control.toggle(item, e.target.checked); changed() }}/>Selecionar origem {item.id}</label>
-      <p>Estado {item.status} · revisão consultada {item.revision}. Início <time dateTime={item.startsAt}>{item.startsAt}</time> · término <time dateTime={item.endsAt}>{item.endsAt}</time>.</p>
+      <p>Estado {item.status} · revisão consultada {item.revision}. Início <time dateTime={item.startsAt}>{formatDateTime(item.startsAt)}</time> · término <time dateTime={item.endsAt}>{formatDateTime(item.endsAt)}</time>.</p>
       {!item.configured && <p>Configuração legada ausente será preservada, sem preencher valores automaticamente.</p>}
     </li>)}</ul> : <p>Nenhuma ocorrência nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={value => { control.setPage(value); changed() }} label="Páginas das origens"/>
@@ -85,7 +86,7 @@ function CopyForm({ churchId, control }: { churchId: string; control: Copy }) {
     <legend>Criar novo lote a partir de rascunhos</legend>
     <label>Ano de origem<input required type="number" min="1" max="9999" step="1" value={control.sourceYear} onChange={e => { control.setSourceYear(e.target.value); changed() }}/></label>
     <label>Ano de destino<input required type="number" min="1" max="9999" step="1" value={control.targetYear} onChange={e => { control.setTargetYear(e.target.value); changed() }}/></label>
-    <p>O servidor valida que todas as origens pertencem ao ano informado no fuso cadastrado da igreja. A lista abaixo cobre todos os períodos; os instantes exibidos não são convertidos para o fuso do navegador.</p>
+    <p>O servidor valida que todas as origens pertencem ao ano informado no horário de Brasília. A lista abaixo cobre todos os períodos; os instantes exibidos não são convertidos pelo horário do dispositivo.</p>
     <Candidates churchId={churchId} control={control} changed={changed}/>
     <section aria-label="Seleção para cópia"><h2>{sources.length} origens selecionadas (máximo 100)</h2>
       <p>Seleção conservada ao paginar. Cada origem mantém a revisão escolhida; alterações concorrentes não atualizam essa revisão silenciosamente.</p>
@@ -105,11 +106,11 @@ function CopyForm({ churchId, control }: { churchId: string; control: Copy }) {
 function Workspace({ churchId }: { churchId: string }) {
   const control = useCopy(churchId)
   return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}><ResourceAccess permissionCode="EVENT_CREATE" resourceType="CHURCH" resourceId={churchId}>
-    <p>Cópia manual cria apenas rascunhos independentes. Configuração, capacidade e espaço são preservados; o servidor usa o fuso da igreja e ajusta datas/horários inexistentes ao próximo válido, mantendo a duração.</p>
+    <p>Cópia manual cria apenas rascunhos independentes. Configuração, capacidade e espaço são preservados; o servidor usa o horário de Brasília e ajusta datas/horários inexistentes ao próximo válido, mantendo a duração.</p>
     {control.busy && <p role="status" aria-busy="true">Criando cópias…</p>}{control.message && <p role="alert">{control.message}</p>}
     <p><Link to={`/eventos/igrejas/${churchId}/ocorrencias`}>Conferir ocorrências antes de outra cópia</Link></p>
-    {control.result ? <section aria-label="Cópias criadas"><h2>Lote de cópias criado em rascunho</h2><p>{control.result.items.length} cópias · ano {control.result.year} · fuso {control.result.timezone}.</p>
-      <ul className="event-list">{control.result.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${item.id}`}>Consultar cópia {item.id}</Link><p>Origem {item.sourceOccurrenceId} · DRAFT · revisão zero · {item.adjusted ? 'Data ou horário ajustado pelo servidor' : 'Sem ajuste de data ou horário'}.</p><p><time dateTime={item.startsAt}>{item.startsAt}</time> até <time dateTime={item.endsAt}>{item.endsAt}</time></p></li>)}</ul>
+    {control.result ? <section aria-label="Cópias criadas"><h2>Lote de cópias criado em rascunho</h2><p>{control.result.items.length} cópias · ano {control.result.year} · horário de Brasília.</p>
+      <ul className="event-list">{control.result.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${item.id}`}>Consultar cópia {item.id}</Link><p>Origem {item.sourceOccurrenceId} · DRAFT · revisão zero · {item.adjusted ? 'Data ou horário ajustado pelo servidor' : 'Sem ajuste de data ou horário'}.</p><p><time dateTime={item.startsAt}>{formatDateTime(item.startsAt)}</time> até <time dateTime={item.endsAt}>{formatDateTime(item.endsAt)}</time></p></li>)}</ul>
     </section> : <CopyForm churchId={churchId} control={control}/>}
   </ResourceAccess></ResourceAccess>
 }

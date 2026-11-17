@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { AuthContext, AuthProvider } from '../auth'
+import { ChurchContextProvider } from '../church-context'
 
 const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 function History() { const navigate = useNavigate(); return <><button onClick={() => navigate(-1)}>Voltar no histórico</button><button onClick={() => navigate(1)}>Avançar no histórico</button></> }
@@ -13,7 +14,7 @@ describe('shell RIO e navegação real', () => {
   it('mantém uma navegação com destinos reais e ícones decorativos', () => {
     show()
     const nav = screen.getByRole('navigation', { name: 'Principal' })
-    expect(within(nav).getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/', '/pessoas', '/eventos', '/ministerios', '/recepcao'])
+    expect(Array.from(nav.querySelectorAll('.app-area-link')).map(link => link.getAttribute('href'))).toEqual(['/', '/pessoas', '/eventos', '/ministerios', '/recepcao'])
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Minha conta' })).toHaveAttribute('href', '/conta')
     expect(screen.getAllByRole('navigation', { name: 'Principal' })).toHaveLength(1)
     expect(within(nav).queryByRole('link', { name: /Membros|Administração|Igreja/ })).not.toBeInTheDocument()
@@ -65,9 +66,16 @@ describe('shell RIO e navegação real', () => {
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '-1')
     expect(document.title).toBe('Página não encontrada | Church Manager')
   })
-  it('layout não concede gestão administrativa por autenticação', () => {
-    show('/admin')
+  it('layout não concede gestão administrativa por autenticação', async () => {
+    const fetcher = vi.fn(async (url: string) => new Response(JSON.stringify(url.endsWith('/church-context') ? { defaultChurchId: account.personId, churches: [{ churchId: account.personId, name: 'Igreja própria' }] } : url.endsWith('/authorization/contexts') ? { contexts: [{ resourceType: 'CHURCH', resourceId: account.personId, label: 'Igreja própria' }] } : { allowed: false })))
+    vi.stubGlobal('fetch', fetcher)
+    render(<MemoryRouter initialEntries={['/admin']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><ChurchContextProvider><App/></ChurchContextProvider></AuthContext.Provider></MemoryRouter>)
     expect(screen.getByRole('alert')).toHaveTextContent('Acesso indisponível')
     expect(screen.queryByRole('link', { name: 'Administração' })).not.toBeInTheDocument()
+    await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.endsWith('/church-context'))).toBe(true))
+    fireEvent.click(screen.getByRole('button', { name: 'Gestão da igreja' }))
+    await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes('permissionCode=TASK_VIEW'))).toBe(true))
+    expect(screen.queryByRole('link', { name: 'Tarefas da equipe' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Relatórios' })).not.toBeInTheDocument()
   })
 })

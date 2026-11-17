@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -52,7 +53,7 @@ function TransitionRecords({ churchId, id, action, command }: { churchId: string
   const query = useRead(`${churchId}:${id}`, load)
   return <ReadResult query={query} label="ocorrência">{value => <>
     <h2>Ocorrência {value.id}</h2><p>Estado registrado: {value.status} · Revisão: {value.revision}</p>
-    <p>Início: <time dateTime={value.startsAt}>{value.startsAt}</time><br/>Término: <time dateTime={value.endsAt}>{value.endsAt}</time></p>
+    <p>Início: <time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time><br/>Término: <time dateTime={value.endsAt}>{formatDateTime(value.endsAt)}</time></p>
     {canRequestTransition(value, action) ? <>
       <p>{action === 'publish' ? 'O servidor exige exatamente um coordenador não liberado, membro formal ativo da própria igreja e pessoa ativa, e reavalia os conflitos na mesma operação. Publicar não abre inscrições ou check-in e não publica o calendário anual.'
         : action === 'unpublish' ? 'Somente antes do início. O calendário anual não será despublicado; a configuração permanece imutável após a primeira publicação.'

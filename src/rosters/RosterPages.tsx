@@ -1,6 +1,8 @@
+import { DefaultChurchAccess, ChurchSwitchLink } from '../church-context'
+import { formatDateTime } from '../time'
 import '../membership/membership-visual.css'
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
 import { ResourceAccess, consultAuthorization } from '../authorization'
@@ -9,13 +11,14 @@ import { ContextOperation } from '../components/ContextOperation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { isUuid } from '../validation'
 import { listRosters, markRosterPresence, readRoster, saveRoster, type Roster } from './roster-api'
-import { fieldsFor, withOffset, writeFor, type Fields } from './roster-fields'
+import { fieldsFor, writeFor, type Fields } from './roster-fields'
 import RosterForm from './RosterForm'
 import OwnServiceRosters, { RosterDates } from './OwnServiceRosters'
 import './rosters.css'
 
 export const rosterRoute = (church: string) => `/ministerios/igrejas/${church}/escalas`
 function Access() {
+  const [params] = useSearchParams(), creating = params.get('acao') === 'criar'
   const { account } = useAuth(), [epoch, setEpoch] = useState(0)
   const load = useCallback(async (_context: string, signal: AbortSignal) => {
     if (!account) return []
@@ -24,16 +27,16 @@ function Access() {
       const permission = (permissionCode: string) => consultAuthorization({ permissionCode, resourceType: 'CHURCH', resourceId: v.resourceId }, signal)
       const [canView, canManage] = await Promise.all([permission('SERVICE_ROSTER_VIEW'), permission('SERVICE_ROSTER_MANAGE')]); return { ...v, canView, canManage }
     }))
-    return rows.filter(v => v.canView || v.canManage)
-  }, [account])
+    return rows.filter(v => creating ? v.canManage : v.canView || v.canManage)
+  }, [account, creating])
   useEffect(() => { const refresh = () => setEpoch(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
   return <><button type="button" onClick={() => setEpoch(v => v + 1)}>Atualizar acessos às escalas</button><ContextOperation contextId={String(epoch)} operation={load}>{state => {
     if (state.kind === 'loading') return <p role="status">Consultando seus acessos…</p>
     if (state.kind === 'error') return <p role="alert">Não foi possível consultar seus acessos às escalas.</p>
-    return state.data.length ? <ul>{state.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2>
-      {v.canView && <p><Link to={rosterRoute(v.resourceId)}>Consultar escalas de {v.label}</Link></p>}
+    return state.data.length ? <DefaultChurchAccess options={state.data.map(v => ({ churchId: v.resourceId, path: !creating && v.canView ? rosterRoute(v.resourceId) : `${rosterRoute(v.resourceId)}/nova` }))}><ul>{state.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2>
+      {v.canView && !creating && <p><Link to={rosterRoute(v.resourceId)}>Consultar escalas de {v.label}</Link></p>}
       {v.canManage && <p><Link to={`${rosterRoute(v.resourceId)}/nova`}>Criar escala em {v.label}</Link></p>}
-    </li>)}</ul> : <p>Você ainda não tem acesso à gestão de escalas. Suas próprias atuações continuam em Minhas escalas.</p>
+    </li>)}</ul></DefaultChurchAccess> : <p>Você ainda não tem acesso à gestão de escalas. Suas próprias atuações continuam em Minhas escalas.</p>
   }}</ContextOperation></>
 }
 function List({ church }: { church: string }) {
@@ -72,7 +75,7 @@ function Detail({ church, id }: { church: string; id: string }) {
         <Link to={`${rosterRoute(church)}/${id}/editar`}>Editar escala</Link>
       </ResourceAccess> : <p>Há presença registrada. Correção e alteração da previsão não estão disponíveis neste cadastro.</p>}
       <ul>{v.participants.map(p => <li key={p.accountId}><h3>{p.displayName}</h3>
-        {p.present ? <p>Presença registrada manualmente em <time dateTime={p.recordedAt!}>{new Intl.DateTimeFormat('pt-BR', { timeZone: v.timeZone, dateStyle: 'short', timeStyle: 'short' }).format(new Date(p.recordedAt!))}</time>.</p> : <>
+        {p.present ? <p>Presença registrada manualmente em <time dateTime={p.recordedAt!}>{formatDateTime(p.recordedAt!)}</time>.</p> : <>
           <p>Presença ainda não registrada</p><ResourceAccess permissionCode="SERVICE_ROSTER_ATTENDANCE" resourceType="CHURCH" resourceId={church} optional>
             <button type="button" disabled={busy || blocked} onClick={() => void mark(v, p.accountId)}>Registrar presença de {p.displayName}</button>
           </ResourceAccess>
@@ -81,9 +84,15 @@ function Detail({ church, id }: { church: string; id: string }) {
     </article>}</ReadResult>
   </>
 }
+function RosterReadAccess({ church, children }: { church: string; children: ReactNode }) {
+  return <ResourceAccess permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={church} optional preserveDuringRecheck
+    fallback={<ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>{children}</ResourceAccess>}>
+    {children}
+  </ResourceAccess>
+}
 interface Draft { before: Roster | null; fields: Fields }
-function EditorData({ church, id, draft, observe, change, offset, submit, disabled }: {
-  church: string; id?: string; draft: Draft | null; observe: (value: Roster | null) => void; change: (fields: Fields) => void; offset: (value: string) => void; submit: (e: FormEvent) => void; disabled: boolean
+function EditorData({ church, id, draft, observe, change, submit, disabled }: {
+  church: string; id?: string; draft: Draft | null; observe: (value: Roster | null) => void; change: (fields: Fields) => void; submit: (e: FormEvent) => void; disabled: boolean
 }) {
   const load = useCallback(async (signal: AbortSignal) => { const value = id ? await readRoster(church, id, signal) : null; if (!signal.aborted) observe(value); return value }, [church, id, observe])
   const query = useRead(`${church}:${id}`, load)
@@ -91,7 +100,7 @@ function EditorData({ church, id, draft, observe, change, offset, submit, disabl
     if (!draft) return <p role="status">Preparando escala…</p>
     if (current?.participants.some(p => p.present)) return <p role="alert">Há presença registrada. A escala não pode ser alterada por este cadastro.</p>
     const stale = current !== null && current.revision !== draft.before?.revision
-    return <>{stale && <p role="alert">A escala mudou. Descarte as alterações e recarregue.</p>}<RosterForm church={church} fields={draft.fields} change={change} changeOffset={offset} submit={submit} disabled={disabled || stale}/></>
+    return <>{stale && <p role="alert">A escala mudou. Descarte as alterações e recarregue.</p>}<RosterForm church={church} fields={draft.fields} change={change} submit={submit} disabled={disabled || stale}/></>
   }}</ReadResult>
 }
 function Editor({ church, id }: { church: string; id?: string }) {
@@ -111,9 +120,9 @@ function Editor({ church, id }: { church: string; id?: string }) {
   }
   return <ResourceAccess key={epoch} permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
     {message && <p role={saved ? 'status' : 'alert'}>{message}</p>}{busy && <p role="status" aria-busy="true">Salvando escala…</p>}
-    {saved ? <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={church} optional><Link to={`${rosterRoute(church)}/${saved.id}`}>Ver escala salva</Link></ResourceAccess> : <>
+    {saved ? <Link to={`${rosterRoute(church)}/${saved.id}`}>Ver escala salva</Link> : <>
       <button type="button" disabled={busy} onClick={() => { setDraft(null); setBlocked(false); setMessage(''); setEpoch(v => v + 1) }}>Descartar alterações e recarregar escala</button>
-      <EditorData key={epoch} church={church} id={id} draft={draft} observe={observe} change={change} offset={value => { if (draft) change(withOffset(draft.fields, value)) }} submit={submit} disabled={busy || blocked}/>
+      <EditorData key={epoch} church={church} id={id} draft={draft} observe={observe} change={change} submit={submit} disabled={busy || blocked}/>
     </>}
   </ResourceAccess>
 }
@@ -126,11 +135,12 @@ export default function RosterPages({ view }: { view: 'access' | 'list' | 'detai
   return <div className="occurrences rosters ministry-visual"><h1 data-page-title={title}>{title}</h1><nav className="ministry-tabs" aria-label="Navegação de escalas"><Link to="/ministerios">Ministérios</Link><Link to="/ministerios/escalas">Gestão de escalas</Link><Link to="/minhas-escalas">Minhas escalas</Link></nav>
     {!valid ? <p role="alert">Acesso à escala inválido. Escolha novamente sua igreja.</p> : <div key={`${scope.epoch}:${churchId}:${rosterId}:${view}`}>
       {view === 'access' ? <Access/> : view === 'own' ? <OwnServiceRosters full/> : <>
+        <p>{view === 'create' ? <Link to="/ministerios/escalas?acao=criar&selecionar=1">Trocar igreja</Link> : <ChurchSwitchLink to="/ministerios/escalas"/>}</p>
         <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={rosterRoute(churchId)}>Listar escalas desta igreja</Link></p></ResourceAccess>
-        {view === 'create' || view === 'edit' ? <Editor church={churchId} id={view === 'edit' ? rosterId : undefined}/> : <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
-          <ResourceAccess permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${rosterRoute(churchId)}/nova`}>Criar escala</Link></p></ResourceAccess>
-          {view === 'list' ? <List church={churchId}/> : <Detail church={churchId} id={rosterId}/>}
-        </ResourceAccess>}
+        <ResourceAccess permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${rosterRoute(churchId)}/nova`}>Criar escala</Link></p></ResourceAccess>
+        {view === 'create' || view === 'edit' ? <Editor church={churchId} id={view === 'edit' ? rosterId : undefined}/> : view === 'list'
+          ? <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><List church={churchId}/></ResourceAccess>
+          : <RosterReadAccess church={churchId}><Detail church={churchId} id={rosterId}/></RosterReadAccess>}
       </>}
     </div>}
   </div>

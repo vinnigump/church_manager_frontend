@@ -38,8 +38,8 @@ function show(path = base, controls = false) {
 async function authenticated() { await api.login('ana', 'fixture-password') }
 function fillCreate() {
   fireEvent.change(screen.getByLabelText('Tipo de evento'), { target: { value: type } })
-  fireEvent.change(screen.getByLabelText('Início (UTC)'), { target: { value: '2026-11-08T10:00:00' } })
-  fireEvent.change(screen.getByLabelText('Término (UTC)'), { target: { value: '2026-11-08T11:00:00' } })
+  fireEvent.change(screen.getByLabelText('Início (Brasília)'), { target: { value: '2026-11-08T10:00:00' } })
+  fireEvent.change(screen.getByLabelText('Término (Brasília)'), { target: { value: '2026-11-08T11:00:00' } })
   fireEvent.change(screen.getByLabelText('Modalidade'), { target: { value: 'ONLINE' } })
   fireEvent.change(screen.getByLabelText('Participação'), { target: { value: 'OPEN_EVENT' } })
   fireEvent.change(screen.getByLabelText('Check-in obrigatório'), { target: { value: 'false' } })
@@ -82,10 +82,12 @@ describe('ocorrências administrativas', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
   })
-  it('EVENT_CREATE não implica EVENT_VIEW e não carrega tipos sem consulta autorizada', async () => {
+  it('EVENT_CREATE carrega somente apoios do próprio formulário sem EVENT_VIEW', async () => {
     const fetcher = backend(undefined, ['EVENT_CREATE']); show(`${base}/nova`)
-    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
+    await screen.findByRole('option', { name: 'Encontro local · Local · Habilitado' })
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/types?'))).toBe(true)
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/occurrences?'))).toBe(false)
+    expect(writes(fetcher)).toHaveLength(0)
   })
   it('lista vazia, erro uniforme com retry e paginação real', async () => {
     const fetcher = backend((url) => url.includes('/occurrences?') ? new Response(null, { status: 500 }) : undefined)
@@ -132,7 +134,7 @@ describe('configuração explícita de rascunhos', () => {
     expect(await screen.findByRole('link', { name: 'Consultar rascunho salvo' })).toHaveAttribute('href', `${base}/${id}`)
     expect(writes(fetcher)).toHaveLength(1)
     const [, init] = writes(fetcher)[0]
-    expect(JSON.parse(init.body)).toEqual({ eventTypeId: type, startsAt: '2026-11-08T10:00:00Z', endsAt: '2026-11-08T11:00:00Z', capacity: null, modality: 'ONLINE', participationMode: 'OPEN_EVENT', checkInRequired: false })
+    expect(JSON.parse(init.body)).toEqual({ eventTypeId: type, startsAt: '2026-11-08T10:00:00-03:00', endsAt: '2026-11-08T11:00:00-03:00', capacity: null, modality: 'ONLINE', participationMode: 'OPEN_EVENT', checkInRequired: false })
     expect(init.headers.get('X-FIXTURE-CSRF')).toBe('fixture')
   })
   it('edição sem mudança conserva precisão original e revisão para no-op', async () => {

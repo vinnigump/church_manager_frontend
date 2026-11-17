@@ -74,7 +74,7 @@ describe('consulta paginada do catálogo autorizada', () => {
     const fetcher = mockCatalog(page, false)
     show()
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(fetcher.mock.calls.map(([url]) => new URL(url, 'https://example.test').searchParams.get('permissionCode')).sort()).toEqual(['EVENT_CREATE', 'EVENT_EDIT', 'EVENT_VIEW'])
     expect(screen.queryByText(item.name)).not.toBeInTheDocument()
   })
   it('visitante é redirecionado sem consultar decisões ou catálogo', () => {

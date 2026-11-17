@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -11,8 +12,8 @@ export function DelegationMetadata({ value }: { value: Delegation }) {
   return <><h2>Fonte de delegação {value.id}</h2><p>Identificador do delegado: {value.delegateeUserId}</p>
     <p>Identificador do perfil: {value.profileId}</p><p>Unidade organizacional: {value.organizationUnitId}</p>
     <p>Estado registrado: {value.status}</p>
-    <p>Início inclusivo: <time dateTime={value.startsAt}>{new Date(value.startsAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
-    <p>Fim exclusivo: {value.endsAt ? <time dateTime={value.endsAt}>{new Date(value.endsAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time> : 'Sem fim definido'}</p></>
+    <p>Início inclusivo: <time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time></p>
+    <p>Fim exclusivo: {value.endsAt ? <time dateTime={value.endsAt}>{formatDateTime(value.endsAt)}</time> : 'Sem fim definido'}</p></>
 }
 function List({ denominationId }: { denominationId: string }) {
   const [page, setPage] = useState(0)

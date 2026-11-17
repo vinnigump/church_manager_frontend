@@ -1,3 +1,5 @@
+import { formatDate } from '../time'
+import { DefaultChurchAccess } from '../church-context'
 import UiIcon from '../components/UiIcon'
 import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
@@ -29,7 +31,7 @@ function Access() {
   return <><button onClick={() => setEpoch(v => v + 1)}>Atualizar acessos aos grupos</button>
     <ContextOperation key={epoch} contextId="church-groups-access" operation={load}>{s => s.kind === 'loading' ? <p role="status">Carregando igrejas…</p>
       : s.kind === 'error' ? <p role="alert">Não foi possível confirmar seus acessos aos grupos.</p>
-        : s.data.length ? <ul className="event-list">{s.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2><Link to={groupManagementRoute(v.resourceId)}>Grupos de {v.label}</Link></li>)}</ul>
+        : s.data.length ? <DefaultChurchAccess  options={s.data.map(v => ({ churchId: v.resourceId, path: groupManagementRoute(v.resourceId) }))}><ul className="event-list">{s.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2><Link to={groupManagementRoute(v.resourceId)}>Grupos de {v.label}</Link></li>)}</ul></DefaultChurchAccess>
           : <p>Nenhuma igreja disponível para sua gestão de grupos.</p>}</ContextOperation>
   </>
 }
@@ -116,7 +118,7 @@ function Detail({ church, id }: { church: string; id: string }) {
       const stale = before !== null && before.revision !== group.revision, disabled = command.busy || command.blocked || stale
       return <><h2>{group.name}</h2>{group.archivedAt && <p role="status">Grupo arquivado. O histórico e as tarefas existentes foram preservados.</p>}<p>{group.description}</p><p><Link to={`${groupManagementRoute(church)}/${id}/editar`}>Editar nome e descrição</Link></p>
         <h3>Integrantes</h3><label><input type="checkbox" checked={history} disabled={command.busy} onChange={e => { setHistory(e.target.checked); setPage(0); setConfirmation(null) }}/>Incluir histórico de saídas</label>
-        {members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}{v.removedAt ? ` · Saiu em ${new Date(v.removedAt).toLocaleDateString('pt-BR')}` : <> <button disabled={disabled} onClick={() => { setSelected(null); setConfirmation({ action: 'remove', user: v }) }}>Remover {v.displayName}</button></>}</li>)}</ul> : <p>Nenhum integrante encontrado.</p>}
+        {members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}{v.removedAt ? ` · Saiu em ${formatDate(v.removedAt)}` : <> <button disabled={disabled} onClick={() => { setSelected(null); setConfirmation({ action: 'remove', user: v }) }}>Remover {v.displayName}</button></>}</li>)}</ul> : <p>Nenhum integrante encontrado.</p>}
         <Pagination page={page} total={members.total} setPage={setPage} label="Páginas de integrantes"/>
         {stale && <p role="alert">O grupo mudou. Atualize os dados antes de continuar.</p>}
         {!group.archivedAt && <><button disabled={disabled} onClick={() => { setConfirmation(null); setAdding(v => !v) }}>{adding ? 'Fechar seleção de usuários' : 'Adicionar integrante'}</button>
@@ -139,7 +141,7 @@ export default function ChurchGroupPages({ view }: { view: 'churches' | 'list' |
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   const valid = view === 'churches' || isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(groupId))
   return <div className="occurrences ministry-visual"><header className="ministry-heading"><span className="ministry-eyebrow">Comunidade e serviço</span><h1 data-page-title="Grupos">Grupos de trabalho</h1><p>Grupos independentes de ministérios e departamentos.</p></header>
-    <nav className="ministry-tabs" aria-label="Navegação dos grupos"><Link to="/ministerios">Ministérios</Link>{view !== 'churches' && <Link to="/grupos">Igrejas</Link>}{valid && view !== 'churches' && <Link to={groupManagementRoute(churchId)}>Todos os grupos</Link>}</nav>
+    <nav className="ministry-tabs" aria-label="Navegação dos grupos"><Link to="/ministerios">Ministérios</Link>{view !== 'churches' && <Link to="/grupos?selecionar=1">Trocar igreja</Link>}{valid && view !== 'churches' && <Link to={groupManagementRoute(churchId)}>Todos os grupos</Link>}</nav>
     {!valid ? <p role="alert">Acesso inválido. Escolha novamente uma igreja e um grupo.</p> : <div key={`${session.epoch}:${churchId}:${groupId}:${view}`}>
       {view === 'churches' ? <Access/> : view === 'list' ? <ResourceAccess permissionCode={permission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><List church={churchId}/></ResourceAccess>
         : view === 'detail' ? <Detail church={churchId} id={groupId}/> : <Editor church={churchId} id={view === 'edit' ? groupId : undefined}/>}

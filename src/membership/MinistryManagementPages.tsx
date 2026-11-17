@@ -1,3 +1,4 @@
+import { DefaultChurchAccess } from '../church-context'
 import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -14,7 +15,7 @@ function Access() {
     return churches.filter((_v, i) => permissions[i])
   }, [])
   const query = useRead('ministry-management-access', load)
-  return <ReadResult query={query} label="acessos à gestão">{items => items.length ? <ul>{items.map(v => <li key={v.resourceId}><Link to={`/ministerios/estrutura/igrejas/${v.resourceId}`}>Organizar ministérios de {v.label}</Link></li>)}</ul> : <p>Nenhuma igreja disponível para organizar ministérios.</p>}</ReadResult>
+  return <ReadResult query={query} label="acessos à gestão">{items => items.length ? <DefaultChurchAccess  options={items.map(v => ({ churchId: v.resourceId, path: `/ministerios/estrutura/igrejas/${v.resourceId}` }))}><ul>{items.map(v => <li key={v.resourceId}><Link to={`/ministerios/estrutura/igrejas/${v.resourceId}`}>Organizar ministérios de {v.label}</Link></li>)}</ul></DefaultChurchAccess> : <p>Nenhuma igreja disponível para organizar ministérios.</p>}</ReadResult>
 }
 function Workspace({ church }: { church: string }) {
   const [page, setPage] = useState(0), [catalogPage, setCatalogPage] = useState(0), [departmentPage, setDepartmentPage] = useState(0), [epoch, setEpoch] = useState(0)
@@ -62,7 +63,7 @@ function Workspace({ church }: { church: string }) {
 export default function MinistryManagementPages({ directory = false }: { directory?: boolean }) {
   const { churchId = '' } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <section className="ministry-visual" key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>
+  return <section className="ministry-visual" key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>{directory && <p><Link to="/ministerios/estrutura?selecionar=1">Trocar igreja</Link></p>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida.</p> : <ResourceAccess permissionCode={ministryManagePermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace church={churchId}/></ResourceAccess>}
   </section>
 }

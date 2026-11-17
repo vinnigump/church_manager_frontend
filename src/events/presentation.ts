@@ -44,5 +44,6 @@ export function localDate(instant: string, timeZone: string) {
   return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)?.value).join('-')
 }
 export function dateTime(instant: string, timeZone: string) {
-  return new Intl.DateTimeFormat('pt-BR', { timeZone, dateStyle: 'short', timeStyle: 'short' }).format(new Date(instant))
+  void timeZone // Legacy callers keep their signature; display always uses Brasília.
+  return new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(instant))
 }

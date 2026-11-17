@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -35,7 +36,7 @@ function PlanningRecords({ churchId, occurrenceId }: { churchId: string; occurre
     <section aria-labelledby="planning-candidates"><h2 id="planning-candidates">Candidatos sobrepostos</h2><p>Página {assessment.page + 1} · {assessment.total} candidatos.</p>
       {assessment.items.length ? <ul className="event-list">{assessment.items.map(v => <li key={v.occurrenceId}><h3>Ocorrência {v.occurrenceId}</h3>
         <p>Estado registrado: {v.status}</p><p>{outcomeLabel[v.outcome]}</p>
-        <p>Início: <time dateTime={v.startsAt}>{v.startsAt}</time><br/>Término: <time dateTime={v.endsAt}>{v.endsAt}</time></p>
+        <p>Início: <time dateTime={v.startsAt}>{formatDateTime(v.startsAt)}</time><br/>Término: <time dateTime={v.endsAt}>{formatDateTime(v.endsAt)}</time></p>
         <p>Interseção (duração ISO 8601): {v.overlap ?? 'Indeterminada por espaço não definido'}</p>
       </li>)}</ul> : <p>Nenhum candidato nesta página. Consulte o resumo global e os avisos de espaços indefinidos.</p>}
       <Pagination page={page} total={assessment.total} setPage={setPage} label="Páginas dos candidatos sobrepostos"/>

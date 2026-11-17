@@ -15,9 +15,9 @@ import './occurrences.css'
 import './records.css'
 import './stitch-events.css'
 
-function Dates({ value, timeZone }: { value: EventRecord; timeZone: string }) {
-  const display = (instant: string) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone }).format(new Date(instant))
-  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Término: <time dateTime={value.endsAt}>{display(value.endsAt)}</time> ({timeZone})</p>
+function Dates({ value }: { value: EventRecord; timeZone: string }) {
+  const display = (instant: string) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo', hour12: false }).format(new Date(instant))
+  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Término: <time dateTime={value.endsAt}>{display(value.endsAt)}</time> (horário de Brasília)</p>
 }
 function List({ church }: { church: string }) {
   const [search, setSearch] = useSearchParams(), rawPage = search.get('page')
@@ -138,7 +138,7 @@ export default function EventRecordPages({ view }: { view: 'list' | 'detail' | '
   const title = { list: 'Eventos da igreja', detail: 'Detalhes do evento', create: 'Criar evento', edit: 'Editar evento' }[view]
   const valid = isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(recordId))
   return <div className={`occurrences records records-${view}`}><header className="record-page-heading"><p className="record-eyebrow">Agenda eclesiástica</p><h1 data-page-title={title}>{title}</h1><p>{view === 'list' ? 'Gestão da agenda de cultos, encontros e reuniões ministeriais.' : view === 'detail' ? 'Informações e participação no evento.' : 'Organize as informações, a participação e o público do evento.'}</p></header>
-    <nav aria-label="Navegação dos eventos"><Link to="/eventos">Minhas igrejas</Link>
+    <nav aria-label="Navegação dos eventos"><Link to="/eventos?selecionar=1">Trocar igreja</Link>
       {valid && <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId} optional><Link to={`${recordRoute(churchId)}${recordSearch(search)}`}>Todos os eventos</Link></ResourceAccess>}
     </nav>
     {!valid ? <p role="alert">O acesso ao evento é inválido. Volte a Eventos e escolha sua igreja.</p> : <div key={`${session.epoch}:${churchId}:${recordId}:${view}`}>

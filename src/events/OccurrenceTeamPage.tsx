@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -18,9 +19,9 @@ function TeamRecords({ churchId, occurrenceId, page, setPage, command }: { churc
     {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}>
       <h2>{item.role === 'COORDINATOR' ? 'Coordenação' : 'Apoio'}</h2>
       <dl><dt>Atribuição</dt><dd>{item.id}</dd><dt>Membresia vinculada</dt><dd>{item.membershipId}</dd></dl>
-      <p>Atribuída em: <time dateTime={item.assignedAt}>{item.assignedAt}</time></p>
+      <p>Atribuída em: <time dateTime={item.assignedAt}>{formatDateTime(item.assignedAt)}</time></p>
       {item.releasedAt === null ? <p>Não liberada · {item.eligible ? 'Elegível nesta consulta' : 'Não elegível nesta consulta'}</p>
-        : <p>Liberada em: <time dateTime={item.releasedAt}>{item.releasedAt}</time></p>}
+        : <p>Liberada em: <time dateTime={item.releasedAt}>{formatDateTime(item.releasedAt)}</time></p>}
       {item.releasedAt === null && <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional>
         <TeamReleaseControls key={`${data.revision}:${item.id}`} data={data} item={item} command={command}/>
       </ResourceAccess>}
