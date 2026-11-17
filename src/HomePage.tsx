@@ -14,6 +14,7 @@ export default function HomePage() {
     <div className="home-shortcuts">
       <Link className="home-shortcut" to="/eventos"><strong>Ver eventos</strong><span>Acesse a área de eventos.</span></Link>
       <Link className="home-shortcut" to="/minhas-trilhas"><strong>Minhas trilhas</strong><span>Acompanhe suas etapas e percursos.</span></Link>
+      <Link className="home-shortcut" to="/minhas-tarefas"><strong>Minhas tarefas</strong><span>Consulte, assuma e conclua suas atividades.</span></Link>
       <Link className="home-shortcut" to="/conta"><strong>Acessar minha conta</strong><span>Consulte seu acesso e altere sua senha.</span></Link>
     </div>
     <AuthorizedResources />

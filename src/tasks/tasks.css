@@ -1,0 +1,5 @@
+.task-workspace textarea { box-sizing: border-box; width: 100%; min-height: 10rem; resize: vertical; font: inherit; }
+.task-workspace article { padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); }
+.task-workspace article > button { margin: .4rem .5rem .4rem 0; }
+.task-workspace fieldset { margin-block: 1rem; }
+@media (max-width: 40rem) { .task-workspace article > button { width: 100%; } }
