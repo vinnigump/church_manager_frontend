@@ -79,7 +79,7 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
       <input id={`${id}-name`} required maxLength={200} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.fullName.trim()} aria-describedby={invalid ? `${id}-validation` : undefined}
         value={draft.fullName} onChange={event => setDraft({ ...draft, fullName: event.target.value })}/>
-      {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => { setDocumentType(e.target.value as 'CPF' | 'CIN_CPF' | 'NO_DOCUMENT'); setDraft({ ...draft, cpf: '' }) }}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option><option value="NO_DOCUMENT">Sem documento</option></select></label>}
+      {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => { setDocumentType(e.target.value as 'CPF' | 'CIN_CPF' | 'NO_DOCUMENT'); if (e.target.value === 'NO_DOCUMENT') setDraft({ ...draft, cpf: '' }) }}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option><option value="NO_DOCUMENT">Sem documento</option></select></label>}
       {!noDocument && <>
       <label htmlFor={`${id}-cpf`}>CPF{alternative ? ' (opcional)' : ''}</label>
       <input id={`${id}-cpf`} maxLength={20} autoComplete="off" disabled={busy}
