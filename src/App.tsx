@@ -5,6 +5,7 @@ import RegistrationPage from './people/RegistrationPage'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import OwnTrailPages from './trails/OwnTrailPages'
+import WorkItemPages from './tasks/WorkItemPages'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
@@ -64,6 +65,11 @@ export default function App() {
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="minhas-trilhas" element={<OwnTrailPages />}/>
     <Route path="minhas-trilhas/:trailId" element={<OwnTrailPages detail />}/>
+    <Route path="minhas-tarefas" element={<WorkItemPages view="mine" />}/>
+    <Route path="minhas-tarefas/:taskId" element={<WorkItemPages view="ownDetail" />}/>
+    <Route path="tarefas/igrejas/:churchId" element={<WorkItemPages view="list" />}/>
+    <Route path="tarefas/igrejas/:churchId/nova" element={<WorkItemPages view="create" />}/>
+    <Route path="tarefas/igrejas/:churchId/:taskId" element={<WorkItemPages view="detail" />}/>
     <Route path="eventos" element={<EventsPage />}/>
     <Route path="ministerios" element={<MinistryPages />}/>
     <Route path="grupos" element={<ChurchGroupPages view="churches" />}/>
