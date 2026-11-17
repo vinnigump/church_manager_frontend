@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import { Guard } from './auth'
 import LoginPage from './LoginPage'
+import QuestionnairePages from './questionnaires/QuestionnairePages'
 import RegistrationPage from './people/RegistrationPage'
 import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
@@ -67,6 +68,17 @@ export default function App() {
     <Route path="seguranca/denominacoes/:denominationId/perfis" element={<SecurityPages view="profiles" />}/>
     <Route path="seguranca/denominacoes/:denominationId/perfis/:profileId" element={<SecurityPages view="profile" />}/>
     <Route path="seguranca/denominacoes/:denominationId/perfis/:profileId/versoes/:versionId" element={<SecurityPages view="version" />}/>
+    <Route path="questionarios" element={<QuestionnairePages view="access" />}/>
+    <Route path="questionarios/igrejas/:churchId" element={<QuestionnairePages view="own" />}/>
+    <Route path="questionarios/igrejas/:churchId/responder/:versionId" element={<QuestionnairePages view="begin" />}/>
+    <Route path="questionarios/igrejas/:churchId/aplicacoes/:applicationId" element={<QuestionnairePages view="application" />}/>
+    <Route path="questionarios/igrejas/:churchId/gerenciar" element={<QuestionnairePages view="manage" />}/>
+    <Route path="questionarios/igrejas/:churchId/novo" element={<QuestionnairePages view="create" />}/>
+    <Route path="questionarios/igrejas/:churchId/versoes/:versionId" element={<QuestionnairePages view="version" />}/>
+    <Route path="questionarios/igrejas/:churchId/historico/:questionnaireId" element={<QuestionnairePages view="history" />}/>
+    <Route path="questionarios/igrejas/:churchId/respostas" element={<QuestionnairePages view="responses" />}/>
+    <Route path="questionarios/igrejas/:churchId/respostas/:applicationId" element={<QuestionnairePages view="response" />}/>
+    <Route path="questionarios/igrejas/:churchId/exportar" element={<QuestionnairePages view="export" />}/>
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="minhas-trilhas" element={<OwnTrailPages />}/>

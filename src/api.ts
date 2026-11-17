@@ -31,7 +31,7 @@ export class ApiClient {
       return account
     } catch (error) { if (generation === this.generation) this.clear(); throw error }
   }
-  async request<T>(path: string, init: RequestInit = {}, expectedStatus?: number): Promise<T> {
+  async request<T>(path: string, init: RequestInit = {}, expectedStatus?: number, representation: 'json' | 'text' = 'json'): Promise<T> {
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) throw new Error('Caminho inválido.')
     const generation = this.generation
     const headers = new Headers(init.headers)
@@ -50,7 +50,7 @@ export class ApiClient {
     }
     if (expectedStatus !== undefined && response.status !== expectedStatus) throw new Error('Não foi possível confirmar a operação.')
     let result: unknown
-    try { result = response.status === 204 ? undefined : await response.json() }
+    try { result = response.status === 204 ? undefined : representation === 'text' ? await response.text() : await response.json() }
     catch {
       if (generation !== this.generation) throw new Error('Solicitação de uma sessão encerrada.')
       // O parser pode incluir trechos do corpo recebido em sua mensagem.
