@@ -132,7 +132,7 @@ describe('descoberta integrada de recursos', () => {
     expect(screen.queryByText('Carregando catálogo…')).not.toBeInTheDocument()
   })
   it('acesso direto indevido consulta permissão e nunca busca o catálogo', async () => {
-    const fetcher = vi.fn().mockResolvedValue(response({ allowed: false }))
+    const fetcher = vi.fn(async () => response({ allowed: false }))
     vi.stubGlobal('fetch', fetcher)
     render(tree(account, true, `/eventos/igrejas/${a.resourceId}/catalogo`))
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
