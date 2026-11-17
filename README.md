@@ -25,8 +25,7 @@ nome/local, público e opções de participação juntos, com Salvar rascunho ou
 Salvar e disponibilizar. Não há comando de publicação nesse fluxo.
 Revalida permissões ao foco, protege revisão/CSRF e descarta sessões anteriores.
 [Escopo e evidências do editor v4](docs/events/fe-v4-event-editor.md).
-Rotas anteriores continuam disponíveis por compatibilidade; calendário completo,
-recorrência simplificada e substituição das demais telas são incrementos separados.
+Agenda administrativa abre Semana, com Mês/Lista, fuso e Hoje do servidor, leitura de todas as páginas e retorno preservado. [Agenda v4](docs/events/fe-v4-event-agenda.md). Recorrência simplificada e substituição das rotas legadas continuam separadas.
 
 Cadastro administrativo CPF/CIN com igreja autorizada usa o contrato integrado
 `administrative-registration-v1`. A confirmação de 201 é independente da ficha;

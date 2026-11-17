@@ -1,0 +1,16 @@
+.agenda-week, .agenda-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+.agenda-day { min-width: 0; padding: .6rem; border: 1px solid var(--rio-color-border); border-radius: .5rem; background: var(--rio-color-surface); }
+.agenda-day h2 { font-size: .95rem; margin-block: 0 .5rem; }
+.agenda-day h2 button { width: 100%; font: inherit; text-align: start; }
+.agenda-day ul, .agenda-selected ul { padding-inline-start: 1rem; }
+.agenda-day li { margin-block: .8rem; }
+.agenda-day li p { margin-block: .25rem; font-size: .9rem; }
+.agenda-count, .agenda-selected { display: none; }
+@media (max-width: 60rem) {
+  .agenda-week { grid-template-columns: minmax(0, 1fr); }
+  .agenda-month .agenda-day-events { display: none; }
+  .agenda-month .agenda-day { padding: .25rem; }
+  .agenda-month h2 button { font-size: .75rem; padding: .25rem; }
+  .agenda-month .agenda-count { display: block; font-size: .75rem; }
+  .agenda-selected { display: block; margin-block: 1rem; }
+}

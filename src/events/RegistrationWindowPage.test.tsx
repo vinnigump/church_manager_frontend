@@ -84,6 +84,10 @@ describe('administração autorizada da janela', () => {
     expect(await screen.findByRole('link', { name: 'Voltar ao evento' })).toHaveAttribute('href', `/eventos/igrejas/${church}/cadastro/${id}`)
     expect(screen.queryByRole('link', { name: 'Voltar à ocorrência' })).not.toBeInTheDocument()
   })
+  it('retorno ao evento conserva período e visualização da agenda', async () => {
+    server(); show(`${route}?retorno=cadastro&view=month&date=2035-01-03&day=2035-01-01`)
+    expect(await screen.findByRole('link', { name: 'Voltar ao evento' })).toHaveAttribute('href', `/eventos/igrejas/${church}/cadastro/${id}?view=month&date=2035-01-03&day=2035-01-01`)
+  })
   it('configura ocorrência publicada com limite inclusivo, confirmação, CSRF e nova consulta', async () => {
     const fetcher = server(); await api.login('ana', 'fixture-password'); show(); await prepare()
     expect(writes(fetcher)).toHaveLength(0); expect(screen.getByText('Revisão compartilhada original: 7.')).toBeInTheDocument()

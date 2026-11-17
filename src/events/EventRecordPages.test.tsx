@@ -14,6 +14,17 @@ const value = { id, churchId: church, eventTypeId: type, eventTypeVersionId: nul
   checkInRequired: true, draft: true, status: 'DRAFT', revision: 4, audience }
 const base = `/eventos/igrejas/${church}/cadastro`
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
+function agendaResponse(url: string, items = [value]) {
+  const params = new URL(url, 'https://example.test').searchParams, view = params.get('view') ?? 'WEEK', anchor = params.get('date') ?? '2035-01-03'
+  const start = new Date(`${anchor}T00:00:00Z`)
+  if (view === 'MONTH') start.setUTCDate(1); else start.setUTCDate(start.getUTCDate() - (start.getUTCDay() + 6) % 7)
+  const end = new Date(start); if (view === 'MONTH') end.setUTCMonth(end.getUTCMonth() + 1); else end.setUTCDate(end.getUTCDate() + 7)
+  const startsOn = start.toISOString().slice(0, 10), endsOnExclusive = end.toISOString().slice(0, 10)
+  const from = `${startsOn}T03:00:00Z`, to = `${endsOnExclusive}T03:00:00Z`, size = Number(params.get('size') ?? 100), page = Number(params.get('page') ?? 0)
+  const visible = items.filter(v => Date.parse(v.endsAt) > Date.parse(from) && Date.parse(v.startsAt) < Date.parse(to))
+  return json({ referenceAt: '2035-01-03T12:00:00Z', timeZone: 'America/Fortaleza', today: '2035-01-03', anchorDate: anchor, view,
+    startsOn, endsOnExclusive, from, to, total: visible.length, size, page, items: visible.slice(page * size, (page + 1) * size) })
+}
 type Handler = (url: string, init: RequestInit) => Response | Promise<Response> | undefined
 function backend(handler?: Handler, permissions = ['EVENT_VIEW', 'EVENT_CREATE', 'EVENT_EDIT']) {
   const fetcher = vi.fn(async (url: string, init: RequestInit = {}) => {
@@ -22,6 +33,7 @@ function backend(handler?: Handler, permissions = ['EVENT_VIEW', 'EVENT_CREATE',
     if (url.endsWith('/csrf')) return json({ headerName: 'X-TEST-CSRF', token: 'synthetic-csrf' })
     if (url.includes('/authorization?')) return json({ allowed: permissions.includes(new URL(url, 'https://example.test').searchParams.get('permissionCode') ?? '') })
     if (url.includes('/types?')) return json({ items: [{ id: type, name: 'Encontro local', enabled: true, scopeType: 'CHURCH', mandatory: false }], page: 0, size: 20, total: 1 })
+    if (url.includes('/records/agenda?')) return agendaResponse(url, url.includes(`/churches/${other}/`) ? [] : [value])
     if (url.includes('/records?')) return json({ items: [value], page: 0, size: 20, total: 1 })
     if (url.endsWith(`/records/${id}`) && !init.method) return json(value)
     if (['POST', 'PUT'].includes(init.method ?? '')) { const body = JSON.parse(String(init.body)); return json({ ...value, ...body, status: body.draft ? 'DRAFT' : 'AVAILABLE', revision: init.method === 'POST' ? 1 : 5 }, init.method === 'POST' ? 201 : 200) }
@@ -30,7 +42,7 @@ function backend(handler?: Handler, permissions = ['EVENT_VIEW', 'EVENT_CREATE',
   vi.stubGlobal('fetch', fetcher); return fetcher
 }
 const writes = (fetcher: ReturnType<typeof backend>) => fetcher.mock.calls.filter(([, init]) => ['POST', 'PUT'].includes(init?.method ?? ''))
-function SwitchChurch() { const navigate = useNavigate(); return <button onClick={() => navigate(`/eventos/igrejas/${other}/cadastro`)}>Trocar igreja</button> }
+function SwitchChurch() { const navigate = useNavigate(); return <button onClick={() => navigate(`/eventos/igrejas/${other}/cadastro?view=list`)}>Trocar igreja</button> }
 function tree(path: string, current = account) { return <MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ account: current, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><SwitchChurch/><App/></AuthContext.Provider></MemoryRouter> }
 const login = () => api.login('ana', 'synthetic-password')
 async function fill() {
@@ -42,10 +54,10 @@ async function fill() {
 afterEach(() => api.clear())
 describe('cadastro v4 por API real integrada (testes de componente com transporte simulado)', () => {
   it('lista nomes e estados e não oferece publicação', async () => {
-    backend(); render(tree(base))
-    expect(await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveAttribute('href', `${base}/${id}`)
+    backend(); render(tree(`${base}?view=list`))
+    expect(await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveAttribute('href', `${base}/${id}?view=list`)
     expect(screen.getByText('Rascunho')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Criar evento' })).toHaveAttribute('href', `${base}/novo`)
+    expect(screen.getByRole('link', { name: 'Criar evento' })).toHaveAttribute('href', `${base}/novo?view=list`)
     expect(screen.queryByRole('link', { name: /publicar|calendário anual/i })).not.toBeInTheDocument()
   })
   it.each([['Salvar rascunho', true], ['Salvar e disponibilizar', false]] as const)('cria pelo botão %s com audiência, CSRF e fuso, sem publicar', async (button, draft) => {
@@ -125,7 +137,7 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
   it('descarta resposta anterior ao trocar igreja', async () => {
     let finish!: (response: Response) => void
     backend(url => url.includes(`/churches/${church}/records?`) ? new Promise<Response>(done => { finish = done }) : url.includes(`/churches/${other}/records?`) ? json({ items: [], page: 0, size: 20, total: 0 }) : undefined)
-    render(tree(base)); await waitFor(() => expect(finish).toBeDefined())
+    render(tree(`${base}?view=list`)); await waitFor(() => expect(finish).toBeDefined())
     fireEvent.click(screen.getByRole('button', { name: 'Trocar igreja' })); await screen.findByText('Nenhum evento cadastrado.')
     await act(async () => finish(json({ items: [value], page: 0, size: 20, total: 1 })))
     expect(screen.queryByText(value.name)).not.toBeInTheDocument()
@@ -152,14 +164,14 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
   })
   it('trata lista vazia e paginação sem filtrar apenas a página atual', async () => {
     const fetcher = backend(url => url.includes('/records?') ? json({ items: [], page: Number(new URL(url, 'https://example.test').searchParams.get('page')), size: 20, total: 21 }) : undefined)
-    render(tree(base)); await screen.findByText('Nenhum evento cadastrado.')
+    render(tree(`${base}?view=list`)); await screen.findByText('Nenhum evento cadastrado.')
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await screen.findByText('21 eventos · Página 2')
     expect(fetcher.mock.calls.some(([url]) => url.endsWith('/records?page=1&size=20'))).toBe(true)
   })
   it('falha ao consultar mantém mensagem segura e não mostra dados inventados', async () => {
     backend(url => url.includes('/records?') ? new Response('private-secret', { status: 500 }) : undefined)
-    render(tree(base)); await screen.findByText('Não foi possível concluir a solicitação.')
+    render(tree(`${base}?view=list`)); await screen.findByText('Não foi possível concluir a solicitação.')
     expect(screen.queryByText('private-secret')).not.toBeInTheDocument()
     expect(screen.queryByText(value.name)).not.toBeInTheDocument()
   })
@@ -169,5 +181,61 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
     fireEvent.click(screen.getByRole('button', { name: 'Salvar e disponibilizar' }))
     await screen.findByText(/Revise a configuração:/)
     expect(writes(fetcher)).toHaveLength(0); expect(screen.getByLabelText('Nome do evento')).toHaveValue('Culto de domingo')
+  })
+  it('abre Semana com Hoje e fuso do servidor, exibindo horário da igreja', async () => {
+    backend(); render(tree(base))
+    await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' })
+    expect(screen.getByRole('button', { name: 'Semana' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText(/Hoje: 2035-01-03/)).toHaveTextContent('America/Fortaleza')
+    expect(screen.getByText('07:00 · Rascunho')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveAttribute('href', `${base}/${id}?view=week&date=2035-01-03`)
+  })
+  it('Anterior/Próximo seguem o período e Hoje volta à referência do servidor', async () => {
+    const fetcher = backend(); render(tree(base)); await screen.findByText(/1 eventos no período/)
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo' }))
+    await screen.findByText('Nenhum evento neste período.')
+    expect(fetcher.mock.calls.some(([url]) => url.includes('date=2035-01-10'))).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Hoje' })); await screen.findByText(/1 eventos no período/)
+    expect(screen.getByRole('link', { name: 'Ver evento Encontro de famílias' })).toBeInTheDocument()
+  })
+  it('Hoje reconsulta o relógio mesmo quando a URL inicial já está sem data', async () => {
+    let tomorrow = false
+    backend(url => {
+      if (!url.includes('/records/agenda?')) return undefined
+      const response = agendaResponse(url)
+      return tomorrow ? response.json().then(data => json({ ...data, referenceAt: '2035-01-04T12:00:00Z', today: '2035-01-04', anchorDate: '2035-01-04' })) : response
+    })
+    render(tree(base)); await screen.findByText(/Hoje: 2035-01-03/)
+    tomorrow = true; fireEvent.click(screen.getByRole('button', { name: 'Hoje' }))
+    await screen.findByText(/Hoje: 2035-01-04/)
+  })
+  it('evento de vários dias aparece por dia com indicação de continuação', async () => {
+    const crossing = { ...value, startsAt: '2035-01-02T02:00:00Z', endsAt: '2035-01-03T06:00:00Z' }
+    backend(url => url.includes('/records/agenda?') ? agendaResponse(url, [crossing]) : undefined)
+    render(tree(base)); await screen.findAllByRole('link', { name: 'Ver evento Encontro de famílias' })
+    expect(screen.getAllByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveLength(3)
+    expect(screen.getAllByText('Continuação · Rascunho')).toHaveLength(2)
+  })
+  it('voltar do detalhe restaura Mês, âncora e dia escolhido', async () => {
+    backend(); render(tree(`${base}?view=month&date=2035-01-03&day=2035-01-01`))
+    const links = await screen.findAllByRole('link', { name: 'Ver evento Encontro de famílias' }); fireEvent.click(links[0])
+    await screen.findByRole('link', { name: 'Editar evento' })
+    expect(screen.getByRole('link', { name: 'Todos os eventos' })).toHaveAttribute('href', `${base}?view=month&date=2035-01-03&day=2035-01-01`)
+    fireEvent.click(screen.getByRole('link', { name: 'Todos os eventos' }))
+    await screen.findByText(/1 eventos no período/)
+    expect(screen.getByRole('button', { name: 'Mês' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'segunda-feira, 1 de janeiro de 2035' })).toHaveAttribute('aria-pressed', 'true')
+  })
+  it('lista preserva a página no detalhe e no retorno', async () => {
+    backend(url => url.includes('/records?') ? json({ items: [value], page: Number(new URL(url, 'https://example.test').searchParams.get('page')), size: 20, total: 21 }) : undefined)
+    render(tree(`${base}?view=list&page=1`)); fireEvent.click(await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' }))
+    await screen.findByRole('link', { name: 'Editar evento' }); fireEvent.click(screen.getByRole('link', { name: 'Todos os eventos' }))
+    await screen.findByText('21 eventos · Página 2')
+  })
+  it('falha da agenda não exibe um período parcial ou dados privados', async () => {
+    backend(url => url.includes('/records/agenda?') ? new Response('private-url', { status: 500 }) : undefined)
+    render(tree(base)); await screen.findByText('Não foi possível concluir a solicitação.')
+    expect(screen.queryByRole('link', { name: 'Ver evento Encontro de famílias' })).not.toBeInTheDocument()
+    expect(screen.queryByText('private-url')).not.toBeInTheDocument()
   })
 })
