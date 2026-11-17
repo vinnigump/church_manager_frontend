@@ -12,6 +12,7 @@ import SequentialTrailPages from './trails/SequentialTrailPages'
 import WorkItemPages from './tasks/WorkItemPages'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
+import ReceptionPages from './reception/ReceptionPages'
 import GroupMembershipPages from './membership/GroupMembershipPages'
 import MinistryPages from './membership/MinistryPages'
 import MinistryManagementPages from './membership/MinistryManagementPages'
@@ -104,6 +105,8 @@ export default function App() {
     <Route path="tarefas/igrejas/:churchId/nova" element={<WorkItemPages view="create" />}/>
     <Route path="tarefas/igrejas/:churchId/:taskId" element={<WorkItemPages view="detail" />}/>
     <Route path="eventos" element={<EventsPage />}/>
+    <Route path="recepcao" element={<ReceptionPages />}/>
+    <Route path="recepcao/igrejas/:churchId" element={<ReceptionPages />}/>
     <Route path="ministerios" element={<MinistryPages />}/>
     <Route path="ministerios/estrutura" element={<MinistryManagementPages />}/>
     <Route path="ministerios/estrutura/igrejas/:churchId" element={<MinistryManagementPages directory />}/>
