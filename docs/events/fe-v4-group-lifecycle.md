@@ -13,7 +13,7 @@ reatribuição, sem regra nova de saída de ministério/departamento.
 
 Reutiliza CHURCH_GROUP_MANAGE. Escritas enviam revisão; falha ambígua bloqueia
 repetição até conferir dados. Atualização explícita é bloqueada enquanto escreve.
-Nenhum dado de integrante vai para storage/log. Arquivamento conserva tarefas já
+Nenhum dado de integrante vai para storage/log. Arquivamento conserva trilhas já iniciadas e tarefas já
 existentes, incluindo assunção por integrante ativo e conclusão por executor.
 
 PASSOU lint e build TypeScript/Vite Node24. Logs workspace
