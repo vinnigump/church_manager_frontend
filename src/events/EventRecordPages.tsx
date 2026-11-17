@@ -65,6 +65,9 @@ function Detail({ church, id }: { church: string; id: string }) {
     {v.participationMode === 'REGISTRATION_REQUIRED' && <section><h3>Inscrições</h3><p>Salvar o evento não abre inscrições automaticamente. O período e os demais requisitos continuam sendo verificados.</p>
       <Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/janela-inscricao?retorno=cadastro${recordSearch(search).replace('?', '&')}`}>Consultar período de inscrição</Link>
     </section>}
+    {v.participationMode === 'REGISTRATION_REQUIRED' && v.checkInRequired && <ResourceAccess permissionCode="EVENT_ATTENDANCE_MANAGE" resourceType="CHURCH" resourceId={church} optional>
+      <p><Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/check-in${recordSearch(search)}`}>Conferir presença dos participantes</Link></p>
+    </ResourceAccess>}
   </article>}</ReadResult>
 }
 interface Draft { before: EventRecord | null; fields: RecordFields }

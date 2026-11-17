@@ -2,7 +2,7 @@ import { api, type ApiClient } from '../api'
 import { isInstant, isUuid } from '../validation'
 import { instantNanos } from './occurrence-api'
 
-// Pending backend #179. Components remain outside production routes until integration.
+// Backend #179 integrated in release/homolog (c4ac011).
 export interface RegistrationOption { id: string; churchId: string; eventTypeId: string; name: string; startsAt: string; endsAt: string; location: string | null; checkInRequired: boolean }
 export interface OptionPage { items: RegistrationOption[]; page: number; size: number; total: number }
 export interface OwnRegistration { id: string; occurrenceId: string; status: 'CONFIRMED'; trailInstanceId: string | null; taskInstanceId: string | null }
