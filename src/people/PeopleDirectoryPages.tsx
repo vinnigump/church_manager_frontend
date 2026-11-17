@@ -56,6 +56,7 @@ export default function PeopleDirectoryPages({ directory = false }: { directory?
   const [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="occurrences"><h1 data-page-title="Pessoas">Pessoas</h1>
+    <p><Link to="/pessoas/primeiro-acesso">Gerar link de primeiro acesso</Link></p>
     {directory && <Link to="/pessoas">Voltar às igrejas</Link>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Escolha novamente seu acesso.</p> : <div key={`${scope.epoch}:${churchId}`}>
       <ResourceAccess permissionCode={read} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Directory church={churchId}/></ResourceAccess>

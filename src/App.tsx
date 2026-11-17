@@ -3,6 +3,8 @@ import { Guard } from './auth'
 import LoginPage from './LoginPage'
 import QuestionnairePages from './questionnaires/QuestionnairePages'
 import RegistrationPage from './people/RegistrationPage'
+import FirstAccessStaffPages from './people/FirstAccessStaffPages'
+import FirstAccessRedeemPage from './people/FirstAccessRedeemPage'
 import PersonBasicEditPage from './people/PersonBasicEditPage'
 import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
@@ -51,9 +53,12 @@ export default function App() {
     <Route element={<AppLayout />}>
     <Route index element={<HomePage />}/>
     <Route path="entrar" element={<LoginPage />}/>
+    <Route path="primeiro-acesso" element={<FirstAccessRedeemPage />}/>
     <Route path="sair" element={<SignOutPage />}/>
     <Route element={<Guard />}>
     <Route path="pessoas" element={<PeopleDirectoryPages />}/>
+    <Route path="pessoas/primeiro-acesso" element={<FirstAccessStaffPages />}/>
+    <Route path="pessoas/primeiro-acesso/igrejas/:churchId" element={<FirstAccessStaffPages directory />}/>
     <Route path="pessoas/igrejas/:churchId" element={<PeopleDirectoryPages directory />}/>
     <Route path="pessoas/igrejas/:churchId/cadastrar" element={<RegistrationPage />}/>
     <Route path="pessoas/igrejas/:churchId/:personId/editar" element={<PersonBasicEditPage />}/>
