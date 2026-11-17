@@ -25,7 +25,7 @@ export default function SequentialTrailPages({ view }: { view: View }) {
     <nav aria-label="Navegação das trilhas"><Link to="/minhas-trilhas">Minhas trilhas</Link><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link>{view !== 'access' && <Link to="/trilhas/gestao">Acesso da equipe</Link>}</nav>
     <div key={`${session.generation}:${view}:${scopeId}:${trailId}`}>
       {view === 'enroll' ? <Enroll person={account.personId}/> : view === 'access' ? <ManagementAccess/> : view === 'own' ? isUuid(trailId) ? <OwnExecution id={trailId} person={account.personId}/> : <p role="alert">Abra o percurso pela lista de suas trilhas.</p> : !isUuid(scopeId) ? <p role="alert">Abra a gestão de trilhas pelo acesso da equipe.</p> :
-        <ResourceAccess permissionCode={kind === 'DENOMINATION' ? 'TRAIL_TEMPLATE_MANAGE' : 'TRAIL_MANAGE'} resourceType={kind} resourceId={scopeId}>
+        <ResourceAccess permissionCode={kind === 'DENOMINATION' ? 'TRAIL_TEMPLATE_MANAGE' : 'TRAIL_MANAGE'} resourceType={kind} resourceId={scopeId} preserveDuringRecheck>
           <TrailModelManagement scope={{ kind, id: scopeId }}/>
           {kind === 'CHURCH' && <ManagedTrailExecutions church={scopeId}/>}
         </ResourceAccess>}

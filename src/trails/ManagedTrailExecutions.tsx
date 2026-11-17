@@ -24,7 +24,7 @@ export default function ManagedTrailExecutions({ church }: { church: string }) {
 function RunDetail({ run, write, save }: { run: trails.Execution; write: ReturnType<typeof useTrailWrite>; save: (value: trails.Execution) => void }) {
   return <>
     {blockLabel(run.blockReason) && <p role="status">{blockLabel(run.blockReason)}</p>}
-    {run.status === 'IN_PROGRESS' && (run.official || run.blockReason === 'ADMISSION_AUTHORIZATION_REQUIRED') && <ResourceAccess permissionCode="TRAIL_ADMISSION_AUTHORIZE" resourceType="CHURCH" resourceId={run.churchId} optional>
+    {run.status === 'IN_PROGRESS' && (run.official || run.blockReason === 'ADMISSION_AUTHORIZATION_REQUIRED') && <ResourceAccess permissionCode="TRAIL_ADMISSION_AUTHORIZE" resourceType="CHURCH" resourceId={run.churchId} optional preserveDuringRecheck>
       <p>A autorização de ingresso pode ser registrada durante o percurso. A conclusão válida da trilha oficial registra a membresia automaticamente.</p>
       <ReasonForm key={`${run.id}:authorize`} label="Registrar autorização de ingresso" write={write} submit={reason => void write.run(signal => trails.administrative(run.churchId, run.id, 'authorize', reason, signal), save, 'Autorização de ingresso registrada.')}/>
     </ResourceAccess>}
@@ -33,7 +33,7 @@ function RunDetail({ run, write, save }: { run: trails.Execution; write: ReturnT
       {s.satisfactionMode === 'WAIVED' && <p>Requisito dispensado pela equipe.</p>}
       {s.satisfactionMode === 'ADMINISTRATIVE' && <p>Conclusão administrativa registrada.</p>}
       {s.kind === 'MANUAL' && s.workItemId && <ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={run.churchId} optional><Link to={`/tarefas/igrejas/${run.churchId}/${s.workItemId}`}>Acompanhar a tarefa e seu responsável</Link></ResourceAccess>}
-      {run.status === 'IN_PROGRESS' && s.available && s.kind !== 'MANUAL' && <ResourceAccess permissionCode="TRAIL_COMPLETE_ADMIN" resourceType="CHURCH" resourceId={run.churchId} optional>
+      {run.status === 'IN_PROGRESS' && s.available && s.kind !== 'MANUAL' && <ResourceAccess permissionCode="TRAIL_COMPLETE_ADMIN" resourceType="CHURCH" resourceId={run.churchId} optional preserveDuringRecheck>
         <ReasonForm key={`${s.id}:waive`} label="Dispensar requisito desta etapa" write={write} submit={reason => void write.run(signal => trails.administrative(run.churchId, run.id, 'waive', reason, signal, s.id), save, 'Dispensa administrativa registrada.')}/>
       </ResourceAccess>}
     </li>)}</ol>
