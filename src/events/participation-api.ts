@@ -15,7 +15,7 @@ const nullableUuid = (v: unknown): v is string | null => v === null || uuid(v)
 const text = (v: unknown): v is string => typeof v === 'string' && Boolean(v.trim())
 const integer = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 0
 const invalid = () => new Error('Não foi possível validar os dados de participação. Consulte novamente.')
-function base(church: string) { if (!isUuid(church)) throw invalid(); return `/api/v1/events/churches/${church}/occurrences` }
+function base(church: string) { if (!isUuid(church)) throw invalid(); return `/events/churches/${church}/occurrences` }
 function occurrenceBase(church: string, occurrence: string) { if (!isUuid(occurrence)) throw invalid(); return `${base(church)}/${occurrence}` }
 function paging(v: Record<string, unknown>, page: number, count: number) { if (!integer(page) || page > 100000 || v.page !== page || v.size !== 20 || !integer(v.total) || count > 20 || count !== Math.min(20, Math.max(0, v.total - page * 20))) throw invalid() }
 function presence(v: unknown, registration: string): ParticipantPresence {
