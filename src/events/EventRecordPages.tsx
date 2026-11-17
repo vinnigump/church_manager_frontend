@@ -15,9 +15,9 @@ import './occurrences.css'
 import './records.css'
 import './stitch-events.css'
 
-function Dates({ value, timeZone }: { value: EventRecord; timeZone: string }) {
+function Dates({ value }: { value: EventRecord; timeZone: string }) {
   const display = (instant: string) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo', hour12: false }).format(new Date(instant))
-  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Término: <time dateTime={value.endsAt}>{display(value.endsAt)}</time> ({timeZone})</p>
+  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Término: <time dateTime={value.endsAt}>{display(value.endsAt)}</time> (horário de Brasília)</p>
 }
 function List({ church }: { church: string }) {
   const [search, setSearch] = useSearchParams(), rawPage = search.get('page')

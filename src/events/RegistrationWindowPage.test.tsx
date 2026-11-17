@@ -1,3 +1,4 @@
+import { inputDateTime, wallTimeBR, brasilInstant } from '../time'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -33,7 +34,7 @@ function server(handler?: (url: string, init: RequestInit) => Response | Promise
   }); vi.stubGlobal('fetch', fetcher); return fetcher
 }
 const writes = (fetcher: ReturnType<typeof server>) => fetcher.mock.calls.filter(([, init]) => ['PUT', 'DELETE'].includes(init?.method))
-async function prepare() { fireEvent.change(await screen.findByLabelText('Fechamento da inscrição'), { target: { value: occurrence.startsAt } }); fireEvent.click(screen.getByRole('button', { name: 'Revisar janela de inscrição' })) }
+async function prepare() { fireEvent.change(await screen.findByLabelText('Fechamento da inscrição'), { target: { value: wallTimeBR(occurrence.startsAt) } }); fireEvent.click(screen.getByRole('button', { name: 'Revisar janela de inscrição' })) }
 async function confirm() { await prepare(); fireEvent.click(screen.getByRole('button', { name: 'Confirmar gravação da janela' })) }
 afterEach(() => api.clear())
 
@@ -94,7 +95,7 @@ describe('administração autorizada da janela', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar gravação da janela' }))
     expect(await screen.findByText('Janela configurada confirmada pelo servidor na revisão 8.')).toBeInTheDocument()
     await screen.findByText('Revisão compartilhada consultada: 8.')
-    const init = writes(fetcher)[0][1]; expect(init.headers.get('X-WINDOW-CSRF')).toBe('fixture'); expect(init.headers.get('X-Expected-Revision')).toBe('7'); expect(JSON.parse(init.body)).toEqual(next)
+    const init = writes(fetcher)[0][1]; expect(init.headers.get('X-WINDOW-CSRF')).toBe('fixture'); expect(init.headers.get('X-Expected-Revision')).toBe('7'); expect(JSON.parse(init.body)).toEqual({ opensAt, closesAt: brasilInstant(wallTimeBR(occurrence.startsAt)) })
     expect(fetcher.mock.calls.some(([url]) => /\/publish|\/registrations|\/accounts\/people/.test(url))).toBe(false)
   })
   it('remoção explícita não cria janela pública ilimitada e não envia corpo', async () => {
@@ -115,29 +116,32 @@ describe('administração autorizada da janela', () => {
     const fetcher = server(url => url.endsWith(`/occurrences/${id}`) ? json({ ...occurrence, participationMode: mode, ...(mode === null && { modality: null, checkInRequired: null, configured: false }) }) : undefined); show()
     await screen.findByText(/Configuração indisponível/); expect(screen.queryByLabelText('Abertura da inscrição')).not.toBeInTheDocument(); expect(writes(fetcher)).toHaveLength(0)
   })
-  it.each(['2032-01-01T12:00:00.000001Z', opensAt, '2032-01-01T11:00:00', '2032-01-01T11:00:00.0000001Z'])('bloqueia fechamento inválido %s antes de confirmar', async value => {
-    const fetcher = server(); show(); fireEvent.change(await screen.findByLabelText('Fechamento da inscrição'), { target: { value } }); fireEvent.click(screen.getByRole('button', { name: 'Revisar janela de inscrição' }))
+  it.each(['2032-01-01T09:00:00.000001', '2032-01-01T07:00:00', 'invalid', '2032-01-01T08:00:00.0000001'])('bloqueia fechamento inválido %s antes de confirmar', async value => {
+    const fetcher = server(); show(); fireEvent.change(await screen.findByLabelText('Fechamento da inscrição'), { target: { value } }); fireEvent.submit(screen.getByRole('form', { name: 'Configurar janela de inscrição' })); /* validate canonical input too */ fireEvent.click(screen.getByRole('button', { name: 'Revisar janela de inscrição' }))
     expect(await screen.findByRole('alert')).toBeInTheDocument(); expect(screen.queryByRole('button', { name: 'Confirmar gravação da janela' })).not.toBeInTheDocument(); expect(writes(fetcher)).toHaveLength(0)
   })
   it.each([['EVENT_VIEW'], ['EVENT_VIEW', 'EVENT_PUBLISH']])('permissões %j não oferecem escrita', async (...permissions) => {
     const fetcher = server(undefined, permissions as string[]); show(); await screen.findByText('Revisão compartilhada consultada: 7.')
     await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes('EVENT_EDIT'))).toBe(true)); expect(screen.queryByLabelText('Abertura da inscrição')).not.toBeInTheDocument(); expect(writes(fetcher)).toHaveLength(0)
   })
-  it('EDIT sem VIEW não consulta dados', async () => {
-    const fetcher = server(undefined, ['EVENT_EDIT']); show(); expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado'); expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
+  it('EDIT sem VIEW consulta a própria janela sem escrita implícita', async () => {
+    const fetcher = server(undefined, ['EVENT_EDIT']); show()
+    await screen.findByLabelText('Abertura da inscrição')
+    expect(fetcher.mock.calls.some(([url]) => url.endsWith('/registration-window'))).toBe(true)
+    expect(writes(fetcher)).toHaveLength(0)
   })
   it('revisões diferentes entre GETs bloqueiam editor', async () => {
     const fetcher = server(url => url.endsWith(`/occurrences/${id}`) ? json({ ...occurrence, revision: 8 }) : undefined); show()
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar os dados administrativos'); expect(screen.queryByLabelText('Abertura da inscrição')).not.toBeInTheDocument(); expect(writes(fetcher)).toHaveLength(0)
   })
   it('foco conserva valores mas descarta confirmação', async () => {
-    server(); show(); await prepare(); fireEvent(window, new Event('focus')); expect(await screen.findByLabelText('Fechamento da inscrição')).toHaveValue(occurrence.startsAt); expect(screen.queryByRole('button', { name: 'Confirmar gravação da janela' })).not.toBeInTheDocument()
+    server(); show(); await prepare(); fireEvent(window, new Event('focus')); expect(await screen.findByLabelText('Fechamento da inscrição')).toHaveValue(inputDateTime(wallTimeBR(occurrence.startsAt))); expect(screen.queryByRole('button', { name: 'Confirmar gravação da janela' })).not.toBeInTheDocument()
   })
   it('mudança de revisão exige descarte explícito sem atualizar rascunho silenciosamente', async () => {
     let revision = 7
     server(url => url.endsWith('/registration-window') ? json({ ...before, revision }) : url.endsWith(`/occurrences/${id}`) ? json({ ...occurrence, revision }) : undefined)
     show(); await prepare(); revision = 8; fireEvent(window, new Event('focus')); expect(await screen.findByRole('alert')).toHaveTextContent('revisão original foi preservada')
-    fireEvent.click(screen.getByRole('button', { name: 'Descartar tentativa e recarregar janela' })); expect(await screen.findByLabelText('Fechamento da inscrição')).toHaveValue(closesAt)
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar tentativa e recarregar janela' })); expect(await screen.findByLabelText('Fechamento da inscrição')).toHaveValue(inputDateTime(wallTimeBR(closesAt)))
   })
   it.each([403, 409, 422, 500])('erro %s exige consulta antes de repetir', async status => {
     const fetcher = server((_, init) => init.method === 'PUT' ? new Response('', { status }) : undefined); await api.login('ana', 'fixture-password'); show(); await confirm()
@@ -164,7 +168,7 @@ describe('administração autorizada da janela', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado'); expect(screen.queryByLabelText('Abertura da inscrição')).not.toBeInTheDocument(); expect(screen.queryByText(opensAt)).not.toBeInTheDocument()
   })
   it('link do detalhe usa contexto autorizado', async () => {
-    server(); show(route.replace('/janela-inscricao', '')); fireEvent.click(await screen.findByRole('link', { name: 'Consultar janela de inscrição' })); expect(await screen.findByLabelText('Abertura da inscrição')).toHaveValue(opensAt)
+    server(); show(route.replace('/janela-inscricao', '')); fireEvent.click(await screen.findByRole('link', { name: 'Consultar janela de inscrição' })); expect(await screen.findByLabelText('Abertura da inscrição')).toHaveValue(inputDateTime(wallTimeBR(opensAt)))
   })
   it('URL inválida não consulta backend', async () => {
     const fetcher = server(); show(route.replace(church, 'invalid')); expect(await screen.findByRole('alert')).toHaveTextContent('Acesso inválido'); expect(fetcher).not.toHaveBeenCalled()

@@ -48,7 +48,7 @@ const login = () => api.login('ana', 'synthetic-password')
 async function fill() {
   await screen.findByRole('option', { name: 'Encontro local' })
   for (const [label, content] of [['Nome do evento', 'Culto de domingo'], ['Local ou endereço de acesso público', 'Templo'], ['Tipo de evento', type],
-    ['Início', '2035-01-01T09:00:00'], ['Término', '2035-01-01T11:00:00'], ['Fuso dos horários', '-03:00'], ['Modalidade', 'IN_PERSON'],
+    ['Início', '2035-01-01T09:00:00'], ['Término', '2035-01-01T11:00:00'], ['Modalidade', 'IN_PERSON'],
     ['Como as pessoas participam?', 'OPEN_EVENT'], ['Quem pode ver o evento?', 'PUBLIC']]) fireEvent.change(screen.getByLabelText(label), { target: { value: content } })
 }
 afterEach(() => api.clear())
@@ -186,7 +186,7 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
     backend(); render(tree(base))
     await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' })
     expect(screen.getByRole('button', { name: 'Semana' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText(/Hoje: 2035-01-03/)).toHaveTextContent('America/Fortaleza')
+    expect(screen.getByText(/Hoje: 2035-01-03/)).toHaveTextContent('Horário de Brasília')
     expect(screen.getByText('07:00 · Rascunho')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveAttribute('href', `${base}/${id}?view=week&date=2035-01-03`)
   })

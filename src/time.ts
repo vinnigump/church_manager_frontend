@@ -22,3 +22,8 @@ export function parseInputDateTime(text: string): string {
  if(+y<1||date.getUTCFullYear()!==+y||date.getUTCMonth()!==+m-1||date.getUTCDate()!==+d||date.getUTCHours()!==+h||date.getUTCMinutes()!==+min||date.getUTCSeconds()!==+sec)return ''
  return `${y}-${m}-${d}T${h}:${min}${text.length===16?'':':'+sec+(iso?.[7]??br?.[7]??'')}`
 }
+
+export function formatDate(value:string|Date):string {
+ if(typeof value==='string' && /^\d{4}-\d\d-\d\d$/.test(value))return `${value.slice(8,10)}/${value.slice(5,7)}/${value.slice(0,4)}`
+ return new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeZone:DEFAULT_TIME_ZONE}).format(new Date(value))
+}

@@ -39,7 +39,7 @@ function Calendar({ church, month }: { church: string; month: boolean }) {
     const events = (date: string) => byDay.get(date) ?? []
     const links = (date: string) => events(date).map(v => <EventLink key={v.id} value={v} church={church} date={date} agenda={agenda} search={search}/>)
     return <section className="agenda-calendar" aria-label="Calendário de eventos">
-      <div className="agenda-period-heading"><h2>{new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${agenda.anchorDate}T00:00:00Z`))}</h2><p>Horário de Brasília: <strong>{agenda.timeZone}</strong> · Hoje: {agenda.today}</p></div>
+      <div className="agenda-period-heading"><h2>{new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${agenda.anchorDate}T00:00:00Z`))}</h2><p>Horário de Brasília · Hoje: {agenda.today}</p></div>
       <p role="status">{agenda.total} eventos no período · {agenda.startsOn} até {addDays(agenda.endsOnExclusive, -1)}</p>
       <nav aria-label="Período da agenda"><button onClick={() => navigate(adjacent(-1))}>Anterior</button><button onClick={() => { navigate(); query.refresh() }}>Hoje</button><button onClick={() => navigate(adjacent(1))}>Próximo</button></nav>
       {!agenda.items.length && <p>Nenhum evento neste período.</p>}

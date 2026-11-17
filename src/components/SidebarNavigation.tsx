@@ -28,7 +28,7 @@ function currentArea(path: string): Area | null {
 }
 type Resolved = { label: string; path: string }[]
 export default function SidebarNavigation() {
- const { account }=useAuth(),{defaultChurchId,churches}=useDefaultChurch(),{pathname}=useLocation()
+ const { account }=useAuth(),{defaultChurchId,churches,ready}=useDefaultChurch(),{pathname}=useLocation()
  const [mobile,setMobile]=useState(()=>typeof window.matchMedia==='function' && window.matchMedia('(max-width:767px)').matches)
  useEffect(()=>{
   if(typeof window.matchMedia!=='function')return
@@ -40,16 +40,16 @@ export default function SidebarNavigation() {
  const specs=[...(area?definitions[area]:[]),...(expanded==='management'?management:expanded==='settings'?settings:[])]
  const moduleChurchId=pathname.match(/\/igrejas\/([0-9a-f-]{36})(?:\/|$)/i)?.[1]??null
  const contextId=moduleChurchId??defaultChurchId
- const key=JSON.stringify([area,expanded,defaultChurchId,moduleChurchId])
+ const key=JSON.stringify([area,expanded,defaultChurchId,moduleChurchId,ready])
  const [snapshot,setSnapshot]=useState<{account:typeof account;key:string;links:Resolved;churchLabel?:string}>({account:null,key:'',links:[]})
  useEffect(()=>{
   const controller=new AbortController()
   const resolve=async()=>{
-   const staff=specs.filter(v=>!v.personal)
+   const staff=ready?specs.filter(v=>!v.personal):[]
    const resources=staff.length?await discoverResources(controller.signal):[]
    const checks=new Map<string,Promise<boolean>>()
    const allowed=(r:AuthorizedResource,p:string)=>{const k=r.resourceType+':'+r.resourceId+':'+p;if(!checks.has(k))checks.set(k,consultAuthorization({permissionCode:p,resourceType:r.resourceType,resourceId:r.resourceId},controller.signal));return checks.get(k)!}
-   const links=(await Promise.all(specs.map(async spec=>{
+   const links=(await Promise.all(specs.filter(spec=>spec.personal||ready).map(async spec=>{
     if(spec.personal)return [{label:spec.label,path:spec.fallback}]
     const candidates=resources.filter(r=>r.resourceType===spec.scope)
     const decisions=await Promise.all(candidates.map(async r=>{const permissions=spec.permission!;const checks=await Promise.all(permissions.map(p=>allowed(r,p)));return {...r,permissions:permissions.filter((_p,i)=>checks[i])}}))

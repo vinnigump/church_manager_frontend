@@ -1,3 +1,4 @@
+import { formatDate } from '../time'
 import { DefaultChurchAccess } from '../church-context'
 import UiIcon from '../components/UiIcon'
 import './membership-visual.css'
@@ -117,7 +118,7 @@ function Detail({ church, id }: { church: string; id: string }) {
       const stale = before !== null && before.revision !== group.revision, disabled = command.busy || command.blocked || stale
       return <><h2>{group.name}</h2>{group.archivedAt && <p role="status">Grupo arquivado. O histórico e as tarefas existentes foram preservados.</p>}<p>{group.description}</p><p><Link to={`${groupManagementRoute(church)}/${id}/editar`}>Editar nome e descrição</Link></p>
         <h3>Integrantes</h3><label><input type="checkbox" checked={history} disabled={command.busy} onChange={e => { setHistory(e.target.checked); setPage(0); setConfirmation(null) }}/>Incluir histórico de saídas</label>
-        {members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}{v.removedAt ? ` · Saiu em ${new Date(v.removedAt).toLocaleDateString('pt-BR')}` : <> <button disabled={disabled} onClick={() => { setSelected(null); setConfirmation({ action: 'remove', user: v }) }}>Remover {v.displayName}</button></>}</li>)}</ul> : <p>Nenhum integrante encontrado.</p>}
+        {members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}{v.removedAt ? ` · Saiu em ${formatDate(v.removedAt)}` : <> <button disabled={disabled} onClick={() => { setSelected(null); setConfirmation({ action: 'remove', user: v }) }}>Remover {v.displayName}</button></>}</li>)}</ul> : <p>Nenhum integrante encontrado.</p>}
         <Pagination page={page} total={members.total} setPage={setPage} label="Páginas de integrantes"/>
         {stale && <p role="alert">O grupo mudou. Atualize os dados antes de continuar.</p>}
         {!group.archivedAt && <><button disabled={disabled} onClick={() => { setConfirmation(null); setAdding(v => !v) }}>{adding ? 'Fechar seleção de usuários' : 'Adicionar integrante'}</button>

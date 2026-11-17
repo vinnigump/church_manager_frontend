@@ -50,7 +50,7 @@ describe('agenda isolada', () => {
   }
   it('exibe fuso e datas locais, abrangendo ocorrência multi-dia', () => {
     show()
-    expect(screen.getByText(/Fuso horário: America\/Fortaleza/)).toBeInTheDocument()
+    expect(screen.getByText(/Horário de Brasília/)).toBeInTheDocument()
     expect(screen.getByText('05/11/2026, 22:00')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-11-07' } })
     fireEvent.change(screen.getByLabelText('Data final'), { target: { value: '2026-11-07' } })

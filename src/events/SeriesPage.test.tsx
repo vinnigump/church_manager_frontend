@@ -1,3 +1,4 @@
+import { inputDateTime } from '../time'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -48,7 +49,7 @@ async function configure() {
   fireEvent.change(await screen.findByLabelText('Modalidade'), { target: { value: 'ONLINE' } })
   fireEvent.change(screen.getByLabelText('Participação'), { target: { value: 'OPEN_EVENT' } })
   fireEvent.change(screen.getByLabelText('Check-in obrigatório'), { target: { value: 'false' } })
-  fireEvent.change(screen.getByLabelText('Primeiro início civil no fuso da série'), { target: { value: proposal.firstStartsAt } })
+  fireEvent.change(screen.getByLabelText('Primeiro início (Brasília)'), { target: { value: proposal.firstStartsAt } })
 }
 async function calculate() { fireEvent.click(screen.getByRole('button', { name: 'Calcular prévia sem gravar' })); await screen.findByRole('heading', { name: 'Horários calculados sem gravação' }) }
 async function review() {
@@ -159,8 +160,8 @@ describe('seleção administrativa com prévia do servidor', () => {
   })
   it('foco preserva campos e seleção, mas descarta confirmação', async () => {
     backend(); await api.login('ana', 'fixture-password'); show(); await configure(); await calculate(); await review()
-    fireEvent(window, new Event('focus')); await screen.findByRole('button', { name: 'Revisar edição selecionada' })
-    expect(screen.getByLabelText('Primeiro início civil no fuso da série')).toHaveValue(proposal.firstStartsAt)
+    fireEvent.blur(screen.getByLabelText('Primeiro início (Brasília)')); fireEvent(window, new Event('focus')); await screen.findByRole('button', { name: 'Revisar edição selecionada' })
+    expect(screen.getByLabelText('Primeiro início (Brasília)')).toHaveValue(inputDateTime(proposal.firstStartsAt))
     expect(screen.getByLabelText(`Destino para ${id}`)).toHaveValue('1')
     expect(screen.queryByRole('button', { name: 'Confirmar edição da seleção' })).not.toBeInTheDocument()
   })
@@ -172,7 +173,7 @@ describe('seleção administrativa com prévia do servidor', () => {
     fireEvent.change(await screen.findByLabelText('Modalidade'), { target: { value: 'ONLINE' } })
     fireEvent.change(screen.getByLabelText('Participação'), { target: { value: 'OPEN_EVENT' } })
     fireEvent.change(screen.getByLabelText('Check-in obrigatório'), { target: { value: 'false' } })
-    fireEvent.change(screen.getByLabelText('Primeiro início civil no fuso da série'), { target: { value: proposal.firstStartsAt } })
+    fireEvent.change(screen.getByLabelText('Primeiro início (Brasília)'), { target: { value: proposal.firstStartsAt } })
     await calculate()
     fireEvent.click(screen.getByLabelText(`Selecionar ocorrência ${id}`))
     fireEvent.change(screen.getByLabelText(`Destino para ${id}`), { target: { value: '1' } })
@@ -189,7 +190,7 @@ describe('seleção administrativa com prévia do servidor', () => {
     expect(await screen.findByText(/Série legada sem parâmetros completos/)).toBeInTheDocument()
     expect(screen.getByLabelText('Ano da proposta')).toHaveValue(null)
     expect(screen.getByLabelText('Frequência')).toHaveValue('')
-    expect(screen.getByLabelText('Primeiro início civil no fuso da série')).toHaveValue('')
+    expect(screen.getByLabelText('Primeiro início (Brasília)')).toHaveValue('')
     expect(screen.queryByRole('heading', { name: 'Horários calculados sem gravação' })).not.toBeInTheDocument()
   })
   it('nova configuração descarta confirmação mas conserva prévia de horários', async () => {
@@ -227,10 +228,11 @@ describe('seleção administrativa com prévia do servidor', () => {
     expect(screen.queryByRole('button', { name: 'Revisar edição selecionada' })).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(0)
   })
-  it('EVENT_EDIT sem VIEW não consulta série', async () => {
+  it('EVENT_EDIT sem VIEW consulta a série necessária ao formulário', async () => {
     const fetcher = backend(undefined, ['EVENT_EDIT']); show()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
+    await screen.findByLabelText('Primeiro início (Brasília)')
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/series/'))).toBe(true)
+    expect(writes(fetcher)).toHaveLength(0)
   })
   it.each([403, 409, 422, 500])('erro PUT %s não é sucesso e não repete após foco', async status => {
     const fetcher = backend((url, init) => init.method === 'PUT' ? new Response(null, { status }) : undefined)

@@ -3,21 +3,21 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { api } from './api'
 import { useAuth } from './auth'
 import { isUuid } from './validation'
-type ChurchContext = { defaultChurchId: string | null; churches: { churchId: string; name: string }[] }
-const empty: ChurchContext = { defaultChurchId: null, churches: [] }
+type ChurchContext = { ready: boolean; defaultChurchId: string | null; churches: { churchId: string; name: string }[] }
+const empty: ChurchContext = { ready: false, defaultChurchId: null, churches: [] }
 const Context = createContext<ChurchContext>(empty)
 function parse(value: unknown): ChurchContext {
   if (!value || typeof value !== 'object') throw new Error('Contexto inválido.')
   const data = value as ChurchContext
   if (!Array.isArray(data.churches) || data.churches.some(v => !v || !isUuid(v.churchId) || typeof v.name !== 'string') || (data.defaultChurchId !== null && (!isUuid(data.defaultChurchId) || !data.churches.some(v => v.churchId === data.defaultChurchId)))) throw new Error('Contexto inválido.')
-  return data
+  return { ready: true, defaultChurchId: data.defaultChurchId, churches: data.churches }
 }
 export function ChurchContextProvider({ children }: { children: ReactNode }) {
   const { account } = useAuth()
   const [snapshot, setSnapshot] = useState<{ account: typeof account; data: ChurchContext }>({ account: null, data: empty })
   useEffect(() => {
     const controller = new AbortController()
-    if (account) void api.request<unknown>('/accounts/me/church-context', { signal: controller.signal }).then(parse).then(data => { if (!controller.signal.aborted) setSnapshot({ account, data }) }).catch(() => { if (!controller.signal.aborted) setSnapshot({ account, data: empty }) })
+    if (account) void api.request<unknown>('/accounts/me/church-context', { signal: controller.signal }).then(parse).then(data => { if (!controller.signal.aborted) setSnapshot({ account, data }) }).catch(() => { if (!controller.signal.aborted) setSnapshot({ account, data: { ...empty, ready: true } }) })
     return () => controller.abort()
   }, [account])
   return <Context.Provider value={account && snapshot.account === account ? snapshot.data : empty}>{children}</Context.Provider>
