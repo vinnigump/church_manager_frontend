@@ -7,6 +7,7 @@ import HomePage from './HomePage'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
+import MinistryPages from './membership/MinistryPages'
 import AudiencePage from './events/AudiencePage'
 import RegistrationWindowPage from './events/RegistrationWindowPage'
 import OccurrencePages from './events/OccurrencePages'
@@ -60,6 +61,8 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="eventos" element={<EventsPage />}/>
+    <Route path="ministerios" element={<MinistryPages />}/>
+    <Route path="ministerios/igrejas/:churchId" element={<MinistryPages directory />}/>
     <Route path="eventos/igrejas/:churchId/cadastro" element={<EventRecordPages view="list" />}/>
     <Route path="eventos/igrejas/:churchId/cadastro/novo" element={<EventRecordPages view="create" />}/>
     <Route path="eventos/igrejas/:churchId/cadastro/:recordId" element={<EventRecordPages view="detail" />}/>
