@@ -31,6 +31,7 @@ export default function AppLayout() {
     </header>
     {account && <nav className="app-navigation" aria-label="Principal">
       <NavLink to="/" end><NavigationIcon kind="home"/><span>Início</span></NavLink>
+      <NavLink to="/pessoas"><NavigationIcon kind="account"/><span>Pessoas</span></NavLink>
       {account && <NavLink to="/eventos"><NavigationIcon kind="events"/><span>Eventos</span></NavLink>}
       <NavLink to="/ministerios"><NavigationIcon kind="ministries"/><span>Ministérios</span></NavLink>
       <NavLink to="/conta"><NavigationIcon kind="account"/><span>Minha conta</span></NavLink>
