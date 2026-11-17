@@ -14,9 +14,13 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 ## Contratos verificados e bloqueios
 
 A entrada Eventos descobre as igrejas autorizadas e valida EVENT_VIEW antes de
-oferecer acesso à listagem já integrada. Revalida ao foco e na atualização dos
-acessos, descartando respostas de sessões anteriores. Não é ainda a agenda pública
-nem a nova gestão completa sem publicação. [Fatia v4 e testes](docs/events/fe-v4-event-access.md).
+abrir a nova lista com nome, local e estado. O cadastro usa event-records-v1:
+nome/local, público e opções de participação juntos, com Salvar rascunho ou
+Salvar e disponibilizar. Não há comando de publicação nesse fluxo.
+Revalida permissões ao foco, protege revisão/CSRF e descarta sessões anteriores.
+[Escopo e evidências do editor v4](docs/events/fe-v4-event-editor.md).
+Rotas anteriores continuam disponíveis por compatibilidade; calendário completo,
+recorrência simplificada e substituição das demais telas são incrementos separados.
 
 Cadastro administrativo CPF/CIN com igreja autorizada usa o contrato integrado
 `administrative-registration-v1`. A confirmação de 201 é independente da ficha;

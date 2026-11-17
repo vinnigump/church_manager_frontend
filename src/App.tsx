@@ -10,6 +10,7 @@ import GroupMembershipPages from './membership/GroupMembershipPages'
 import AudiencePage from './events/AudiencePage'
 import RegistrationWindowPage from './events/RegistrationWindowPage'
 import OccurrencePages from './events/OccurrencePages'
+import EventRecordPages from './events/EventRecordPages'
 import PlanningPage from './events/PlanningPage'
 import SpaceEditorPage from './events/SpaceEditorPage'
 import AnnualCopyPage from './events/AnnualCopyPage'
@@ -59,6 +60,10 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="eventos" element={<EventsPage />}/>
+    <Route path="eventos/igrejas/:churchId/cadastro" element={<EventRecordPages view="list" />}/>
+    <Route path="eventos/igrejas/:churchId/cadastro/novo" element={<EventRecordPages view="create" />}/>
+    <Route path="eventos/igrejas/:churchId/cadastro/:recordId" element={<EventRecordPages view="detail" />}/>
+    <Route path="eventos/igrejas/:churchId/cadastro/:recordId/editar" element={<EventRecordPages view="edit" />}/>
     <Route path="igrejas/:churchId/grupos/:kind/:groupId/vinculos" element={<GroupMembershipPages />}/>
     <Route path="igrejas/:churchId/grupos/:kind/:groupId/vinculos/:membershipId" element={<GroupMembershipPages />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias" element={<OccurrencePages view="list" />}/>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
@@ -95,7 +95,9 @@ function Workspace({ churchId, occurrenceId }: { churchId: string; occurrenceId:
 }
 export default function RegistrationWindowPage() {
   const { churchId = '', occurrenceId = '' } = useParams(), { account } = useAuth()
+  const [search] = useSearchParams()
+  const fromRecords = search.get('retorno') === 'cadastro'
   return <div className="occurrences"><h1 data-page-title="Janela de inscrição">Janela de inscrição</h1><Link to="/eventos">Voltar a Eventos</Link>
-    {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente o detalhe autorizado da ocorrência.</p> : <><p><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${occurrenceId}`}>Voltar à ocorrência</Link></p><Workspace key={`${account?.id}:${churchId}:${occurrenceId}`} churchId={churchId} occurrenceId={occurrenceId}/></>}
+    {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente o detalhe autorizado da ocorrência.</p> : <><p><Link to={`/eventos/igrejas/${churchId}/${fromRecords ? 'cadastro' : 'ocorrencias'}/${occurrenceId}`}>{fromRecords ? 'Voltar ao evento' : 'Voltar à ocorrência'}</Link></p><Workspace key={`${account?.id}:${churchId}:${occurrenceId}`} churchId={churchId} occurrenceId={occurrenceId}/></>}
   </div>
 }

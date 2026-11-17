@@ -1,0 +1,10 @@
+.records { max-width: 70rem; margin-inline: auto; }
+.records .record-panel { padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); }
+.records .record-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.records .record-check { display: flex; align-items: center; gap: .6rem; }
+.records .record-check input { width: 1.2rem; height: 1.2rem; flex-shrink: 0; }
+.records details { margin-block: 1rem; padding: 1rem; border: 1px solid var(--rio-color-border); border-radius: .5rem; }
+.records summary { cursor: pointer; font-weight: 600; }
+.records .record-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 1.5rem; }
+.records .record-badge { display: inline-block; padding: .25rem .7rem; border: 1px solid var(--rio-color-border); border-radius: 2rem; font-weight: 600; }
+@media (max-width: 40rem) { .records .record-grid { grid-template-columns: minmax(0, 1fr); gap: 0; } .records .record-actions button { width: 100%; } }
