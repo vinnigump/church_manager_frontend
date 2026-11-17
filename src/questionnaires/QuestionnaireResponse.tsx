@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ResourceAccess } from '../authorization'
 import { grade, readApplication, saveApplication, type Answer, type Application, type Question } from './questionnaires-api'
-import { gradePermission, questionnaireStatus, readPermission, ScopedRead } from './shared'
+import { gradePermission, questionnaireStatus, ResponseReadAccess, ScopedRead } from './shared'
 import { useQuestionnaireCommand } from './useQuestionnaireCommand'
 function AnswerField({ question: q, answer, change, disabled }: { question: Question; answer: Answer; change: (value: Answer) => void; disabled: boolean }) {
   return <fieldset className="questionnaire-answer-card" disabled={disabled}><legend>{q.statement}</legend>
@@ -47,5 +47,5 @@ function Loaded({ church, initial, staff, reload }: { church: string; initial: A
 export default function QuestionnaireResponse({ church, applicationId, staff }: { church: string; applicationId: string; staff: boolean }) {
   const [epoch, setEpoch] = useState(0), load = useCallback((signal: AbortSignal) => readApplication(church, applicationId, staff, signal), [church, applicationId, staff])
   const content = <ScopedRead context={`${church}:${applicationId}:${staff}:${epoch}`} load={load} refresh={false} label="resposta do questionário">{value => <Loaded key={`${value.id}:${epoch}`} church={church} initial={value} staff={staff} reload={() => setEpoch(v => v + 1)}/>}</ScopedRead>
-  return staff ? <ResourceAccess permissionCode={readPermission} resourceType="CHURCH" resourceId={church} preserveDuringRecheck>{content}</ResourceAccess> : content
+  return staff ? <ResponseReadAccess church={church}>{content}</ResponseReadAccess> : content
 }

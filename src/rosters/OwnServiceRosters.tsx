@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -7,8 +8,8 @@ import { ownRosters, type OwnRoster } from './roster-api'
 import './rosters.css'
 
 export function RosterDates({ value }: { value: Pick<OwnRoster, 'startsAt' | 'endsAt' | 'timeZone'> }) {
-  const format = (date: string) => new Intl.DateTimeFormat('pt-BR', { timeZone: value.timeZone, dateStyle: 'short', timeStyle: 'short' }).format(new Date(date))
-  return <p><time dateTime={value.startsAt}>{format(value.startsAt)}</time> até <time dateTime={value.endsAt}>{format(value.endsAt)}</time> ({value.timeZone})</p>
+  const format = formatDateTime
+  return <p><time dateTime={value.startsAt}>{format(value.startsAt)}</time> até <time dateTime={value.endsAt}>{format(value.endsAt)}</time> (horário de Brasília)</p>
 }
 function OwnCard({ value }: { value: OwnRoster }) {
   return <li><h3>{value.departmentName ? `${value.departmentName} · ${value.ministryName}` : value.ministryName}</h3><p>{value.churchName}</p><RosterDates value={value}/>

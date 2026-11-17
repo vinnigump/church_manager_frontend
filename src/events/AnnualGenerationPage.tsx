@@ -1,3 +1,5 @@
+import { formatDateTime } from '../time'
+import BrazilianDateTimeField from '../components/BrazilianDateTimeField'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -66,7 +68,7 @@ function GenerationForm({ churchId, control }: { churchId: string; control: Gene
     <label>Ano da série<input type="number" min="1" max="9999" step="1" required value={control.fields.year} onChange={e => change('year', e.target.value)}/></label>
     <label>Frequência<select required value={control.fields.frequency} onChange={e => change('frequency', e.target.value)}><option value="">Selecione</option><option value="DAILY">Diária</option><option value="WEEKLY">Semanal (dia da primeira data)</option><option value="MONTHLY">Mensal (dia nominal da primeira data)</option></select></label>
     <label>Intervalo entre repetições<input type="number" min="1" max="366" step="1" required value={control.fields.interval} onChange={e => change('interval', e.target.value)}/></label>
-    <label>Primeiro início (hora civil da igreja)<input required type="text" placeholder="AAAA-MM-DDTHH:mm:ss.ffffff" value={control.fields.firstStartsAt} onChange={e => change('firstStartsAt', e.target.value)}/></label>
+    <label>Primeiro início (Brasília)<BrazilianDateTimeField required value={control.fields.firstStartsAt} onChange={e => change('firstStartsAt', e.target.value)}/></label>
     <label>Última data nominal inclusiva<input required type="date" value={control.fields.through} onChange={e => change('through', e.target.value)}/></label>
     <label>Duração de cada ocorrência (minutos)<input required type="number" min="1" max="527040" step="1" value={control.fields.durationMinutes} onChange={e => change('durationMinutes', e.target.value)}/></label>
     <label>Capacidade (vazia: ilimitada)<input type="number" min="0" max="2147483647" step="1" value={control.fields.capacity} onChange={e => change('capacity', e.target.value)}/></label>
@@ -86,13 +88,13 @@ function GenerationForm({ churchId, control }: { churchId: string; control: Gene
 function Workspace({ churchId }: { churchId: string }) {
   const control = useGeneration(churchId)
   return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}><ResourceAccess permissionCode="EVENT_CREATE" resourceType="CHURCH" resourceId={churchId}>
-    <p>O servidor usa o fuso cadastrado da igreja, não o relógio do navegador. Datas e horários inexistentes avançam ao próximo válido; o dia nominal permanece ancorado à primeira data. Horários ambíguos usam o primeiro offset. Duração decorrida preservada.</p>
+    <p>Todos os horários usam Brasília, no formato de 24 horas. Datas e horários inexistentes avançam ao próximo válido; o dia nominal permanece ancorado à primeira data. Horários ambíguos usam o primeiro offset. Duração decorrida preservada.</p>
     <p>Até 366 rascunhos dentro do ano. Não altera séries existentes, ocorrências publicadas, inscrições ou presenças e não publica o calendário.</p>
     {control.busy && <p role="status" aria-busy="true">Gerando série…</p>}{control.message && <p role="alert">{control.message}</p>}
     <p><Link to={`/eventos/igrejas/${churchId}/ocorrencias`}>Consultar ocorrências antes de outra geração</Link></p>
-    {control.result ? <section aria-label="Série criada"><h2>Série criada em rascunho</h2><p>{control.result.items.length} ocorrências · ano {control.result.year} · fuso {control.result.timezone}.</p>
+    {control.result ? <section aria-label="Série criada"><h2>Série criada em rascunho</h2><p>{control.result.items.length} ocorrências · ano {control.result.year} · horário de Brasília.</p>
       <p>Série {control.result.recurrenceRuleId}. Os intervalos abaixo são os instantes confirmados pelo servidor.</p>
-      <ul className="event-list">{control.result.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${item.id}`}>Consultar ocorrência {item.id}</Link><p><time dateTime={item.startsAt}>{item.startsAt}</time> até <time dateTime={item.endsAt}>{item.endsAt}</time></p><p>Rascunho · revisão zero · {item.adjusted ? 'Data ou horário ajustado pelo servidor' : 'Sem ajuste de data ou horário'}</p></li>)}</ul>
+      <ul className="event-list">{control.result.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${item.id}`}>Consultar ocorrência {item.id}</Link><p><time dateTime={item.startsAt}>{formatDateTime(item.startsAt)}</time> até <time dateTime={item.endsAt}>{formatDateTime(item.endsAt)}</time></p><p>Rascunho · revisão zero · {item.adjusted ? 'Data ou horário ajustado pelo servidor' : 'Sem ajuste de data ou horário'}</p></li>)}</ul>
     </section> : <GenerationForm churchId={churchId} control={control}/>}
   </ResourceAccess></ResourceAccess>
 }

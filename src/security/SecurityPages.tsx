@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -93,8 +94,8 @@ function VersionDetails({ denominationId, profileId, versionId }: { denomination
   const query = useRead(JSON.stringify([denominationId, profileId, versionId]), load)
   return <ReadResult query={query} label="versão do perfil">{version => <>
     <h2>Versão {version.versionNumber} · {version.name}</h2><p>Estado: {statusName(version.status)}</p>
-    <p>Criada em <time dateTime={version.createdAt}>{new Date(version.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
-    {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{new Date(version.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
+    <p>Criada em <time dateTime={version.createdAt}>{formatDateTime(version.createdAt)}</time></p>
+    {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{formatDateTime(version.publishedAt)}</time></p>}
     <h3>Permissões registradas nesta versão</h3><p>Este snapshot preserva o histórico, inclusive códigos retirados do catálogo. Não representa autorização efetiva da conta.</p>
     {version.permissionCodes.length ? <ul className="security-codes">{version.permissionCodes.map(code => <li key={code}>{code}</li>)}</ul> : <p>Nenhuma permissão registrada nesta versão.</p>}
   </>}</ReadResult>

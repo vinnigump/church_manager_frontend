@@ -1,3 +1,6 @@
+import { wallTimeBR, brasilInstant } from '../time'
+import { formatDateTime } from '../time'
+import BrazilianDateTimeField from '../components/BrazilianDateTimeField'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -16,7 +19,7 @@ export const occurrenceRoute = (churchId: string) => `/eventos/igrejas/${churchI
 const modalityLabel = (v: Occurrence['modality']) => v === null ? 'Não informada' : { IN_PERSON: 'Presencial', ONLINE: 'Online', HYBRID: 'Híbrido' }[v]
 const participationLabel = (v: Occurrence['participationMode']) => v === null ? 'Não informado' : { REGISTRATION_REQUIRED: 'Inscrição obrigatória', OPEN_EVENT: 'Evento aberto' }[v]
 function Dates({ value }: { value: Occurrence }) {
-  return <p>Início: <time dateTime={value.startsAt}>{value.startsAt}</time><br/>Término: <time dateTime={value.endsAt}>{value.endsAt}</time></p>
+  return <p>Início: <time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time><br/>Término: <time dateTime={value.endsAt}>{formatDateTime(value.endsAt)}</time></p>
 }
 function Details({ value }: { value: Occurrence }) {
   return <><Dates value={value}/><p><Link to={`${occurrenceRoute(value.churchId)}/${value.id}/audiencia`}>Consultar audiência da ocorrência</Link></p><p><Link to={`${occurrenceRoute(value.churchId)}/${value.id}/janela-inscricao`}>Consultar janela de inscrição</Link></p><dl>
@@ -59,8 +62,8 @@ function OccurrenceDetails({ churchId, id }: { churchId: string; id: string }) {
 interface Fields { eventTypeId: string; startsAt: string; endsAt: string; capacity: string; modality: string; participationMode: string; checkInRequired: string }
 interface Draft { before: Occurrence | null; fields: Fields }
 // Keep the exact original Instant (including microseconds) when a date field is unchanged.
-const inputDate = (value: string) => new Date(value).toISOString().slice(0, 19)
-const resolveDate = (value: string, before?: string) => before && value === inputDate(before) ? before : `${value.length === 16 ? `${value}:00` : value}Z`
+const inputDate = (value: string) => wallTimeBR(value)
+const resolveDate = (value: string, before?: string) => before && value === inputDate(before) ? before : brasilInstant(value)
 const fieldsFor = (v: Occurrence | null): Fields => ({ eventTypeId: v?.eventTypeId ?? '', startsAt: v ? inputDate(v.startsAt) : '', endsAt: v ? inputDate(v.endsAt) : '',
   capacity: v?.capacity == null ? '' : String(v.capacity), modality: v?.modality ?? '', participationMode: v?.participationMode ?? '', checkInRequired: v?.checkInRequired == null ? '' : String(v.checkInRequired) })
 function writeFor(draft: Draft): OccurrenceWrite {
@@ -106,9 +109,9 @@ function EditorRecords({ churchId, id, control }: { churchId: string; id?: strin
   return <>{stale && <p role="alert">A revisão mudou. Recarregue o rascunho e descarte as alterações locais antes de salvar.</p>}
     <form onSubmit={control.submit}><fieldset disabled={control.busy || control.blocked || stale}><legend>Configuração explícita do rascunho</legend>
       <TypePicker churchId={churchId} draft={draft} change={control.change} disabled={control.busy || control.blocked || stale}/>
-      <p>Datas em UTC. Valores originais com microssegundos são preservados quando o campo não é alterado.</p>
-      <label>Início (UTC)<input type="datetime-local" step="1" required value={draft.fields.startsAt} onChange={e => control.change('startsAt', e.target.value)}/></label>
-      <label>Término (UTC)<input type="datetime-local" step="1" required value={draft.fields.endsAt} onChange={e => control.change('endsAt', e.target.value)}/></label>
+      <p>Horários de Brasília, no formato de 24 horas. Valores originais com microssegundos são preservados quando o campo não é alterado.</p>
+      <label>Início (Brasília)<BrazilianDateTimeField step="1" required value={draft.fields.startsAt} onChange={e => control.change('startsAt', e.target.value)}/></label>
+      <label>Término (Brasília)<BrazilianDateTimeField step="1" required value={draft.fields.endsAt} onChange={e => control.change('endsAt', e.target.value)}/></label>
       <label>Capacidade (vazia: ilimitada)<input type="number" min="0" max="2147483647" step="1" value={draft.fields.capacity} onChange={e => control.change('capacity', e.target.value)}/></label>
       <label>Modalidade<select required value={draft.fields.modality} onChange={e => control.change('modality', e.target.value)}><option value="">Selecione</option><option value="IN_PERSON">Presencial</option><option value="ONLINE">Online</option><option value="HYBRID">Híbrido</option></select></label>
       <label>Participação<select required value={draft.fields.participationMode} onChange={e => control.change('participationMode', e.target.value)}><option value="">Selecione</option><option value="REGISTRATION_REQUIRED">Inscrição obrigatória</option><option value="OPEN_EVENT">Evento aberto</option></select></label>
@@ -145,14 +148,12 @@ function EditorWorkspace({ churchId, id }: { churchId: string; id?: string }) {
       if (!signal.aborted) { setBlocked(true); setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar a gravação.'} ${id ? 'Recarregue e confira os dados antes de nova tentativa.' : 'A ocorrência pode ter sido criada. Consulte a lista antes de iniciar outra criação.'}`) }
     } finally { pending.current = false; if (!signal.aborted) setBusy(false) }
   }
-  return <ResourceAccess key={attempt} permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
-    <ResourceAccess permissionCode={id ? 'EVENT_EDIT' : 'EVENT_CREATE'} resourceType="CHURCH" resourceId={churchId}>
+  return <ResourceAccess key={attempt} permissionCode={id ? 'EVENT_EDIT' : 'EVENT_CREATE'} resourceType="CHURCH" resourceId={churchId}>
       {message && <p role={saved ? 'status' : 'alert'}>{message}</p>}{busy && <p role="status" aria-busy="true">Salvando rascunho…</p>}
       {saved ? <Link to={`${occurrenceRoute(churchId)}/${saved.id}`}>Consultar rascunho salvo</Link> : <>
         <button disabled={busy} onClick={() => { setDraft(null); setBlocked(false); setMessage(''); setAttempt(v => v + 1) }}>Recarregar rascunho e descartar alterações locais</button>
         <EditorRecords key={attempt} churchId={churchId} id={id} control={{ draft, initialize, change, busy, blocked, submit }}/>
       </>}
-    </ResourceAccess>
   </ResourceAccess>
 }
 export default function OccurrencePages({ view }: { view: 'list' | 'detail' | 'create' | 'edit' }) {

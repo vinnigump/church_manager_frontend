@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import UiIcon from '../components/UiIcon'
 import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -59,7 +60,7 @@ function List({ context, page, setPage, filter }: { context: GroupContext; page:
     <p>Página {data.page + 1} · {data.total} vínculos no filtro {filter === 'ACTIVE' ? 'ativos' : filter === 'INACTIVE' ? 'inativos' : 'todos, incluindo histórico'}.</p>
     {data.items.length ? <ul className="event-list ministry-members-list">{data.items.map(item => <li key={item.id}><span className="ministry-member-avatar"><UiIcon kind="account"/></span>
       <h2>{item.displayName}</h2><p>Estado {item.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}.</p>
-      <p>Ingresso registrado em <time dateTime={item.linkedAt}>{new Date(item.linkedAt).toLocaleString('pt-BR')}</time>.</p>
+      <p>Ingresso registrado em <time dateTime={item.linkedAt}>{formatDateTime(item.linkedAt)}</time>.</p>
       <Link to={`${groupRoute(context)}/${item.id}`}>Consultar vínculo de {item.displayName}</Link>
     </li>)}</ul> : <p>Nenhum vínculo nesta página e filtro.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos vínculos do grupo"/>
@@ -74,11 +75,11 @@ function Detail({ context, id, page, setPage, command }: { context: GroupContext
   const query = useRead(JSON.stringify([context, id, page]), load)
   return <ReadResult query={query} label="vínculo e histórico">{({ item, history }) => <>
     <h2>{item.displayName}</h2><p>Estado {item.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}.</p>
-    <p>Vinculado em {new Date(item.linkedAt).toLocaleString('pt-BR')} por {item.linkedByName ?? 'Equipe autorizada'}.</p>{item.releasedAt && <p>Desvinculado em {new Date(item.releasedAt).toLocaleString('pt-BR')} por {item.releasedByName ?? 'Equipe autorizada'}.</p>}
+    <p>Vinculado em {formatDateTime(item.linkedAt)} por {item.linkedByName ?? 'Equipe autorizada'}.</p>{item.releasedAt && <p>Desvinculado em {formatDateTime(item.releasedAt)} por {item.releasedByName ?? 'Equipe autorizada'}.</p>}
     <Release key={`${item.id}:${item.revision}`} item={item} command={command}/>
     <h2>Histórico autorizado</h2><p>Consulta de vínculo e histórico ocorre em pedidos separados; alterações concorrentes podem aparecer entre eles. O servidor revalida a revisão antes de desvincular.</p>
     <p>Página {history.page + 1} · {history.total} registros.</p>
-    {history.items.length ? <ol>{history.items.map(entry => <li key={entry.id}><h3>{entry.action === 'LINKED' ? 'Ingresso' : 'Saída registrada'}</h3><p>{entry.beforeStatus ?? 'Sem estado anterior'} → {entry.afterStatus}.</p><p>{new Date(entry.occurredAt).toLocaleString('pt-BR')} · por {entry.actorName ?? 'Equipe autorizada'}.</p><p>Motivo: {entry.reason ?? 'Não informado'}</p></li>)}</ol> : <p>Nenhum registro de histórico nesta página.</p>}
+    {history.items.length ? <ol>{history.items.map(entry => <li key={entry.id}><h3>{entry.action === 'LINKED' ? 'Ingresso' : 'Saída registrada'}</h3><p>{entry.beforeStatus ?? 'Sem estado anterior'} → {entry.afterStatus}.</p><p>{formatDateTime(entry.occurredAt)} · por {entry.actorName ?? 'Equipe autorizada'}.</p><p>Motivo: {entry.reason ?? 'Não informado'}</p></li>)}</ol> : <p>Nenhum registro de histórico nesta página.</p>}
     <Pagination page={page} total={history.total} setPage={setPage} label="Páginas do histórico do vínculo"/>
   </>}</ReadResult>
 }

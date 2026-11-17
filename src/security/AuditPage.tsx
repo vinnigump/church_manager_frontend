@@ -1,3 +1,5 @@
+import BrazilianDateTimeField from '../components/BrazilianDateTimeField'
+import { brasilInstant, formatDateTime } from '../time'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -8,10 +10,10 @@ import { instant } from './security-api'
 import { Pagination, ReadResult, useRead } from './SecurityPages'
 
 const labels: Record<AuditResource, string> = { ACCESS_ROLE: 'Perfil', USER_ROLE_ASSIGNMENT: 'Atribuição', ACCESS_ROLE_DELEGATION: 'Fonte de delegação', EVENT_TYPE: 'Tipo de evento', EVENT_OCCURRENCE: 'Ocorrência', EVENT_ATTENDANCE: 'Presença', EVENT_CALENDAR: 'Calendário', AUDIT_LOG: 'Recusas administrativas de consulta e gestão', EVENT_RECURRENCE_RULE: 'Edição de série anual', GROUP_MEMBERSHIP: 'Vínculo de grupo' }
-function utc(value: string) {
+function auditInstant(value: string) {
   if (!value) return undefined
-  const result = `${value.length === 16 ? `${value}:00` : value}Z`
-  if (!instant(result)) throw new Error('Informe datas válidas em UTC.')
+  const result = brasilInstant(value)
+  if (!instant(result)) throw new Error('Informe datas e horários válidos.')
   return result
 }
 function Workspace({ denominationId, resourceType, resourceId }: { denominationId: string; resourceType?: AuditResource; resourceId?: string }) {
@@ -26,7 +28,7 @@ function Workspace({ denominationId, resourceType, resourceId }: { denominationI
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     try {
-      const start = utc(from), end = utc(to)
+      const start = auditInstant(from), end = auditInstant(to)
       if (start && end && Date.parse(start) >= Date.parse(end)) throw new Error('O fim exclusivo deve ser posterior ao início inclusivo.')
       setError(''); setPage(0); setFilters({ resourceType: resourceType ?? (type || undefined), resourceId, from: start, to: end })
     } catch (error) { setError(error instanceof Error ? error.message : 'Revise o intervalo.') }
@@ -37,9 +39,9 @@ function Workspace({ denominationId, resourceType, resourceId }: { denominationI
       <label htmlFor="audit-type">Tipo de recurso</label><select id="audit-type" value={type} disabled={resourceType !== undefined} onChange={event => setType(event.target.value as AuditResource | '')}>
         <option value="">Sete tipos anteriores (consulta padrão)</option>{auditResources.map(value => <option key={value} value={value}>{labels[value]}</option>)}
       </select>
-      <label htmlFor="audit-from">Início inclusivo (UTC)</label><input id="audit-from" type="datetime-local" step="1" value={from} onChange={event => setFrom(event.target.value)}/>
-      <label htmlFor="audit-to">Fim exclusivo (UTC)</label><input id="audit-to" type="datetime-local" step="1" value={to} onChange={event => setTo(event.target.value)}/>
-      <p>Digite os horários em UTC. Deixe os campos vazios para não limitar o período.</p>
+      <label htmlFor="audit-from">Início inclusivo (horário de Brasília)</label><BrazilianDateTimeField id="audit-from" step="1" value={from} onChange={event => setFrom(event.target.value)}/>
+      <label htmlFor="audit-to">Fim exclusivo (horário de Brasília)</label><BrazilianDateTimeField id="audit-to" step="1" value={to} onChange={event => setTo(event.target.value)}/>
+      <p>Digite os horários de Brasília no formato de 24 horas. Deixe os campos vazios para não limitar o período.</p>
       <p>Recusas administrativas, edições de séries e vínculos de grupos exigem seleção explícita do tipo e aplicação do filtro. A consulta padrão preserva os sete tipos anteriores.</p>
       {error && <p role="alert">{error}</p>}<button>Aplicar filtros de auditoria</button>
     </form>
@@ -50,7 +52,7 @@ function Workspace({ denominationId, resourceType, resourceId }: { denominationI
       <p role="status">Página {page + 1} · {data.total} registros.</p>
       {data.items.length ? <ol className="security-list">{data.items.map(entry => <li key={entry.id}>
         <h2>{entry.action}</h2><p>Resultado: {entry.outcome === 'SUCCESS' ? 'Sucesso' : 'Negado'}</p>
-        <p>Ocorrido em <time dateTime={entry.occurredAt}>{new Date(entry.occurredAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
+        <p>Ocorrido em <time dateTime={entry.occurredAt}>{formatDateTime(entry.occurredAt)}</time></p>
         <p>Identificador do ator: {entry.actorUserId}</p><p>Tipo de recurso: {labels[entry.resourceType]}</p>
         <p>Identificador do recurso: {entry.resourceId ?? 'Não informado'}</p><p>Identificador do registro: {entry.id}</p>
       </li>)}</ol> : <p>Nenhum registro de auditoria nesta página e filtros.</p>}

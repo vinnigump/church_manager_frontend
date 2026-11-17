@@ -1,3 +1,4 @@
+import { useDefaultChurch } from '../church-context'
 import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -12,12 +13,14 @@ export function Enroll({ person }: { person: string }) {
   return <Query query={query} label="igrejas" hideRefresh>{churches => churches.length ? <ChurchEnrollment churches={churches} person={person}/> : <p>Nenhuma igreja está disponível para iniciar uma trilha com seu cadastro atual. Consulte a equipe da igreja.</p>}</Query>
 }
 function ChurchEnrollment({ churches, person }: { churches: trails.Church[]; person: string }) {
-  const [church, setChurch] = useState(churches.length === 1 ? churches[0].churchId : '')
+  const { defaultChurchId } = useDefaultChurch()
+  const [choice, setChurch] = useState<string | null>(null), [choosing, setChoosing] = useState(false)
+  const church = choice ?? (churches.some(v => v.churchId === defaultChurchId) ? defaultChurchId! : '')
   const write = useTrailWrite(), navigate = useNavigate()
   return <>
-    <label>Igreja<select value={church} disabled={write.busy} onChange={e => { setChurch(e.target.value); write.reset() }}>
+    {church && !choosing ? <p>{churches.find(v => v.churchId === church)?.churchName}{churches.length > 1 && <> · <button type="button" disabled={write.busy} onClick={() => setChoosing(true)}>Trocar igreja</button></>}</p> : <label>Igreja<select value={church} disabled={write.busy} onChange={e => { setChurch(e.target.value); setChoosing(false); write.reset() }}>
       <option value="">Selecione a igreja</option>{churches.map(v => <option key={v.churchId} value={v.churchId}>{v.churchName}</option>)}
-    </select></label><Feedback write={write}/>
+    </select></label>}<Feedback write={write}/>
     {church && <AvailableList key={church} church={church} write={write} begin={publication => void write.run(signal => trails.start(church, publication, person, signal), run => navigate(`/minhas-trilhas/${run.id}/atividades`))}/>}
   </>
 }

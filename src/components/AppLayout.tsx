@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { useSignOut } from '../useSignOut'
 import Brand from './Brand'
-import NavigationIcon from './UiIcon'
+import SidebarNavigation from './SidebarNavigation'
 import './app-shell.css'
 
 export default function AppLayout() {
@@ -25,13 +25,7 @@ export default function AppLayout() {
     <header className="app-header"><Link className="app-home-link" to="/"><Brand/></Link>
       {account && <><div className="app-header-context"><span>Church Manager</span><span aria-hidden="true"> / </span><strong>{area}</strong></div><div className="app-session-actions"><NavLink className="app-session-button app-account-button" to="/conta"><span className="app-avatar" aria-hidden="true">{account.login.slice(0,2).toUpperCase()}</span>Minha conta</NavLink><button className="app-session-button" onClick={signOut}>Sair</button></div></>}
     </header>
-    {account && <nav className="app-navigation" aria-label="Principal">
-      <NavLink to="/" end><NavigationIcon kind="home"/><span>Início</span></NavLink>
-      <NavLink to="/pessoas"><NavigationIcon kind="account"/><span>Pessoas</span></NavLink>
-      {account && <NavLink to="/eventos"><NavigationIcon kind="events"/><span>Eventos</span></NavLink>}
-      <NavLink to="/ministerios"><NavigationIcon kind="ministries"/><span>Ministérios</span></NavLink>
-      <NavLink to="/recepcao"><NavigationIcon kind="reception"/><span>Recepção</span></NavLink>
-    </nav>}
+    {account && <SidebarNavigation/>}
     <main className={`app-content${accessPage ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
   </div></>
 }

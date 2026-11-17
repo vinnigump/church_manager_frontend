@@ -1,5 +1,6 @@
+import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { consultAuthorization, ResourceAccess } from '../authorization'
 import { discoverResources } from '../AuthorizedResources'
@@ -12,6 +13,7 @@ import PeoplePageHeader from './PeoplePageHeader'
 import './people.css'
 const read = 'identity:person:contextual:read', create = 'identity:person:contextual:create'
 function Access() {
+  const [params] = useSearchParams(), creating = params.get('acao') === 'cadastrar'
   const { account } = useAuth(), [epoch, setEpoch] = useState(0)
   const load = useCallback(async (_id: string, signal: AbortSignal) => {
     const churches = (await discoverResources(signal)).filter(v => v.resourceType === 'CHURCH')
@@ -20,16 +22,16 @@ function Access() {
       const [canRead, canCreate] = await Promise.all([query(read), query(create)])
       return { ...v, canRead, canCreate }
     }))
-    return decisions.filter(v => v.canRead || v.canCreate)
-  }, [account])
+    return decisions.filter(v => creating ? v.canCreate : v.canRead || v.canCreate)
+  }, [account, creating])
   useEffect(() => { const refresh = () => setEpoch(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
   return <><button onClick={() => setEpoch(v => v + 1)}>Atualizar acessos a Pessoas</button>
     <ContextOperation key={epoch} contextId="people-access" operation={load}>{s => s.kind === 'loading' ? <p role="status">Carregando igrejas…</p>
       : s.kind === 'error' ? <p role="alert">Não foi possível confirmar seus acessos.</p>
-        : s.data.length ? <ul className="people-church-list">{s.data.map(v => <li key={v.resourceId}><span className="people-card-eyebrow">Igreja</span><h2>{v.label}</h2>
-          {v.canRead && <p><Link to={`/pessoas/igrejas/${v.resourceId}`}>Consultar pessoas de {v.label}</Link></p>}
+        : s.data.length ? <DefaultChurchAccess  options={s.data.map(v => ({ churchId: v.resourceId, path: !creating && v.canRead ? `/pessoas/igrejas/${v.resourceId}` : `/pessoas/igrejas/${v.resourceId}/cadastrar` }))}><ul className="people-church-list">{s.data.map(v => <li key={v.resourceId}><span className="people-card-eyebrow">Igreja</span><h2>{v.label}</h2>
+          {!creating && v.canRead && <p><Link to={`/pessoas/igrejas/${v.resourceId}`}>Consultar pessoas de {v.label}</Link></p>}
           {v.canCreate && <Link to={`/pessoas/igrejas/${v.resourceId}/cadastrar`}>Cadastrar pessoa em {v.label}</Link>}
-        </li>)}</ul> : <p>Nenhuma igreja disponível para consultar ou cadastrar pessoas.</p>}</ContextOperation>
+        </li>)}</ul></DefaultChurchAccess> : <p>Nenhuma igreja disponível para consultar ou cadastrar pessoas.</p>}</ContextOperation>
   </>
 }
 function Directory({ church }: { church: string }) {
@@ -57,7 +59,7 @@ export default function PeopleDirectoryPages({ directory = false }: { directory?
   const [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="people-page"><PeoplePageHeader title="Pesquisa e Cadastro de Pessoa" description="Cadastre ou consulte pessoas da congregação. O registro reúne a identificação e os dados de contato, sem criar automaticamente conta de acesso ou membresia."><Link className="people-secondary-link" to="/pessoas/primeiro-acesso">Gerar link de primeiro acesso</Link></PeoplePageHeader>
-    {directory && <Link className="people-back-link" to="/pessoas">← Voltar às igrejas</Link>}
+    {directory && <Link className="people-back-link" to="/pessoas?selecionar=1">Trocar igreja</Link>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Escolha novamente seu acesso.</p> : <div key={`${scope.epoch}:${churchId}`}>
       <ResourceAccess permissionCode={read} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Directory church={churchId}/></ResourceAccess>
     </div>}

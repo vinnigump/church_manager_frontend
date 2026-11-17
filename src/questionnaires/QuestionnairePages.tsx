@@ -1,3 +1,4 @@
+import { DefaultChurchAccess } from '../church-context'
 import './questionnaires.css'
 import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -10,22 +11,22 @@ import { catalog, contexts, exportResults, mine, responses, route, start, versio
 import QuestionnaireResponse from './QuestionnaireResponse'
 import QuestionnaireEditor from './QuestionnaireEditor'
 import { useQuestionnaireCommand } from './useQuestionnaireCommand'
-import { managePermission, readPermission, exportPermission, questionnaireStatus as status, ScopedRead } from './shared'
+import { managePermission, readPermission, gradePermission, ResponseReadAccess, exportPermission, questionnaireStatus as status, ScopedRead } from './shared'
 import '../events/occurrences.css'
 function Access() {
   const load = useCallback(async (signal: AbortSignal) => {
     const [own, resources] = await Promise.all([contexts(signal), discoverResources(signal)])
     const churches = resources.filter(v => v.resourceType === 'CHURCH')
     const checks = await Promise.all(churches.map(async v => {
-      const allowed = await Promise.all([managePermission, readPermission, exportPermission].map(permissionCode => consultAuthorization({ permissionCode, resourceType: 'CHURCH', resourceId: v.resourceId }, signal)))
-      return { church: v, manage: allowed[0], read: allowed[1], export: allowed[2] }
+      const allowed = await Promise.all([managePermission, readPermission, exportPermission, gradePermission].map(permissionCode => consultAuthorization({ permissionCode, resourceType: 'CHURCH', resourceId: v.resourceId }, signal)))
+      return { church: v, manage: allowed[0], read: allowed[1], export: allowed[2], grade: allowed[3] }
     }))
-    return { own, staff: checks.filter(v => v.manage || v.read || v.export) }
+    return { own, staff: checks.filter(v => v.manage || v.read || v.export || v.grade) }
   }, [])
-  return <ScopedRead context="questionnaire-contexts" load={load} label="igrejas dos questionários">{data => <>
+  return <ScopedRead context="questionnaire-contexts" load={load} label="igrejas dos questionários">{data => <DefaultChurchAccess options={[...data.own.map(v => ({ churchId: v.churchId, path: route(v.churchId) })), ...data.staff.map(v => ({ churchId: v.church.resourceId, path: `${route(v.church.resourceId)}/${v.manage ? 'gerenciar' : v.read || v.grade ? 'respostas' : 'exportar'}` }))]}>
     <h2>Meus questionários</h2>{data.own.length ? <ul className="event-list">{data.own.map(v => <li key={v.churchId}><h3>{v.churchName}</h3><Link to={route(v.churchId)}>Respostas e questionários em {v.churchName}</Link>{!v.canRespond && <p>Consulta do seu histórico.</p>}</li>)}</ul> : <p>Nenhuma igreja associada ou resposta anterior encontrada.</p>}
-    <h2>Gestão</h2>{data.staff.length ? <ul>{data.staff.map(v => <li key={v.church.resourceId}>{v.church.label}: {v.manage && <Link to={`${route(v.church.resourceId)}/gerenciar`}>Gerenciar questionários</Link>} {' '}{v.read && <Link to={`${route(v.church.resourceId)}/respostas`}>Consultar respostas</Link>} {' '}{v.export && <Link to={`${route(v.church.resourceId)}/exportar`}>Exportar resultados</Link>}</li>)}</ul> : <p>Nenhuma gestão de questionários disponível.</p>}
-  </>}</ScopedRead>
+    <h2>Gestão</h2>{data.staff.length ? <ul>{data.staff.map(v => <li key={v.church.resourceId}>{v.church.label}: {v.manage && <Link to={`${route(v.church.resourceId)}/gerenciar`}>Gerenciar questionários</Link>} {' '}{(v.read || v.grade) && <Link to={`${route(v.church.resourceId)}/respostas`}>{v.read ? 'Consultar respostas' : 'Corrigir respostas'}</Link>} {' '}{v.export && <Link to={`${route(v.church.resourceId)}/exportar`}>Exportar resultados</Link>}</li>)}</ul> : <p>Nenhuma gestão de questionários disponível.</p>}
+  </DefaultChurchAccess>}</ScopedRead>
 }
 function OwnCatalog({ church }: { church: string }) {
   const [page, setPage] = useState(0), [historyPage, setHistoryPage] = useState(0)
@@ -51,7 +52,7 @@ function History({ church, id }: { church: string; id: string }) {
 }
 function Responses({ church }: { church: string }) {
   const [page, setPage] = useState(0), load = useCallback((signal: AbortSignal) => responses(church, page, signal), [church, page])
-  return <ResourceAccess permissionCode={readPermission} resourceType="CHURCH" resourceId={church}><ScopedRead context={`${church}:${page}`} load={load} label="respostas enviadas">{data => <>{data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.displayName}</h2><p>{status(v.status)}{v.score !== null && ` · Nota ${v.score}`}</p><Link to={`${route(church)}/respostas/${v.id}`}>Consultar resposta</Link></li>)}</ul> : <p>Nenhuma resposta enviada.</p>}<Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos questionários"/></>}</ScopedRead></ResourceAccess>
+  return <ResponseReadAccess church={church}><ScopedRead context={`${church}:${page}`} load={load} label="respostas enviadas">{data => <>{data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.displayName}</h2><p>{status(v.status)}{v.score !== null && ` · Nota ${v.score}`}</p><ResourceAccess permissionCode={readPermission} resourceType="CHURCH" resourceId={church} optional fallback={<Link to={`${route(church)}/respostas/${v.id}`}>Corrigir resposta</Link>}><Link to={`${route(church)}/respostas/${v.id}`}>Consultar resposta</Link></ResourceAccess></li>)}</ul> : <p>Nenhuma resposta enviada.</p>}<Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos questionários"/></>}</ScopedRead></ResponseReadAccess>
 }
 function Export({ church }: { church: string }) {
   const command = useQuestionnaireCommand()
@@ -63,7 +64,7 @@ export default function QuestionnairePages({ view }: { view: View }) {
   const [session, setSession] = useState({ account, epoch: 0 })
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   if (view !== 'access' && !isUuid(churchId) || ['begin', 'version'].includes(view) && !isUuid(versionId) || ['application', 'response'].includes(view) && !isUuid(applicationId) || view === 'history' && !isUuid(questionnaireId)) return <p role="alert">Endereço de questionário inválido.</p>
-  return <section className={`occurrences questionnaire-workspace questionnaire-${view}`} key={`${session.epoch}:${view}:${churchId}:${versionId}:${applicationId}:${questionnaireId}`}><header className="questionnaire-page-heading"><p className="questionnaire-eyebrow">Formação e acompanhamento</p><h1 data-page-title="Questionários">Questionários</h1><p>Modelos, respostas e acompanhamento dos questionários da igreja.</p></header><p><Link to="/">Início</Link> · <Link to="/questionarios">Questionários</Link>{churchId && <> · <Link to={route(churchId)}>Minhas respostas nesta igreja</Link></>}</p>
+  return <section className={`occurrences questionnaire-workspace questionnaire-${view}`} key={`${session.epoch}:${view}:${churchId}:${versionId}:${applicationId}:${questionnaireId}`}><header className="questionnaire-page-heading"><p className="questionnaire-eyebrow">Formação e acompanhamento</p><h1 data-page-title="Questionários">Questionários</h1><p>Modelos, respostas e acompanhamento dos questionários da igreja.</p></header><p><Link to="/">Início</Link> · <Link to="/questionarios?selecionar=1">Trocar igreja</Link>{churchId && <> · <Link to={route(churchId)}>Minhas respostas nesta igreja</Link></>}</p>
     {view === 'access' ? <Access/> : view === 'own' ? <OwnCatalog church={churchId}/> : view === 'begin' ? <Begin church={churchId} versionId={versionId}/> : view === 'application' || view === 'response' ? <QuestionnaireResponse church={churchId} applicationId={applicationId} staff={view === 'response'}/> : view === 'manage' ? <Management church={churchId}/> : view === 'create' || view === 'version' ? <QuestionnaireEditor church={churchId} versionId={view === 'version' ? versionId : undefined}/> : view === 'history' ? <History church={churchId} id={questionnaireId}/> : view === 'responses' ? <Responses church={churchId}/> : <Export church={churchId}/>}
   </section>
 }

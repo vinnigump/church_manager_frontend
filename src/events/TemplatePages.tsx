@@ -1,3 +1,4 @@
+import { formatDateTime } from '../time'
 import { useEffect, useState } from 'react'
 import { TemplateCreationForm, TemplateCreationResult, useTemplateCreation, type TemplateCreation } from './TemplateCreation'
 import { Link, useParams } from 'react-router-dom'
@@ -58,8 +59,8 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
 
 function VersionDetails({ version }: { version: TemplateVersion }) {
   return <><h3>Versão {version.number} · {version.name}</h3><p className="event-state" data-state={version.status}>Estado da versão: {statusLabel[version.status]}</p>
-    <p>Criada em <time dateTime={version.createdAt}>{new Date(version.createdAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>
-    {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{new Date(version.publishedAt).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC</time></p>}
+    <p>Criada em <time dateTime={version.createdAt}>{formatDateTime(version.createdAt)} (Brasília)</time></p>
+    {version.publishedAt && <p>Publicada em <time dateTime={version.publishedAt}>{formatDateTime(version.publishedAt)} (Brasília)</time></p>}
   </>
 }
 

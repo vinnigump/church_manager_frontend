@@ -1,3 +1,4 @@
+import EventEditorReadAccess from './EventEditorReadAccess'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ResourceAccess } from '../authorization'
@@ -48,7 +49,7 @@ function CatalogRecords({ churchId, mutation }: { churchId: string; mutation: Lo
 
 function CatalogWorkspace({ churchId }: { churchId: string }) {
   const mutation = useLocalTypeMutation(churchId)
-  return <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
+  return <EventEditorReadAccess church={churchId} allowCreate>
     <p><Link to={`/eventos/igrejas/${churchId}/ocorrencias`}>Ocorrências administrativas</Link></p>
     <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><p><Link to={`/eventos/igrejas/${churchId}/planejamento/gerar`}>Gerar série anual em rascunho</Link></p></ActionAccess>
     <ResourceAccess permissionCode="EVENT_CALENDAR_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><Link to={`/eventos/igrejas/${churchId}/calendarios`}>Calendário anual administrativo</Link></ResourceAccess>
@@ -56,7 +57,7 @@ function CatalogWorkspace({ churchId }: { churchId: string }) {
     <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><p><Link to={`/eventos/igrejas/${churchId}/planejamento/copiar`}>Copiar rascunhos de planejamento</Link></p></ActionAccess>
     <ActionAccess churchId={churchId} permissionCode="EVENT_CREATE"><CreateLocalTypeForm mutation={mutation}/></ActionAccess>
     <CatalogRecords churchId={churchId} mutation={mutation}/>
-  </ResourceAccess>
+  </EventEditorReadAccess>
 }
 
 export default function ChurchCatalogPage() {

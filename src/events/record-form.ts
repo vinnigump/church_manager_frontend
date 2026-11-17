@@ -1,3 +1,4 @@
+import { BRAZIL_OFFSET, wallTimeBR, brasilInstant } from '../time'
 import { validateAudiencePolicy, type AudiencePolicy } from './audience-api'
 import { validateRecordWrite, type EventRecord, type RecordWrite } from './record-api'
 
@@ -15,7 +16,7 @@ export function wallTime(instant: string, offset: string): string {
 }
 export function fieldsForRecord(v: EventRecord | null): RecordFields {
   return { name: v?.name ?? '', location: v?.location ?? '', eventTypeId: v?.eventTypeId ?? '',
-    startsAt: v ? wallTime(v.startsAt, '+00:00') : '', endsAt: v ? wallTime(v.endsAt, '+00:00') : '', offset: v ? '+00:00' : '',
+    startsAt: v ? wallTimeBR(v.startsAt) : '', endsAt: v ? wallTimeBR(v.endsAt) : '', offset: BRAZIL_OFFSET,
     capacity: v?.capacity == null ? '' : String(v.capacity), modality: v?.modality ?? '', participationMode: v?.participationMode ?? '',
     checkInRequired: v?.checkInRequired ?? false, visibility: v?.audience?.visibility ?? '',
     churchLinkRequired: v?.audience?.churchLinkRequired ?? false, activeMembershipRequired: v?.audience?.activeMembershipRequired ?? false,
@@ -23,11 +24,11 @@ export function fieldsForRecord(v: EventRecord | null): RecordFields {
     functionIds: v?.audience?.functionIds ?? [], ministryIds: v?.audience?.ministryIds ?? [], departmentIds: v?.audience?.departmentIds ?? [] }
 }
 export function recordInput(f: RecordFields, draft: boolean, before: EventRecord | null): RecordWrite {
-  if (!offsetOptions.includes(f.offset) || !f.startsAt || !f.endsAt) throw new Error('Informe início, término e fuso dos horários.')
+  if (!offsetOptions.includes(f.offset) || !f.startsAt || !f.endsAt) throw new Error('Informe início e término (horário de Brasília).')
   for (const value of [f.capacity, f.minimumAge, f.maximumAge]) if (value !== '' && !/^\d+$/.test(value)) throw new Error('Capacidade e idades devem ser números inteiros positivos ou zero.')
   // Preserve the complete original Instant, including microseconds, if unchanged.
-  const instant = (value: string, original?: string) => original && value === wallTime(original, f.offset) ? original
-    : `${value.length === 16 ? `${value}:00` : value}${f.offset}`
+  const instant = (value: string, original?: string) => original && value === wallTimeBR(original) ? original
+    : brasilInstant(value)
   const audience = validateAudiencePolicy({ visibility: f.visibility, churchLinkRequired: f.churchLinkRequired,
     activeMembershipRequired: f.activeMembershipRequired, minimumAge: f.minimumAge === '' ? null : Number(f.minimumAge),
     maximumAge: f.maximumAge === '' ? null : Number(f.maximumAge), functionIds: f.functionIds, ministryIds: f.ministryIds, departmentIds: f.departmentIds })

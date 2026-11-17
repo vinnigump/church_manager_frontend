@@ -1,3 +1,4 @@
+import { ResourceAccess } from '../authorization'
 import { type ReactNode } from 'react'
 import { ReadResult, useRead } from '../security/SecurityPages'
 export const managePermission = 'QUESTIONNAIRE_MANAGE'
@@ -9,4 +10,9 @@ export function ScopedRead<T>({ context, load, label, children, refresh = true }
   const query = useRead(context, load)
   if (refresh) return <ReadResult query={query} label={label}>{children}</ReadResult>
   return query.state.kind === 'loading' ? <p role="status">Carregando {label}…</p> : query.state.kind === 'error' ? <><p role="alert">{query.state.message}</p><button onClick={query.refresh}>Tentar consultar novamente</button></> : <>{children(query.state.data)}</>
+}
+
+/** Reading submitted responses is a necessary support for the same church's correction form. */
+export function ResponseReadAccess({church,children}:{church:string;children:ReactNode}) {
+ return <ResourceAccess permissionCode={readPermission} resourceType="CHURCH" resourceId={church} optional preserveDuringRecheck fallback={<ResourceAccess permissionCode={gradePermission} resourceType="CHURCH" resourceId={church} preserveDuringRecheck>{children}</ResourceAccess>}>{children}</ResourceAccess>
 }

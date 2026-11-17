@@ -1,8 +1,9 @@
+import BrazilianDateTimeField from '../components/BrazilianDateTimeField'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { listChurchCatalog } from './catalog-api'
 import { audienceCategories } from './audience-api'
-import { offsetOptions, visibilityLabel, type RecordFields } from './record-form'
+import { visibilityLabel, type RecordFields } from './record-form'
 import type { EventRecord } from './record-api'
 
 function TypePicker({ church, fields, change, fixed }: { church: string; fields: RecordFields; change: (fields: RecordFields) => void; fixed: boolean }) {
@@ -20,7 +21,7 @@ function TypePicker({ church, fields, change, fixed }: { church: string; fields:
   </>}</ReadResult>
 }
 const categories = { functionIds: 'Funções eclesiásticas', ministryIds: 'Ministérios', departmentIds: 'Departamentos' }
-export default function RecordForm({ church, before, fields, change, offset, busy, blocked, onSave }: {
+export default function RecordForm({ church, before, fields, change, busy, blocked, onSave }: {
   church: string; before: EventRecord | null; fields: RecordFields; change: (fields: RecordFields) => void
   offset: (value: string) => void; busy: boolean; blocked: boolean; onSave: (draft: boolean) => void
 }) {
@@ -38,12 +39,10 @@ export default function RecordForm({ church, before, fields, change, offset, bus
     <label>Local ou endereço de acesso público<input required maxLength={500} value={fields.location} onChange={e => set('location', e.target.value)} aria-describedby="record-location-help"/></label>
     <p id="record-location-help">Este local será exibido ao público escolhido. Use apenas informações que podem ser compartilhadas.</p>
     <div className="record-grid">
-      <label>Início<input type="datetime-local" required step="1" value={fields.startsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('startsAt', e.target.value)}/></label>
-      <label>Término<input type="datetime-local" required step="1" value={fields.endsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('endsAt', e.target.value)}/></label>
+      <label>Início<BrazilianDateTimeField required step="1" value={fields.startsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('startsAt', e.target.value)}/></label>
+      <label>Término<BrazilianDateTimeField required step="1" value={fields.endsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('endsAt', e.target.value)}/></label>
     </div>
-    <label>Fuso dos horários<select required value={fields.offset} onChange={e => offset(e.target.value)}>
-      <option value="">Selecione o fuso</option>{offsetOptions.map(v => <option key={v} value={v}>UTC{v}</option>)}
-    </select></label>
+    <p>Todos os horários são de Brasília, no formato de 24 horas.</p>
     {before?.recurrenceRuleId && <p>Este evento pertence a uma série. Tipo e datas são mantidos neste cadastro.</p>}
     <label>Modalidade<select required value={fields.modality} onChange={e => set('modality', e.target.value)}>
       <option value="">Selecione</option><option value="IN_PERSON">Presencial</option><option value="ONLINE">Online</option><option value="HYBRID">Híbrido</option>

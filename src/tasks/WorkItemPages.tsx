@@ -1,3 +1,4 @@
+import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -27,9 +28,9 @@ function TaskAccess() {
   return <ContextOperation contextId="task-churches" operation={load}>{state => {
     if (state.kind === 'loading') return <p role="status">Carregando acessos de gestão…</p>
     if (state.kind === 'error') return <p role="alert">Não foi possível consultar os acessos de gestão.</p>
-    return state.data.length ? <section><h2>Organizar tarefas</h2><ul>{state.data.map(v => <li key={v.resourceId}>
+    return state.data.length ? <section><h2>Organizar tarefas</h2><DefaultChurchAccess auto={false} label="Organizar tarefas da minha igreja" options={state.data.map(v => ({ churchId: v.resourceId, path: v.view ? route(v.resourceId) : `${route(v.resourceId)}/nova` }))}><ul>{state.data.map(v => <li key={v.resourceId}>
       <Link to={v.view ? route(v.resourceId) : `${route(v.resourceId)}/nova`}>{v.label}</Link>
-    </li>)}</ul></section> : null
+    </li>)}</ul></DefaultChurchAccess></section> : null
   }}</ContextOperation>
 }
 function Filter({ value, change }: { value: TaskState | undefined; change: (v: TaskState | undefined) => void }) {
@@ -140,7 +141,7 @@ export default function WorkItemPages({ view }: { view: 'mine' | 'ownDetail' | '
   const valid = (personal || isUuid(churchId)) && (!detail || isUuid(taskId))
   const title = view === 'create' ? 'Criar tarefa' : personal ? 'Minhas tarefas' : 'Tarefas da igreja'
   return <div className="occurrences task-workspace"><header className="task-page-header"><span className="task-eyebrow">Organização e cuidado</span><h1 data-page-title={title}>{title}</h1><p>{view === 'create' ? 'Defina as instruções e o destino da tarefa para organizar o trabalho da equipe.' : 'Acompanhe as atividades, assuma responsabilidades e registre as conclusões.'}</p></header><nav aria-label="Navegação das tarefas">
-    <Link to="/">Voltar ao Início</Link><Link to="/minhas-tarefas">Minhas tarefas</Link>
+    <Link to="/">Voltar ao Início</Link><Link to="/minhas-tarefas">Minhas tarefas</Link>{!personal && <Link to="/minhas-tarefas?selecionar=1">Trocar igreja</Link>}
     {!personal && valid && <ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={churchId} optional><Link to={route(churchId)}>Tarefas da igreja</Link></ResourceAccess>}
   </nav>
     {!valid ? <p role="alert">Acesso inválido. Abra novamente sua lista de tarefas.</p> : <div key={`${scope.session}:${churchId}:${taskId}:${view}`}>

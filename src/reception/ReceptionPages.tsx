@@ -1,5 +1,7 @@
+import { formatDateTime } from '../time'
+import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { discoverResources } from '../AuthorizedResources'
 import { useAuth } from '../auth'
 import { consultAuthorization, ResourceAccess } from '../authorization'
@@ -11,6 +13,9 @@ import { BadgeQr, BadgesForm, CloseForm, DeliverForm } from './ReceptionForms'
 import './reception.css'
 
 function Access() {
+  const [params] = useSearchParams()
+  const requested = params.get('aba')
+  const suffix = requested && ['entregar', 'devolver', 'crachas'].includes(requested) ? `?aba=${requested}` : ''
   const load = useCallback(async (_key: string, signal: AbortSignal) => {
     const contexts = (await discoverResources(signal)).filter(v => v.resourceType === 'CHURCH')
     const decisions = await Promise.all(contexts.map(v => consultAuthorization({ permissionCode: 'BADGE_MANAGE', resourceType: 'CHURCH', resourceId: v.resourceId }, signal)))
@@ -19,7 +24,7 @@ function Access() {
   const [epoch, setEpoch] = useState(0)
   return <><p>Escolha a igreja para entregar ou recolher crachás.</p><button onClick={() => setEpoch(v => v + 1)}>Atualizar meus acessos</button>
     <ContextOperation key={epoch} contextId="reception-access" operation={load}>{state => state.kind === 'loading' ? <p role="status">Carregando igrejas…</p> : state.kind === 'error' ? <p role="alert">Não foi possível consultar seus acessos à recepção.</p>
-      : state.data.length ? <ul>{state.data.map(v => <li key={v.resourceId}><Link to={`/recepcao/igrejas/${v.resourceId}`}>Recepção de {v.label}</Link></li>)}</ul> : <p>Você ainda não tem acesso à recepção de uma igreja.</p>}
+      : state.data.length ? <DefaultChurchAccess  options={state.data.map(v => ({ churchId: v.resourceId, path: `/recepcao/igrejas/${v.resourceId}${suffix}` }))}><ul>{state.data.map(v => <li key={v.resourceId}><Link to={`/recepcao/igrejas/${v.resourceId}${suffix}`}>Recepção de {v.label}</Link></li>)}</ul></DefaultChurchAccess> : <p>Você ainda não tem acesso à recepção de uma igreja.</p>}
     </ContextOperation>
   </>
 }
@@ -30,10 +35,10 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
     return { summary, deliveries }
   }, [church, page]), query = useRead(`${church}:${page}`, load)
   return <ReadResult query={query} label="contagem e pendências">{({ summary: s, deliveries }) => {
-    const date = (instant: string) => new Intl.DateTimeFormat('pt-BR', { timeZone: s.timeZone, dateStyle: 'short', timeStyle: 'short' }).format(new Date(instant))
+    const date = (instant: string) => formatDateTime(instant)
     return <>
       <section aria-label="Contagem de crachás"><h2>Faltam recolher {s.pendingTotal} crachás</h2>
-        <p>Dia {s.day.split('-').reverse().join('/')} · {s.timeZone} · consulta do servidor às {date(s.referenceAt)}.</p>
+        <p>Dia {s.day.split('-').reverse().join('/')} · horário de Brasília · consulta do servidor às {date(s.referenceAt)}.</p>
         <dl className="reception-counters"><div><dt>Distribuídos hoje</dt><dd>{s.distributed}</dd></div><div><dt>Devolvidos das entregas de hoje</dt><dd>{s.returned}</dd></div>
           <div><dt>Perdidos das entregas de hoje</dt><dd>{s.lost}</dd></div><div><dt>A recolher · total</dt><dd>{s.pendingTotal}</dd></div><div><dt>Pendentes de dias anteriores</dt><dd>{s.pendingFromEarlierDays}</dd></div>
         </dl><p>{s.pending} entregas de hoje ainda pendentes. As entregas de outros dias continuam pendentes até devolução ou registro de perda.</p>
@@ -49,8 +54,18 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
   }}</ReadResult>
 }
 function Workspace({ church }: { church: string }) {
-  const [mode, setMode] = useState<'issue' | 'close' | 'badges'>('issue'), [epoch, setEpoch] = useState(0), [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const requestedMode = params.get('aba') === 'devolver' ? 'close' : params.get('aba') === 'crachas' ? 'badges' : 'issue'
+  const [mode, applyMode] = useState<'issue' | 'close' | 'badges'>(requestedMode), [epoch, setEpoch] = useState(0), [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false)
   const [message, setMessage] = useState(''), [lastBadge, setLastBadge] = useState<Badge | null>(null), [lost, setLost] = useState<Delivery | null>(null), [lossEpoch, setLossEpoch] = useState(0)
+  const [lastRequested, setLastRequested] = useState(requestedMode)
+  if (!busy && !blocked && lastRequested !== requestedMode) { setLastRequested(requestedMode); applyMode(requestedMode); setLost(null) }
+  function setMode(value: 'issue' | 'close' | 'badges') {
+    if (busy || blocked) return
+    const next = new URLSearchParams(params)
+    next.set('aba', value === 'close' ? 'devolver' : value === 'badges' ? 'crachas' : 'entregar')
+    setLastRequested(value); applyMode(value); setParams(next, { replace: true })
+  }
   const loadName = useCallback(async (signal: AbortSignal) => (await discoverResources(signal)).find(v => v.resourceType === 'CHURCH' && v.resourceId === church)?.label ?? 'Igreja selecionada', [church])
   const name = useRead(church, loadName)
   const done = useCallback((text: string, badge?: Badge) => { setBusy(false); setMessage(text); setLastBadge(badge ?? null); setLost(null); setEpoch(v => v + 1) }, [])
@@ -71,12 +86,17 @@ function Workspace({ church }: { church: string }) {
     </ResourceAccess>
   </>
 }
+function ReceptionSwitchLink() {
+  const [params] = useSearchParams(), next = new URLSearchParams(params)
+  next.set('selecionar', '1')
+  return <Link to={'/recepcao?' + next.toString()}>Trocar igreja</Link>
+}
 export default function ReceptionPages() {
   const { churchId } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="reception"><header className="reception-heading"><span className="reception-eyebrow">Atendimento e atuação ministerial</span><h1 data-page-title="Recepção">Recepção — Controle de crachás</h1><p>Entrega e devolução de crachás físicos com identificação por QR Code.</p></header>
     {churchId === undefined ? <Access key={scope.epoch}/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Volte à recepção e selecione novamente.</p> : <>
-      <p><Link to="/recepcao">Trocar igreja</Link></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
+      <p><ReceptionSwitchLink/></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
         <Workspace key={`${scope.epoch}:${churchId}`} church={churchId}/>
       </ResourceAccess>
     </>}
