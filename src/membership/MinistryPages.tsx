@@ -60,6 +60,7 @@ export default function MinistryPages({ directory = false }: { directory?: boole
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   return <div className="occurrences"><h1 data-page-title="Ministérios">Ministérios</h1>
     <p><Link to="/grupos">Gerenciar grupos de trabalho</Link></p>
+    <p><Link to="/ministerios/estrutura">Organizar ministérios e departamentos</Link></p>
     <p><Link to="/ministerios/escalas">Gerenciar escalas de atuação</Link></p>
     <p>Consulte os ministérios, departamentos e vínculos que você pode gerenciar.</p>
     {directory ? <><Link to="/ministerios">Voltar às igrejas</Link>

@@ -13,6 +13,7 @@ import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
 import MinistryPages from './membership/MinistryPages'
+import MinistryManagementPages from './membership/MinistryManagementPages'
 import ChurchGroupPages from './membership/ChurchGroupPages'
 import RosterPages from './rosters/RosterPages'
 import AudiencePage from './events/AudiencePage'
@@ -98,6 +99,8 @@ export default function App() {
     <Route path="tarefas/igrejas/:churchId/:taskId" element={<WorkItemPages view="detail" />}/>
     <Route path="eventos" element={<EventsPage />}/>
     <Route path="ministerios" element={<MinistryPages />}/>
+    <Route path="ministerios/estrutura" element={<MinistryManagementPages />}/>
+    <Route path="ministerios/estrutura/igrejas/:churchId" element={<MinistryManagementPages directory />}/>
     <Route path="grupos" element={<ChurchGroupPages view="churches" />}/>
     <Route path="grupos/igrejas/:churchId" element={<ChurchGroupPages view="list" />}/>
     <Route path="grupos/igrejas/:churchId/novo" element={<ChurchGroupPages view="create" />}/>
