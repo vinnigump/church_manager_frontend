@@ -43,3 +43,8 @@ Logs output/parallel_mvp/round02/events/frontend-*.log no workspace pai.
 Limites: sem regra de saída de integrante, correção/cancelamento, controle de perda
 ou devolução de crachá; sem aprovação da arquitetura Hostinger. Não concluir MVP
 ou issue só porque o incremento foi integrado.
+
+Atualização Home: contrato1.1.0/backend175 integrado antes do uso. Widget solicita
+upcoming=true e valida referenceAt/upcoming e término posterior ao NOW fornecido.
+Não usa relógio do dispositivo nem recorta histórico antigo como se fosse próximo.
+Consulta full mantém upcoming=false e histórico paginado. Sem novo unitário local.
