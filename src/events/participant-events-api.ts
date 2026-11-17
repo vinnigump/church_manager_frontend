@@ -15,7 +15,7 @@ const integer = (v: unknown): v is number => Number.isSafeInteger(v) && (v as nu
 const invalid = () => new Error('Não foi possível validar seus eventos. Consulte novamente.')
 function pageCheck(v: Record<string, unknown>, page: number, count: number) { if (!integer(page) || page > 100000 || v.page !== page || v.size !== 20 || !integer(v.total) || count !== Math.min(20, Math.max(0, v.total - page * 20))) throw invalid() }
 export async function eventChurches(signal?: AbortSignal, client: ApiClient = api): Promise<EventChurch[]> {
-  const v = await client.request<unknown>('/api/v1/accounts/me/event-churches', { signal })
+  const v = await client.request<unknown>('/accounts/me/event-churches', { signal })
   if (!Array.isArray(v)) throw invalid()
   const seen = new Set<string>()
   return v.map(item => { if (!object(item) || !uuid(item.churchId) || seen.has(item.churchId) || !text(item.name) || typeof item.active !== 'boolean') throw invalid(); seen.add(item.churchId); return { churchId: item.churchId, name: item.name, active: item.active } })
@@ -28,21 +28,21 @@ function publicEvent(v: unknown, church: string): PublicEvent {
 }
 export async function participantEvents(church: string, page: number, signal?: AbortSignal, client: ApiClient = api): Promise<PublicPage> {
   if (!isUuid(church) || !integer(page) || page > 100000) throw invalid()
-  const v = await client.request<unknown>(`/api/v1/public/churches/${church}/events?page=${page}&size=20`, { signal })
+  const v = await client.request<unknown>(`/public/churches/${church}/events?page=${page}&size=20`, { signal })
   if (!object(v) || !Array.isArray(v.items)) throw invalid(); pageCheck(v, page, v.items.length)
   const items = v.items.map(item => publicEvent(item, church)); if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
   return { items, page, size: 20, total: v.total as number }
 }
 export async function ownOccurrenceOption(church: string, occurrence: string, signal?: AbortSignal, client: ApiClient = api): Promise<PublicEvent | null> {
   if (!isUuid(church) || !isUuid(occurrence)) throw invalid()
-  const v = await client.request<unknown>(`/api/v1/events/churches/${church}/occurrences/${occurrence}/registration`, { signal })
+  const v = await client.request<unknown>(`/events/churches/${church}/occurrences/${occurrence}/registration`, { signal })
   if (!object(v) || !Array.isArray(v.occurrences) || !['UNAVAILABLE', 'CONFIRM_OCCURRENCE'].includes(v.action as string) || v.occurrences.length !== (v.action === 'UNAVAILABLE' ? 0 : 1)) throw invalid()
   if (!v.occurrences.length) return null
   const item = publicEvent(v.occurrences[0], church); if (item.id !== occurrence || item.participationMode !== 'REGISTRATION_REQUIRED') throw invalid(); return item
 }
 export async function ownEventRegistrations(page: number, signal?: AbortSignal, client: ApiClient = api): Promise<OwnRegistrationPage> {
   if (!integer(page) || page > 100000) throw invalid()
-  const v = await client.request<unknown>(`/api/v1/accounts/me/event-registrations?page=${page}&size=20`, { signal })
+  const v = await client.request<unknown>(`/accounts/me/event-registrations?page=${page}&size=20`, { signal })
   if (!object(v) || !Array.isArray(v.items)) throw invalid(); pageCheck(v, page, v.items.length)
   const seen = new Set<string>()
   const items = v.items.map(item => {
