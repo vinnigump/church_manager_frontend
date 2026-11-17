@@ -6,3 +6,8 @@
 .home-shortcut strong { font-size: 1.125rem; }
 .home-shortcut span { color: var(--rio-color-muted); }
 .home-shortcut:hover { background: var(--rio-color-soft); }
+.home-upcoming { margin-top: 2rem; }
+.home-upcoming ol { display: grid; gap: 1rem; padding: 0; list-style: none; }
+.home-upcoming li { padding: 1.25rem; border: 1px solid var(--rio-color-border); border-radius: var(--rio-radius-card); background: var(--rio-color-surface); }
+.home-upcoming h3 { margin-top: 0; }
+.home-event-ongoing { color: var(--rio-color-muted); }
