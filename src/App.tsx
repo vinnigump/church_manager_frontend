@@ -4,6 +4,7 @@ import LoginPage from './LoginPage'
 import RegistrationPage from './people/RegistrationPage'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
+import OwnTrailPages from './trails/OwnTrailPages'
 import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
@@ -60,6 +61,8 @@ export default function App() {
     <Route path="seguranca/denominacoes/:denominationId/perfis/:profileId/versoes/:versionId" element={<SecurityPages view="version" />}/>
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
+    <Route path="minhas-trilhas" element={<OwnTrailPages />}/>
+    <Route path="minhas-trilhas/:trailId" element={<OwnTrailPages detail />}/>
     <Route path="eventos" element={<EventsPage />}/>
     <Route path="ministerios" element={<MinistryPages />}/>
     <Route path="ministerios/igrejas/:churchId" element={<MinistryPages directory />}/>
