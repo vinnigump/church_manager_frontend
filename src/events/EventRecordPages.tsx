@@ -61,6 +61,7 @@ function Detail({ church, id }: { church: string; id: string }) {
     {v.draft && <p>Este rascunho fica oculto para os participantes.</p>}
     {editableRecord(v) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={church} optional>
       <Link to={`${recordRoute(church)}/${id}/editar${recordSearch(search)}`}>Editar evento</Link>
+      <Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/inscricao-publica`}>Inscrição sem cadastro prévio</Link>
     </ResourceAccess> : <p>Este estado não permite alterações por este cadastro.</p>}
     {v.participationMode === 'REGISTRATION_REQUIRED' && <section><h3>Inscrições</h3><p>Salvar o evento não abre inscrições automaticamente. O período e os demais requisitos continuam sendo verificados.</p>
       <Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/janela-inscricao?retorno=cadastro${recordSearch(search).replace('?', '&')}`}>Consultar período de inscrição</Link>
@@ -147,3 +148,4 @@ export default function EventRecordPages({ view }: { view: 'list' | 'detail' | '
     </div>}
   </div>
 }
+
