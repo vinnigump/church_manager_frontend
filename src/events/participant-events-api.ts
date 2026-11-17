@@ -6,7 +6,7 @@ import type { RegistrationOption } from './participation-api'
 export interface EventChurch { churchId: string; name: string; active: boolean }
 export interface PublicEvent extends Omit<RegistrationOption, 'checkInRequired'> { participationMode: 'REGISTRATION_REQUIRED' | 'OPEN_EVENT'; checkInRequired: boolean; status: string }
 export interface PublicPage { items: PublicEvent[]; page: number; size: number; total: number }
-export interface OwnEventRegistration { id: string; churchId: string; churchName: string; occurrenceId: string; eventName: string; startsAt: string; endsAt: string; status: string; registeredAt: string; taskInstanceId: string | null; presence: { id: string; checkedInAt: string; validated: boolean } | null }
+export interface OwnEventRegistration { id: string; churchId: string; churchName: string; occurrenceId: string; eventName: string; startsAt: string; endsAt: string; status: string; registeredAt: string; taskInstanceId: string | null; presence: { id: string; checkedInAt: string; validated: boolean } | null; cancellationAvailable: boolean }
 export interface OwnRegistrationPage { items: OwnEventRegistration[]; page: number; size: number; total: number }
 const object = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const uuid = (v: unknown): v is string => typeof v === 'string' && isUuid(v)
@@ -46,13 +46,22 @@ export async function ownEventRegistrations(page: number, signal?: AbortSignal, 
   if (!object(v) || !Array.isArray(v.items)) throw invalid(); pageCheck(v, page, v.items.length)
   const seen = new Set<string>()
   const items = v.items.map(item => {
-    if (!object(item) || !uuid(item.id) || seen.has(item.id) || !uuid(item.churchId) || !text(item.churchName) || !uuid(item.occurrenceId) || !text(item.eventName)
-      || !isInstant(item.startsAt) || !isInstant(item.endsAt) || instantNanos(item.endsAt) <= instantNanos(item.startsAt) || !isInstant(item.registeredAt)
-      || !['PENDING', 'CONFIRMED', 'WAITLISTED', 'CANCELLED'].includes(item.status as string) || (item.taskInstanceId !== null && !uuid(item.taskInstanceId))) throw invalid()
-    let presence = null
-    if (item.presence !== null) { const p = item.presence; if (!object(p) || !uuid(p.id) || !isInstant(p.checkedInAt) || typeof p.validated !== 'boolean') throw invalid(); presence = { id: p.id, checkedInAt: p.checkedInAt, validated: p.validated } }
-    seen.add(item.id)
-    return { id: item.id, churchId: item.churchId, churchName: item.churchName, occurrenceId: item.occurrenceId, eventName: item.eventName, startsAt: item.startsAt, endsAt: item.endsAt, status: item.status as string, registeredAt: item.registeredAt, taskInstanceId: item.taskInstanceId as string | null, presence }
+    const result = parseOwnRegistration(item); if (seen.has(result.id)) throw invalid(); seen.add(result.id); return result
   })
   return { items, page, size: 20, total: v.total as number }
+}
+function parseOwnRegistration(item: unknown): OwnEventRegistration {
+  if (!object(item) || !uuid(item.id) || !uuid(item.churchId) || !text(item.churchName) || !uuid(item.occurrenceId) || !text(item.eventName)
+    || !isInstant(item.startsAt) || !isInstant(item.endsAt) || instantNanos(item.endsAt) <= instantNanos(item.startsAt) || !isInstant(item.registeredAt)
+    || !['PENDING', 'CONFIRMED', 'WAITLISTED', 'CANCELLED'].includes(item.status as string) || (item.taskInstanceId !== null && !uuid(item.taskInstanceId)) || typeof item.cancellationAvailable !== 'boolean') throw invalid()
+  let presence = null
+  if (item.presence !== null) { const p = item.presence; if (!object(p) || !uuid(p.id) || !isInstant(p.checkedInAt) || typeof p.validated !== 'boolean') throw invalid(); presence = { id: p.id, checkedInAt: p.checkedInAt, validated: p.validated } }
+  if (item.cancellationAvailable && (presence !== null || !['PENDING', 'CONFIRMED'].includes(item.status as string))) throw invalid()
+  return { id: item.id, churchId: item.churchId, churchName: item.churchName, occurrenceId: item.occurrenceId, eventName: item.eventName, startsAt: item.startsAt, endsAt: item.endsAt, status: item.status as string, registeredAt: item.registeredAt, taskInstanceId: item.taskInstanceId as string | null, presence, cancellationAvailable: item.cancellationAvailable }
+}
+export async function cancelOwnRegistration(before: OwnEventRegistration, signal?: AbortSignal, client: ApiClient = api): Promise<OwnEventRegistration> {
+  if (!isUuid(before.id)) throw invalid()
+  const value = parseOwnRegistration(await client.request<unknown>(`/accounts/me/event-registrations/${before.id}/cancel`, { method: 'POST', signal }))
+  if (value.id !== before.id || value.churchId !== before.churchId || value.occurrenceId !== before.occurrenceId || value.taskInstanceId !== before.taskInstanceId || value.status !== 'CANCELLED' || value.cancellationAvailable || value.presence !== null) throw invalid()
+  return value
 }
