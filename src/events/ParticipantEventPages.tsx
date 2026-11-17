@@ -14,8 +14,10 @@ function Dates({ value }: { value: { startsAt: string; endsAt: string } }) { ret
 
 export function ParticipantEventAccess() {
   const { account } = useAuth()
+  const [scope, setScope] = useState({ account, epoch: 0 })
+  if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <section className="events-panel"><h2>Participar dos eventos</h2><p><Link to="/minhas-inscricoes">Minhas inscrições</Link></p>
-    {account && <Churches key={account.id}/>}
+    {account && <Churches key={`${account.id}:${scope.epoch}`}/>}
   </section>
 }
 function Churches() {
@@ -24,7 +26,7 @@ function Churches() {
     <h3>{church.name}</h3>{church.active ? <Link to={`/eventos/participar/igrejas/${church.churchId}`}>Consultar eventos de {church.name}</Link> : <p>Igreja indisponível para novas participações. Suas inscrições anteriores permanecem no histórico.</p>}
   </li>)}</ul> : <p>Não há igrejas associadas ao seu cadastro para consultar aqui.</p>}</ReadResult>
 }
-function Registration({ church, event }: { church: string; event: PublicEvent }) {
+function Registration({ church, event, onBusyChange }: { church: string; event: PublicEvent; onBusyChange: (busy: boolean) => void }) {
   const [epoch, setEpoch] = useState(0), [attempted, setAttempted] = useState(false), [busy, setBusy] = useState(false), [done, setDone] = useState(false), [message, setMessage] = useState('')
   const pending = useRef<AbortController | null>(null)
   useEffect(() => () => pending.current?.abort(), [])
@@ -32,10 +34,10 @@ function Registration({ church, event }: { church: string; event: PublicEvent })
   const query = useRead(JSON.stringify([church, event.id, epoch]), load)
   async function confirm() {
     if (attempted || pending.current || query.state.kind !== 'ready' || !query.state.data) return
-    const controller = new AbortController(); pending.current = controller; setAttempted(true); setBusy(true); setMessage('')
+    const controller = new AbortController(); pending.current = controller; setAttempted(true); setBusy(true); onBusyChange(true); setMessage('')
     try { await confirmRegistration(church, event.id, null, controller.signal); if (!controller.signal.aborted) setDone(true) }
     catch (error) { if (!controller.signal.aborted) setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar o resultado.'} Consulte Minhas inscrições antes de outra tentativa; o registro pode ter sido realizado.`) }
-    finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
+    finally { pending.current = null; if (!controller.signal.aborted) { setBusy(false); onBusyChange(false) } }
   }
   return <section aria-label={`Inscrição em ${event.name}`}>
     {done ? <p role="status">Inscrição confirmada pelo servidor. <Link to="/minhas-inscricoes">Consultar minhas inscrições</Link></p> : <>
@@ -47,20 +49,20 @@ function Registration({ church, event }: { church: string; event: PublicEvent })
   </section>
 }
 function Events({ church }: { church: string }) {
-  const [page, setPage] = useState(0), [selected, setSelected] = useState<string | null>(null)
+  const [page, setPage] = useState(0), [selected, setSelected] = useState<string | null>(null), [busy, setBusy] = useState(false)
   const load = useCallback((signal: AbortSignal) => participantEvents(church, page, signal), [church, page]), query = useRead(`${church}:${page}`, load)
-  return <ReadResult query={query} label="eventos disponíveis para você">{data => <>
+  return <fieldset disabled={busy}><legend>Eventos da igreja</legend><ReadResult query={query} label="eventos disponíveis para você">{data => <>
     <p>{data.total} eventos · todos os períodos · página {page + 1}</p>
     {data.items.length ? <ul className="event-list">{data.items.map(event => <li key={event.id}>
       <h2>{event.name}</h2><Dates value={event}/><p>{event.location ?? 'Local ainda não informado'} · {eventState(event.status)}</p>
       {event.participationMode === 'OPEN_EVENT' ? <p>Entrada livre, sem inscrição e sem presença individual.</p> : <>
         <p>Com inscrição{event.checkInRequired ? ' e check-in de participante.' : '.'}</p>
         {['AVAILABLE', 'PUBLISHED'].includes(event.status) && <button onClick={() => setSelected(event.id)}>Consultar minha inscrição em {event.name}</button>}
-        {selected === event.id && <Registration key={event.id} church={church} event={event}/>}
+        {selected === event.id && <Registration key={event.id} church={church} event={event} onBusyChange={setBusy}/>}
       </>}
     </li>)}</ul> : <p>Nenhum evento visível para você nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={value => { setSelected(null); setPage(value) }} label="Páginas dos eventos para participar"/>
-  </>}</ReadResult>
+  </>}</ReadResult></fieldset>
 }
 function History() {
   const [page, setPage] = useState(0), load = useCallback((signal: AbortSignal) => ownEventRegistrations(page, signal), [page]), query = useRead(`own-registrations:${page}`, load)
@@ -77,9 +79,11 @@ function History() {
 }
 export default function ParticipantEventPages({ view }: { view: 'events' | 'registrations' }) {
   const { churchId = '' } = useParams(), { account } = useAuth()
+  const [scope, setScope] = useState({ account, epoch: 0 })
+  if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="events-panel"><h1 data-page-title={view === 'events' ? 'Participar dos eventos' : 'Minhas inscrições'}>{view === 'events' ? 'Participar dos eventos' : 'Minhas inscrições'}</h1>
     <nav aria-label="Eventos do participante"><Link to="/eventos">Eventos</Link>{' · '}<Link to="/minhas-inscricoes">Minhas inscrições</Link></nav>
-    {view === 'registrations' ? <><p>Seu histórico permanece disponível mesmo após mudança de igreja ou do público do evento.</p><History key={account?.id}/></>
-      : !isUuid(churchId) ? <p role="alert">Igreja inválida. Abra novamente a lista de eventos.</p> : <Events key={`${account?.id}:${churchId}`} church={churchId}/>}
+    {view === 'registrations' ? <><p>Seu histórico permanece disponível mesmo após mudança de igreja ou do público do evento.</p><History key={`${account?.id}:${scope.epoch}`}/></>
+      : !isUuid(churchId) ? <p role="alert">Igreja inválida. Abra novamente a lista de eventos.</p> : <Events key={`${account?.id}:${scope.epoch}:${churchId}`} church={churchId}/>}
   </div>
 }
