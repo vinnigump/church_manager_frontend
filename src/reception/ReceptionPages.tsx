@@ -76,7 +76,7 @@ export default function ReceptionPages() {
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="reception"><h1 data-page-title="Recepção">Recepção</h1><p>Entregue e recolha os crachás de atuação da igreja.</p>
     {churchId === undefined ? <Access key={scope.epoch}/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Volte à recepção e selecione novamente.</p> : <>
-      <p><Link to="/recepcao">Trocar igreja</Link></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId}>
+      <p><Link to="/recepcao">Trocar igreja</Link></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
         <Workspace key={`${scope.epoch}:${churchId}`} church={churchId}/>
       </ResourceAccess>
     </>}
