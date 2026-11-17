@@ -19,8 +19,8 @@ export default function HomePage() {
       <Link className="home-shortcut" to="/minhas-tarefas"><strong>Minhas tarefas</strong><span>Consulte, assuma e conclua suas atividades.</span></Link>
       <Link className="home-shortcut" to="/conta"><strong>Acessar minha conta</strong><span>Consulte seu acesso e altere sua senha.</span></Link>
     </div>
-    <AuthorizedResources />
     <OwnUpcomingEvents />
     <OwnServiceRosters />
+    <details className="home-administration"><summary>Administração da equipe</summary><AuthorizedResources /></details>
   </section>
 }
