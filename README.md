@@ -13,6 +13,11 @@ Verificação: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ## Contratos verificados e bloqueios
 
+Grupos independentes têm acesso secundário em Ministérios: pesquisar/criar/editar
+e incluir usuários por seletor contextual, sob CHURCH_GROUP_MANAGE. Backend172
+integrado; exclusão/remoção seguem explicitamente indisponíveis até definir efeitos
+em referências. [Escopo e validação](docs/events/fe-v4-independent-groups.md).
+
 Ministérios agora tem entrada própria: descobre igrejas autorizadas, pesquisa
 ministérios/departamentos pelo nome e abre a gestão de vínculos existente sem
 digitar UUID. Reutiliza GROUP_MEMBERSHIP_MANAGE/LED e o diretório integrado no
