@@ -16,7 +16,7 @@ describe('shell RIO e navegação real', () => {
     expect(within(nav).getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/', '/pessoas', '/eventos', '/ministerios', '/conta'])
     expect(screen.getAllByRole('navigation', { name: 'Principal' })).toHaveLength(1)
     expect(within(nav).queryByRole('link', { name: /Membros|Administração|Igreja/ })).not.toBeInTheDocument()
-    expect(nav.querySelectorAll('svg[aria-hidden="true"][focusable="false"]')).toHaveLength(4)
+    expect(nav.querySelectorAll('svg[aria-hidden="true"][focusable="false"]')).toHaveLength(5)
     expect(screen.getByRole('img', { name: 'RIO' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
