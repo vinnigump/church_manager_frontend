@@ -20,6 +20,7 @@ export async function readReport(church: string, kind: ReportKind, q: string, fr
   const seen = new Set<string>()
   const items = v.items.map(row => {
     if (!object(row) || !text(row.id) || seen.has(row.id) || !text(row.person) || !text(row.status) || !nullable(row.ministry) || !nullable(row.department) || !nullable(row.source) || !nullable(row.badge) || ![row.planned_at, row.recorded_at, row.closed_at].every(value => value === null || isInstant(value))) throw invalid()
+    if (kind === 'SERVICE_ATTENDANCE' && row.source !== 'ROSTER_MANUAL' && row.source !== 'BADGE' || kind === 'PENDING_BADGES' && (row.source !== 'BADGE' || row.status !== 'OPEN')) throw invalid()
     seen.add(row.id)
     return { id: row.id, person: row.person, status: row.status, ministry: row.ministry, department: row.department, source: row.source, badge: row.badge, planned_at: row.planned_at as string | null, recorded_at: row.recorded_at as string | null, closed_at: row.closed_at as string | null }
   })
