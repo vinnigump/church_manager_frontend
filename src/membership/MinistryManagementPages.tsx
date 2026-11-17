@@ -19,6 +19,7 @@ function Workspace({ church }: { church: string }) {
   const [page, setPage] = useState(0), [catalogPage, setCatalogPage] = useState(0), [departmentPage, setDepartmentPage] = useState(0), [epoch, setEpoch] = useState(0)
   const [ministry, setMinistry] = useState(''), [name, setName] = useState(''), [editing, setEditing] = useState<Department | null>(null), [rename, setRename] = useState('')
   const [requestId, setRequestId] = useState(() => crypto.randomUUID()), [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false), [message, setMessage] = useState('')
+  const [creationAttempt, setCreationAttempt] = useState<{ ministry: string; requestId: string; name: string } | null>(null)
   const pending = useRef<AbortController | null>(null)
   useEffect(() => () => pending.current?.abort(), [])
   const load = useCallback(async (signal: AbortSignal) => {
@@ -34,16 +35,22 @@ function Workspace({ church }: { church: string }) {
     finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
   function refresh() { if (pending.current) return; setBlocked(false); setEditing(null); setRename(''); setEpoch(v => v + 1) }
+  function create(attempt: { ministry: string; requestId: string; name: string }) {
+    if (pending.current || blocked) return
+    setCreationAttempt(attempt)
+    void command(signal => createDepartment(church, attempt.ministry, attempt.requestId, attempt.name, signal), () => { setCreationAttempt(null); setRequestId(crypto.randomUUID()); setName('') })
+  }
   return <><p>Habilite ministérios do catálogo da denominação e organize seus departamentos. A gestão de integrantes fica na consulta de ministérios.</p>
     {message && <p role="status">{message}</p>}<button disabled={busy} onClick={refresh}>Consultar novamente</button>
     {query.state.kind === 'loading' ? <p role="status">Carregando ministérios…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <fieldset disabled={busy}>
       <legend>Estrutura da igreja</legend><h2>Catálogo da denominação</h2>
       {query.state.data.catalog.items.length ? <ul>{query.state.data.catalog.items.map(v => <li key={v.id}>{v.name} · {v.areaName} {v.localId ? <span>Já habilitado</span> : <button disabled={blocked} onClick={() => void command(signal => enableMinistry(church, v.id, signal))}>Habilitar {v.name}</button>}</li>)}</ul> : <p>Nenhum ministério disponível no catálogo.</p>}
       <Pagination page={catalogPage} total={query.state.data.catalog.total} setPage={setCatalogPage} label="Páginas do catálogo de ministérios"/>
-      <h2>Ministérios da igreja</h2>{query.state.data.locals.items.length ? <ul>{query.state.data.locals.items.map(v => <li key={v.id}>{v.name} · {v.status === 'ACTIVE' ? 'Ativo' : 'Inativo'} <button onClick={() => { setMinistry(v.id); setDepartmentPage(0); setEditing(null) }}>Departamentos de {v.name}</button></li>)}</ul> : <p>Nenhum ministério habilitado.</p>}
+      <h2>Ministérios da igreja</h2>{query.state.data.locals.items.length ? <ul>{query.state.data.locals.items.map(v => <li key={v.id}>{v.name} · {v.status === 'ACTIVE' ? 'Ativo' : 'Inativo'} <button disabled={creationAttempt !== null} onClick={() => { setMinistry(v.id); setDepartmentPage(0); setEditing(null) }}>Departamentos de {v.name}</button></li>)}</ul> : <p>Nenhum ministério habilitado.</p>}
       <Pagination page={page} total={query.state.data.locals.total} setPage={setPage} label="Páginas dos ministérios da igreja"/>
       {ministry && query.state.data.departments && <section><h2>Departamentos</h2>
-        <form onSubmit={e => { e.preventDefault(); void command(signal => createDepartment(church, ministry, requestId, name, signal), () => { setRequestId(crypto.randomUUID()); setName('') }) }}><fieldset disabled={blocked}><legend>Criar departamento</legend><label>Nome<input required maxLength={160} value={name} onChange={e => setName(e.target.value)}/></label><button>Criar departamento</button></fieldset></form>
+        <form onSubmit={e => { e.preventDefault(); create({ ministry, requestId, name }) }}><fieldset disabled={blocked || creationAttempt !== null}><legend>Criar departamento</legend><label>Nome<input required maxLength={160} value={name} onChange={e => setName(e.target.value)}/></label><button>Criar departamento</button></fieldset></form>
+        {creationAttempt && !busy && !blocked && <section><p>Confira a lista antes de continuar. A tentativa anterior mantém os mesmos dados.</p><button onClick={() => create(creationAttempt)}>Repetir confirmação da mesma criação</button><button onClick={() => { setCreationAttempt(null); setRequestId(crypto.randomUUID()); setName('') }}>Após conferir a lista, iniciar outra criação</button></section>}
         {query.state.data.departments.items.length ? <ul>{query.state.data.departments.items.map(v => <li key={v.id}>{v.name} · {v.status === 'ACTIVE' ? 'Ativo' : 'Inativo'} <button disabled={blocked} onClick={() => { setEditing(v); setRename(v.name) }}>Editar {v.name}</button></li>)}</ul> : <p>Nenhum departamento neste ministério.</p>}
         <Pagination page={departmentPage} total={query.state.data.departments.total} setPage={setDepartmentPage} label="Páginas dos departamentos"/>
         {editing && <form onSubmit={e => { e.preventDefault(); void command(signal => renameDepartment(church, editing, rename, signal), () => { setEditing(null); setRename('') }) }}><fieldset disabled={blocked}><legend>Editar departamento</legend><label>Nome<input required maxLength={160} value={rename} onChange={e => setRename(e.target.value)}/></label><button>Salvar nome</button></fieldset></form>}
