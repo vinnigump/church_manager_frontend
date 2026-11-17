@@ -336,3 +336,9 @@ com revisões originais, confirmação e CSRF. O servidor valida os anos no fuso
 igreja e cria destinos independentes, preservando as origens. Reenvio pode duplicar
 planejamento; a tela mantém trava após a tentativa e orienta conferir a lista.
 [Contrato, limites e testes](docs/events/fe-04-annual-copy.md).
+
+Escalas de atuação: Ministérios→Escalas oferece lista/detalhe/cadastro e presença
+manual inicial com permissões próprias. Home/Minhas escalas mostra somente as
+próprias atuações, com evento vinculado destacado conforme audiência. Contrato
+service-rosters-v1 integrado no backend#173. Sem função/aceite/cotas ou movimentação
+de crachás. [Escopo e verificações](docs/events/fe-v4-service-rosters.md).

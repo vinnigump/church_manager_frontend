@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth'
 import LoginPage from './LoginPage'
 import AuthorizedResources from './AuthorizedResources'
+import OwnServiceRosters from './rosters/OwnServiceRosters'
 import './home.css'
 
 export default function HomePage() {
@@ -18,5 +19,6 @@ export default function HomePage() {
       <Link className="home-shortcut" to="/conta"><strong>Acessar minha conta</strong><span>Consulte seu acesso e altere sua senha.</span></Link>
     </div>
     <AuthorizedResources />
+    <OwnServiceRosters />
   </section>
 }

@@ -11,6 +11,7 @@ import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
 import MinistryPages from './membership/MinistryPages'
 import ChurchGroupPages from './membership/ChurchGroupPages'
+import RosterPages from './rosters/RosterPages'
 import AudiencePage from './events/AudiencePage'
 import RegistrationWindowPage from './events/RegistrationWindowPage'
 import OccurrencePages from './events/OccurrencePages'
@@ -64,6 +65,12 @@ export default function App() {
     <Route path="conta" element={<AccountPage />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="minhas-trilhas" element={<OwnTrailPages />}/>
+    <Route path="minhas-escalas" element={<RosterPages view="own" />}/>
+    <Route path="ministerios/escalas" element={<RosterPages view="access" />}/>
+    <Route path="ministerios/igrejas/:churchId/escalas" element={<RosterPages view="list" />}/>
+    <Route path="ministerios/igrejas/:churchId/escalas/nova" element={<RosterPages view="create" />}/>
+    <Route path="ministerios/igrejas/:churchId/escalas/:rosterId" element={<RosterPages view="detail" />}/>
+    <Route path="ministerios/igrejas/:churchId/escalas/:rosterId/editar" element={<RosterPages view="edit" />}/>
     <Route path="minhas-trilhas/:trailId" element={<OwnTrailPages detail />}/>
     <Route path="minhas-tarefas" element={<WorkItemPages view="mine" />}/>
     <Route path="minhas-tarefas/:taskId" element={<WorkItemPages view="ownDetail" />}/>
