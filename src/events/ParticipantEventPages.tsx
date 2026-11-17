@@ -5,7 +5,7 @@ import { useAuth } from '../auth'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { confirmRegistration } from './participation-api'
-import { eventChurches, ownEventRegistrations, ownOccurrenceOption, participantEvents, type PublicEvent } from './participant-events-api'
+import { cancelOwnRegistration, eventChurches, ownEventRegistrations, ownOccurrenceOption, participantEvents, type OwnEventRegistration, type PublicEvent } from './participant-events-api'
 import './events.css'
 
 const eventState = (value: string) => ({ AVAILABLE: 'Disponível', PUBLISHED: 'Disponível', IN_PROGRESS: 'Em andamento', COMPLETED: 'Concluído', CANCELLED: 'Cancelado' }[value] ?? value)
@@ -65,17 +65,35 @@ function Events({ church }: { church: string }) {
   </>}</ReadResult></fieldset>
 }
 function History() {
-  const [page, setPage] = useState(0), load = useCallback((signal: AbortSignal) => ownEventRegistrations(page, signal), [page]), query = useRead(`own-registrations:${page}`, load)
-  return <ReadResult query={query} label="minhas inscrições">{data => <>
+  const [page, setPage] = useState(0), [epoch, setEpoch] = useState(0), [selected, setSelected] = useState<OwnEventRegistration | null>(null)
+  const [busy, setBusy] = useState(false), [attempted, setAttempted] = useState(false), [message, setMessage] = useState('')
+  const pending = useRef<AbortController | null>(null)
+  useEffect(() => () => pending.current?.abort(), [])
+  const load = useCallback((signal: AbortSignal) => ownEventRegistrations(page, signal), [page]), query = useRead(`own-registrations:${page}:${epoch}`, load)
+  async function cancel() {
+    if (!selected || attempted || pending.current) return
+    const controller = new AbortController(); pending.current = controller; setBusy(true); setAttempted(true); setMessage('')
+    try { await cancelOwnRegistration(selected, controller.signal); if (!controller.signal.aborted) { setSelected(null); setMessage('Inscrição cancelada pelo servidor. O histórico foi preservado e nenhuma etapa foi concluída ou dispensada.'); setEpoch(v => v + 1) } }
+    catch (error) { if (!controller.signal.aborted) setMessage(`${error instanceof ApiError ? error.message : 'Não foi possível confirmar o resultado.'} Consulte novamente antes de outra tentativa; o cancelamento pode ter sido registrado.`) }
+    finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
+  }
+  function reload() { if (pending.current) return; setSelected(null); setAttempted(false); setMessage(''); setEpoch(v => v + 1) }
+  return <>{message && <p role="status">{message}</p>}{busy && <p role="status" aria-busy="true">Cancelando inscrição…</p>}
+    <fieldset disabled={busy}><legend>Histórico de inscrições</legend><ReadResult query={{ ...query, refresh: reload }} label="minhas inscrições">{data => <>
     <p>{data.total} inscrições · página {page + 1}</p>
     {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}>
       <h2>{item.eventName}</h2><p>{item.churchName} · Inscrição {registrationState(item.status)}</p><Dates value={item}/>
       <p>Registrada em <time dateTime={item.registeredAt}>{new Date(item.registeredAt).toLocaleString('pt-BR')}</time>.</p>
       {item.taskInstanceId && <p>Inscrição vinculada a uma etapa da sua trilha.</p>}
       {item.presence ? <p>Presença registrada em <time dateTime={item.presence.checkedInAt}>{new Date(item.presence.checkedInAt).toLocaleString('pt-BR')}</time>{item.presence.validated ? '.' : ' · registro legado sem evidência validada.'}</p> : <p>Sem presença nominal registrada. A inscrição não comprova presença.</p>}
+      {item.cancellationAvailable && <button disabled={attempted} onClick={() => setSelected(item)}>Revisar cancelamento de {item.eventName}</button>}
     </li>)}</ul> : <p>Nenhuma inscrição nesta página.</p>}
-    <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das minhas inscrições"/>
-  </>}</ReadResult>
+    <Pagination page={page} total={data.total} setPage={value => { setSelected(null); setPage(value) }} label="Páginas das minhas inscrições"/>
+    {selected && data.items.some(item => item.id === selected.id && item.cancellationAvailable) && <section aria-label="Confirmar cancelamento da inscrição"><h2>Cancelar minha inscrição em {selected.eventName}</h2>
+      <p>O cancelamento libera sua vaga e preserva o histórico. Não conclui nem dispensa uma etapa da trilha. Reinscrição após cancelar não está disponível.</p>
+      <button disabled={attempted} onClick={() => void cancel()}>Confirmar cancelamento da minha inscrição</button>{' '}<button onClick={() => setSelected(null)}>Voltar</button>
+    </section>}
+  </>}</ReadResult></fieldset></>
 }
 export default function ParticipantEventPages({ view }: { view: 'events' | 'registrations' }) {
   const { churchId = '' } = useParams(), { account } = useAuth()
