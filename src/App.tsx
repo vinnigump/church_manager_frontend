@@ -9,6 +9,7 @@ import SignOutPage from './SignOutPage'
 import EventsPage from './events/EventViews'
 import GroupMembershipPages from './membership/GroupMembershipPages'
 import MinistryPages from './membership/MinistryPages'
+import ChurchGroupPages from './membership/ChurchGroupPages'
 import AudiencePage from './events/AudiencePage'
 import RegistrationWindowPage from './events/RegistrationWindowPage'
 import OccurrencePages from './events/OccurrencePages'
@@ -65,6 +66,11 @@ export default function App() {
     <Route path="minhas-trilhas/:trailId" element={<OwnTrailPages detail />}/>
     <Route path="eventos" element={<EventsPage />}/>
     <Route path="ministerios" element={<MinistryPages />}/>
+    <Route path="grupos" element={<ChurchGroupPages view="churches" />}/>
+    <Route path="grupos/igrejas/:churchId" element={<ChurchGroupPages view="list" />}/>
+    <Route path="grupos/igrejas/:churchId/novo" element={<ChurchGroupPages view="create" />}/>
+    <Route path="grupos/igrejas/:churchId/:groupId" element={<ChurchGroupPages view="detail" />}/>
+    <Route path="grupos/igrejas/:churchId/:groupId/editar" element={<ChurchGroupPages view="edit" />}/>
     <Route path="ministerios/igrejas/:churchId" element={<MinistryPages directory />}/>
     <Route path="eventos/igrejas/:churchId/cadastro" element={<EventRecordPages view="list" />}/>
     <Route path="eventos/igrejas/:churchId/cadastro/novo" element={<EventRecordPages view="create" />}/>
