@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { useAuth } from '../auth'
 import { discoverResources } from '../AuthorizedResources'
@@ -7,13 +7,14 @@ import { consultAuthorization, ResourceAccess } from '../authorization'
 import { ContextOperation } from '../components/ContextOperation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { isUuid } from '../validation'
-import { addChurchGroupUser, groupManagementRoute, listChurchGroups, listChurchGroupUsers, readChurchGroup, saveChurchGroup, searchGroupAccounts, type AccountOption, type ChurchGroup } from './church-groups-api'
+import { addChurchGroupUser, archiveChurchGroup, deleteUnusedChurchGroup, removeChurchGroupUser, groupManagementRoute, listChurchGroups, listChurchGroupUsers, readChurchGroup, saveChurchGroup, searchGroupAccounts, type AccountOption, type ChurchGroup, type GroupUser } from './church-groups-api'
 import '../events/occurrences.css'
 
 const permission = 'CHURCH_GROUP_MANAGE'
-function ScopedRead<T>({ context, load, label, children }: { context: string; load: (signal: AbortSignal) => Promise<T>; label: string; children: (value: T) => ReactNode }) {
+function ScopedRead<T>({ context, load, label, children, manualRefresh = false }: { context: string; load: (signal: AbortSignal) => Promise<T>; label: string; children: (value: T) => ReactNode; manualRefresh?: boolean }) {
   const query = useRead(context, load)
-  return <ReadResult query={query} label={label}>{children}</ReadResult>
+  if (!manualRefresh) return <ReadResult query={query} label={label}>{children}</ReadResult>
+  return query.state.kind === 'loading' ? <p role="status">Carregando {label}…</p> : query.state.kind === 'error' ? <><p role="alert">{query.state.message}</p><button onClick={query.refresh}>Consultar novamente</button></> : <>{children(query.state.data)}</>
 }
 function Access() {
   const { account } = useAuth(), [epoch, setEpoch] = useState(0)
@@ -37,7 +38,7 @@ function List({ church }: { church: string }) {
   return <><p><Link to={`${groupManagementRoute(church)}/novo`}>Criar grupo</Link></p>
     <form onSubmit={e => { e.preventDefault(); setSearch(field); setPage(0) }}><label>Pesquisar grupo<input type="search" maxLength={120} value={field} onChange={e => setField(e.target.value)}/></label><button>Pesquisar</button></form>
     <ReadResult query={query} label="grupos">{data => <><p role="status">{data.total} grupos · Página {page + 1}</p>
-      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.name}</h2><p>{v.description}</p><Link to={`${groupManagementRoute(church)}/${v.id}`}>Ver grupo {v.name}</Link></li>)}</ul> : <p>Nenhum grupo encontrado.</p>}
+      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.name}</h2>{v.archivedAt && <p>Arquivado</p>}<p>{v.description}</p><Link to={`${groupManagementRoute(church)}/${v.id}`}>Ver grupo {v.name}</Link></li>)}</ul> : <p>Nenhum grupo encontrado.</p>}
       <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos grupos"/></>}</ReadResult>
   </>
 }
@@ -68,7 +69,7 @@ function Editor({ church, id }: { church: string; id?: string }) {
     {command.message && <p role="alert">{command.message}</p>}{validation && <p role="alert">{validation}</p>}
     {saved ? <><p role="status">Grupo salvo.</p><Link to={`${groupManagementRoute(church)}/${saved.id}`}>Ver grupo salvo</Link></> : <>
       <button disabled={command.busy} onClick={() => { command.reset(); setDraft(null); setValidation(''); setEpoch(v => v + 1) }}>Descartar alterações e recarregar</button>
-      <ScopedRead context={`${church}:${id}:${epoch}`} load={load} label="cadastro do grupo">{current => {
+      <ScopedRead context={`${church}:${id}:${epoch}`} load={load} label="cadastro do grupo" manualRefresh>{current => {
         if (!draft) return null
         const stale = current !== null && current.revision !== draft.before?.revision
         return <>{stale && <p role="alert">O grupo mudou. Recarregue antes de salvar.</p>}
@@ -95,31 +96,37 @@ function AccountPicker({ church, select, disabled }: { church: string; select: (
   </section>
 }
 function Detail({ church, id }: { church: string; id: string }) {
-  const [page, setPage] = useState(0), [epoch, setEpoch] = useState(0), [adding, setAdding] = useState(false)
+  const [page, setPage] = useState(0), [epoch, setEpoch] = useState(0), [adding, setAdding] = useState(false), [history, setHistory] = useState(false)
   const [selected, setSelected] = useState<AccountOption | null>(null), [before, setBefore] = useState<ChurchGroup | null>(null)
-  const [success, setSuccess] = useState(''), command = useCommand()
+  const [confirmation, setConfirmation] = useState<{ action: 'archive' | 'delete' | 'remove'; user?: GroupUser } | null>(null)
+  const [success, setSuccess] = useState(''), command = useCommand(), navigate = useNavigate()
   const load = useCallback(async (signal: AbortSignal) => {
-    const group = await readChurchGroup(church, id, signal), members = await listChurchGroupUsers(church, id, page, signal)
+    const group = await readChurchGroup(church, id, signal), members = await listChurchGroupUsers(church, id, page, signal, history)
     if (!signal.aborted) setBefore(v => v ?? group)
     return { group, members }
-  }, [church, id, page])
+  }, [church, id, page, history])
+  function refresh() { command.reset(); setBefore(null); setSelected(null); setConfirmation(null); setAdding(false); setEpoch(v => v + 1) }
+  function completed(message: string) { setSuccess(message); refresh() }
   return <ResourceAccess permissionCode={permission} resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
     {command.message && <p role="alert">{command.message}</p>}{success && <p role="status">{success}</p>}
-    <button disabled={command.busy} onClick={() => { command.reset(); setBefore(null); setSelected(null); setSuccess(''); setEpoch(v => v + 1) }}>Atualizar grupo e conferir integrantes</button>
-    <ScopedRead context={`${church}:${id}:${page}:${epoch}`} load={load} label="grupo e integrantes">{({ group, members }) => {
-      const stale = before !== null && before.revision !== group.revision
-      return <><h2>{group.name}</h2><p>{group.description}</p><p><Link to={`${groupManagementRoute(church)}/${id}/editar`}>Editar grupo</Link></p>
-        <h3>Integrantes</h3>{members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}</li>)}</ul> : <p>Este grupo ainda não tem integrantes.</p>}
+    <button disabled={command.busy} onClick={() => { setSuccess(''); refresh() }}>Atualizar grupo e conferir integrantes</button>
+    <ScopedRead context={`${church}:${id}:${page}:${history}:${epoch}`} load={load} label="grupo e integrantes" manualRefresh>{({ group, members }) => {
+      const stale = before !== null && before.revision !== group.revision, disabled = command.busy || command.blocked || stale
+      return <><h2>{group.name}</h2>{group.archivedAt && <p role="status">Grupo arquivado. O histórico e as tarefas existentes foram preservados.</p>}<p>{group.description}</p><p><Link to={`${groupManagementRoute(church)}/${id}/editar`}>Editar nome e descrição</Link></p>
+        <h3>Integrantes</h3><label><input type="checkbox" checked={history} disabled={command.busy} onChange={e => { setHistory(e.target.checked); setPage(0); setConfirmation(null) }}/>Incluir histórico de saídas</label>
+        {members.items.length ? <ul>{members.items.map(v => <li key={v.id}>{v.displayName}{v.removedAt ? ` · Saiu em ${new Date(v.removedAt).toLocaleDateString('pt-BR')}` : <> <button disabled={disabled} onClick={() => { setSelected(null); setConfirmation({ action: 'remove', user: v }) }}>Remover {v.displayName}</button></>}</li>)}</ul> : <p>Nenhum integrante encontrado.</p>}
         <Pagination page={page} total={members.total} setPage={setPage} label="Páginas de integrantes"/>
-        {stale && <p role="alert">O grupo mudou. Atualize os dados antes de adicionar alguém.</p>}
-        <button disabled={command.busy || command.blocked || stale} onClick={() => setAdding(v => !v)}>{adding ? 'Fechar seleção de usuários' : 'Adicionar integrante'}</button>
-        {adding && <AccountPicker church={church} select={setSelected} disabled={command.busy || command.blocked || stale}/>}
-        {selected && before && <section><p>Adicionar {selected.displayName} ao grupo {group.name}?</p>
-          <button disabled={command.busy || command.blocked || stale} onClick={() => void command.run(signal => addChurchGroupUser(before, selected, signal), value => {
-            setSuccess(value.changed ? 'Integrante incluído.' : 'O usuário já faz parte do grupo.'); setSelected(null); setAdding(false); setBefore(null); setEpoch(v => v + 1)
-          })}>Confirmar inclusão</button>
+        {stale && <p role="alert">O grupo mudou. Atualize os dados antes de continuar.</p>}
+        {!group.archivedAt && <><button disabled={disabled} onClick={() => { setConfirmation(null); setAdding(v => !v) }}>{adding ? 'Fechar seleção de usuários' : 'Adicionar integrante'}</button>
+          {adding && <AccountPicker church={church} select={setSelected} disabled={disabled}/>}
+          {selected && before && <section><p>Adicionar {selected.displayName} ao grupo {group.name}?</p><button disabled={disabled} onClick={() => void command.run(signal => addChurchGroupUser(before, selected, signal), value => completed(value.changed ? 'Integrante incluído.' : 'O usuário já faz parte do grupo.'))}>Confirmar inclusão</button></section>}
+          <button disabled={disabled} onClick={() => { setSelected(null); setAdding(false); setConfirmation({ action: 'archive' }) }}>Arquivar grupo</button>
+        </>}
+        <button disabled={disabled} onClick={() => { setSelected(null); setAdding(false); setConfirmation({ action: 'delete' }) }}>Excluir grupo nunca utilizado</button>
+        {confirmation && before && <section aria-label="Confirmar alteração do grupo">
+          <p>{confirmation.action === 'archive' ? 'Arquivar impede novas inclusões e novas destinações. As tarefas já existentes e seu histórico continuam disponíveis.' : confirmation.action === 'delete' ? 'Excluir definitivamente este grupo? Somente grupos sem integrantes atuais ou anteriores e sem uso em tarefas ou etapas podem ser excluídos. Se já foi utilizado, arquive-o.' : `Remover ${confirmation.user?.displayName} deste grupo? O histórico, as tarefas e o responsável já registrado serão preservados.`}</p>
+          <button disabled={disabled} onClick={() => { const action = confirmation.action; if (action === 'archive') void command.run(signal => archiveChurchGroup(before, signal), () => completed('Grupo arquivado.')); else if (action === 'delete') void command.run(signal => deleteUnusedChurchGroup(before, signal), () => navigate(groupManagementRoute(church), { replace: true })); else if (confirmation.user) void command.run(signal => removeChurchGroupUser(before, confirmation.user!.accountId, signal), v => completed(v.changed ? 'Integrante removido. Histórico e tarefas preservados.' : 'O integrante já saiu deste grupo.')) }}>Confirmar {confirmation.action === 'archive' ? 'arquivamento' : confirmation.action === 'delete' ? 'exclusão' : 'remoção'}</button> <button disabled={command.busy} onClick={() => setConfirmation(null)}>Cancelar</button>
         </section>}
-        <p>Exclusão de grupos e remoção de integrantes ainda não estão disponíveis nesta versão.</p>
       </>
     }}</ScopedRead>
   </ResourceAccess>

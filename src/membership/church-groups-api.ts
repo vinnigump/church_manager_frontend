@@ -1,7 +1,7 @@
 import { api } from '../api'
 import { isInstant, isUuid } from '../validation'
-export interface ChurchGroup { id: string; churchId: string; name: string; description: string | null; revision: number; createdAt: string }
-export interface GroupUser { id: string; groupId: string; churchId: string; accountId: string; displayName: string; joinedAt: string }
+export interface ChurchGroup { id: string; churchId: string; name: string; description: string | null; revision: number; createdAt: string; archivedAt: string | null }
+export interface GroupUser { id: string; groupId: string; churchId: string; accountId: string; displayName: string; joinedAt: string; removedAt: string | null }
 export interface AccountOption { accountId: string; displayName: string }
 export interface Page<T> { items: T[]; page: number; size: number; total: number }
 export const groupManagementRoute = (church: string) => `/grupos/igrejas/${church}`
@@ -16,12 +16,12 @@ function base(church: string, id?: string) {
 function group(v: unknown, church: string): ChurchGroup {
   if (!object(v) || !uuid(v.id) || v.churchId !== church || !text(v.name) || v.name.length > 180
     || (v.description !== null && (typeof v.description !== 'string' || v.description.length > 2000))
-    || !Number.isSafeInteger(v.revision) || (v.revision as number) < 0 || !isInstant(v.createdAt)) throw invalid()
-  return { id: v.id, churchId: church, name: v.name, description: v.description as string | null, revision: v.revision as number, createdAt: v.createdAt }
+    || !Number.isSafeInteger(v.revision) || (v.revision as number) < 0 || !isInstant(v.createdAt) || !(v.archivedAt === null || isInstant(v.archivedAt))) throw invalid()
+  return { id: v.id, churchId: church, name: v.name, description: v.description as string | null, revision: v.revision as number, createdAt: v.createdAt, archivedAt: v.archivedAt as string | null }
 }
 function member(v: unknown, church: string, id: string): GroupUser {
-  if (!object(v) || !uuid(v.id) || v.churchId !== church || v.groupId !== id || !uuid(v.accountId) || !text(v.displayName) || !isInstant(v.joinedAt)) throw invalid()
-  return { id: v.id, groupId: id, churchId: church, accountId: v.accountId, displayName: v.displayName, joinedAt: v.joinedAt }
+  if (!object(v) || !uuid(v.id) || v.churchId !== church || v.groupId !== id || !uuid(v.accountId) || !text(v.displayName) || !isInstant(v.joinedAt) || !(v.removedAt === null || isInstant(v.removedAt))) throw invalid()
+  return { id: v.id, groupId: id, churchId: church, accountId: v.accountId, displayName: v.displayName, joinedAt: v.joinedAt, removedAt: v.removedAt as string | null }
 }
 function query(search: string, page: number) {
   if (search.length > 120 || !Number.isSafeInteger(page) || page < 0 || page > 100000) throw invalid()
@@ -46,8 +46,8 @@ export async function saveChurchGroup(church: string, name: string, description:
   if (v.name !== body.name || v.description !== body.description || v.revision !== revision || before && v.id !== before.id) throw invalid()
   return v
 }
-export async function listChurchGroupUsers(church: string, id: string, page: number, signal?: AbortSignal) {
-  return pageOf(await api.request<unknown>(`${base(church, id)}/users?${query('', page)}`, { signal }), page, v => member(v, church, id))
+export async function listChurchGroupUsers(church: string, id: string, page: number, signal?: AbortSignal, includeRemoved = false) {
+  return pageOf(await api.request<unknown>(`${base(church, id)}/users?${query('', page)}&includeRemoved=${includeRemoved}`, { signal }), page, v => member(v, church, id))
 }
 export async function searchGroupAccounts(church: string, search: string, page: number, signal?: AbortSignal) {
   return pageOf(await api.request<unknown>(`${base(church)}/eligible-accounts?${query(search, page)}`, { signal }), page, v => {
@@ -62,4 +62,19 @@ export async function addChurchGroupUser(before: ChurchGroup, account: AccountOp
   if (!object(raw) || typeof raw.changed !== 'boolean' || raw.revision !== before.revision + (raw.changed ? 1 : 0)) throw invalid()
   const v = member(raw.member, before.churchId, before.id); if (v.accountId !== account.accountId) throw invalid()
   return { member: v, revision: raw.revision as number, changed: raw.changed }
+}
+
+export async function archiveChurchGroup(before: ChurchGroup, signal?: AbortSignal) {
+  const v = group(await api.request<unknown>(`${base(before.churchId, before.id)}/archive`, { method: 'POST', signal, headers: { 'X-Expected-Revision': String(before.revision) } }), before.churchId)
+  if (v.id !== before.id || v.archivedAt === null || v.revision !== before.revision + (before.archivedAt === null ? 1 : 0)) throw invalid()
+  return v
+}
+export async function deleteUnusedChurchGroup(before: ChurchGroup, signal?: AbortSignal) {
+  await api.request<void>(base(before.churchId, before.id), { method: 'DELETE', signal, headers: { 'X-Expected-Revision': String(before.revision) } }, 204)
+}
+export async function removeChurchGroupUser(before: ChurchGroup, accountId: string, signal?: AbortSignal) {
+  if (!isUuid(accountId)) throw invalid()
+  const v = await api.request<unknown>(`${base(before.churchId, before.id)}/users/${accountId}`, { method: 'DELETE', signal, headers: { 'X-Expected-Revision': String(before.revision) } })
+  if (!object(v) || typeof v.changed !== 'boolean' || v.revision !== before.revision + (v.changed ? 1 : 0)) throw invalid()
+  return { revision: v.revision as number, changed: v.changed }
 }
