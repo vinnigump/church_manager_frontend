@@ -5,6 +5,7 @@ import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { ReadResult, useRead } from '../security/SecurityPages'
+import { recordSearch } from './record-presentation'
 import { instantNanos, readOccurrence, type Occurrence } from './occurrence-api'
 import { readWindow, sameWindow, validateWindow, writeWindow, type WindowDates, type WindowView } from './window-api'
 import './occurrences.css'
@@ -98,6 +99,6 @@ export default function RegistrationWindowPage() {
   const [search] = useSearchParams()
   const fromRecords = search.get('retorno') === 'cadastro'
   return <div className="occurrences"><h1 data-page-title="Janela de inscrição">Janela de inscrição</h1><Link to="/eventos">Voltar a Eventos</Link>
-    {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente o detalhe autorizado da ocorrência.</p> : <><p><Link to={`/eventos/igrejas/${churchId}/${fromRecords ? 'cadastro' : 'ocorrencias'}/${occurrenceId}`}>{fromRecords ? 'Voltar ao evento' : 'Voltar à ocorrência'}</Link></p><Workspace key={`${account?.id}:${churchId}:${occurrenceId}`} churchId={churchId} occurrenceId={occurrenceId}/></>}
+    {!isUuid(churchId) || !isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente o detalhe autorizado da ocorrência.</p> : <><p><Link to={`/eventos/igrejas/${churchId}/${fromRecords ? 'cadastro' : 'ocorrencias'}/${occurrenceId}${fromRecords ? recordSearch(search) : ''}`}>{fromRecords ? 'Voltar ao evento' : 'Voltar à ocorrência'}</Link></p><Workspace key={`${account?.id}:${churchId}:${occurrenceId}`} churchId={churchId} occurrenceId={occurrenceId}/></>}
   </div>
 }
