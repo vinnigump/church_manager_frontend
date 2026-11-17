@@ -39,7 +39,7 @@ function Workspace({ church, person }: { church: string; person: string }) {
     {query.state.kind === 'loading' ? <p role="status">Carregando cadastro…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <>
       <Form key={`${query.state.data.data.updatedAt}:${epoch}`} person={query.state.data.data} church={church} onBusy={setBusy} saved={() => { setBusy(false); setEpoch(v => v + 1) }}/>
       <h2>Alterações nesta igreja</h2><p>Últimas 20 alterações. O histórico preserva o autor, a data e os campos alterados.</p>
-      {query.state.data.history.length ? <ul>{query.state.data.history.map(v => <li key={v.id}><time dateTime={v.occurredAt}>{new Date(v.occurredAt).toLocaleString('pt-BR')}</time> · {v.changedFields.replaceAll('fullName','nome').replaceAll('preferredName','nome de preferência').replaceAll('birthDate','nascimento').replaceAll('email','e-mail').replaceAll('phone','telefone')} · {v.actorName}</li>)}</ul> : <p>Nenhuma alteração registrada nesta igreja.</p>}
+      {query.state.data.history.length ? <ul>{query.state.data.history.map(v => <li key={v.id}><time dateTime={v.occurredAt}>{new Date(v.occurredAt).toLocaleString('pt-BR')}</time> · {v.changedFields.map(field => ({ fullName: 'nome', preferredName: 'nome de preferência', birthDate: 'nascimento', email: 'e-mail', phone: 'telefone' }[field] ?? field)).join(', ')} · {v.actorName}</li>)}</ul> : <p>Nenhuma alteração registrada nesta igreja.</p>}
     </>}</>
 }
 export default function PersonBasicEditPage() {
