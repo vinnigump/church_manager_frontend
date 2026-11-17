@@ -4,15 +4,15 @@ import { ApiError } from '../api'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { closeDelivery, createBadge, issueBadge, receptionBadges, receptionPeople, receptionUnits, scanBadge, type Badge, type Delivery, type Person, type Scan, type Unit } from './reception-api'
 
-export interface Operations { church: string; onBusy: (busy: boolean) => void; onDone: (message: string, badge?: Badge) => void }
-function useCommand(onBusy: Operations['onBusy']) {
+export interface Operations { church: string; onBusy: (busy: boolean) => void; onDone: (message: string, badge?: Badge) => void; onUncertain: () => void }
+function useCommand(onBusy: Operations['onBusy'], onUncertain: Operations['onUncertain']) {
   const pending = useRef<AbortController | null>(null), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
   useEffect(() => () => pending.current?.abort(), [])
   async function run<T>(command: (signal: AbortSignal) => Promise<T>, done: (result: T) => void) {
     if (pending.current || blocked) return
     const controller = new AbortController(); pending.current = controller; setBlocked(true); setError(''); onBusy(true)
     try { const result = await command(controller.signal); if (!controller.signal.aborted) done(result) }
-    catch (cause) { if (!controller.signal.aborted) setError(`${cause instanceof ApiError ? cause.message : 'Não foi possível confirmar o resultado.'} Atualize a recepção e confira os dados antes de outra tentativa; a operação pode ter sido registrada.`) }
+    catch (cause) { if (!controller.signal.aborted) { onUncertain(); setError(`${cause instanceof ApiError ? cause.message : 'Não foi possível confirmar o resultado.'} Atualize a recepção e confira os dados antes de outra tentativa; a operação pode ter sido registrada.`) } }
     finally { pending.current = null; if (!controller.signal.aborted) onBusy(false) }
   }
   return { blocked, error, run }
@@ -55,9 +55,9 @@ function Scanner({ church, onScan, onBusy, onInvalidate }: { church: string; onS
   }
   return <form onSubmit={e => void scan(e)} aria-label="Ler crachá"><label>QR Code do crachá<input autoComplete="off" spellCheck={false} maxLength={36} value={code} onChange={e => { onInvalidate(); setCode(e.target.value) }} placeholder="Leia no leitor USB ou cole o código"/></label><button>Ler crachá</button>{error && <p role="alert">{error}</p>}</form>
 }
-export function DeliverForm({ church, onBusy, onDone }: Operations) {
+export function DeliverForm({ church, onBusy, onDone, onUncertain }: Operations) {
   const [person, setPerson] = useState<Person | null>(null), [unit, setUnit] = useState<Unit | null>(null), [scan, setScan] = useState<Scan | null>(null), [review, setReview] = useState(false)
-  const [requestId] = useState(() => crypto.randomUUID()), command = useCommand(onBusy)
+  const [requestId] = useState(() => crypto.randomUUID()), command = useCommand(onBusy, onUncertain)
   return <section aria-label="Entregar crachá"><h2>Entregar crachá</h2>
     <div className="reception-choices"><People church={church} selected={person} onPick={value => { if (!command.blocked) { setPerson(value); setReview(false) } }}/><Units church={church} selected={unit} onPick={value => { if (!command.blocked) { setUnit(value); setReview(false) } }}/></div>
     <h3>3. Ler o crachá físico</h3><Scanner church={church} onBusy={onBusy} onInvalidate={() => { setScan(null); setReview(false) }} onScan={value => { if (!command.blocked) { setScan(value); setReview(false) } }}/>
@@ -70,8 +70,8 @@ export function DeliverForm({ church, onBusy, onDone }: Operations) {
     </section>}{command.error && <p role="alert">{command.error}</p>}
   </section>
 }
-export function CloseForm({ church, onBusy, onDone, lost }: Operations & { lost: Delivery | null }) {
-  const [scan, setScan] = useState<Scan | null>(null), [choice, setChoice] = useState<{ delivery: Delivery; outcome: 'RETURNED' | 'LOST' } | null>(() => lost ? { delivery: lost, outcome: 'LOST' } : null), command = useCommand(onBusy)
+export function CloseForm({ church, onBusy, onDone, onUncertain, lost }: Operations & { lost: Delivery | null }) {
+  const [scan, setScan] = useState<Scan | null>(null), [choice, setChoice] = useState<{ delivery: Delivery; outcome: 'RETURNED' | 'LOST' } | null>(() => lost ? { delivery: lost, outcome: 'LOST' } : null), command = useCommand(onBusy, onUncertain)
   return <section aria-label="Devolver ou registrar perda"><h2>Devolver crachá</h2><Scanner church={church} onBusy={onBusy} onInvalidate={() => { setScan(null); setChoice(null) }} onScan={value => { if (!command.blocked) { setScan(value); setChoice(null) } }}/>
     {scan && (scan.openDelivery ? <><p>Crachá <strong>{scan.badge.label}</strong> entregue para <strong>{scan.openDelivery.personName}</strong> · {scan.openDelivery.ministryName}{scan.openDelivery.departmentName ? ` · ${scan.openDelivery.departmentName}` : ''}.</p>
       <button disabled={command.blocked} onClick={() => setChoice({ delivery: scan.openDelivery!, outcome: 'RETURNED' })}>Revisar devolução</button>{' '}
@@ -84,8 +84,8 @@ export function CloseForm({ church, onBusy, onDone, lost }: Operations & { lost:
     </section>}{command.error && <p role="alert">{command.error}</p>}
   </section>
 }
-export function BadgesForm({ church, onBusy, onDone }: Operations) {
-  const [label, setLabel] = useState(''), [q, setQ] = useState(''), [field, setField] = useState(''), [page, setPage] = useState(0), [shown, setShown] = useState<string | null>(null), command = useCommand(onBusy)
+export function BadgesForm({ church, onBusy, onDone, onUncertain }: Operations) {
+  const [label, setLabel] = useState(''), [q, setQ] = useState(''), [field, setField] = useState(''), [page, setPage] = useState(0), [shown, setShown] = useState<string | null>(null), command = useCommand(onBusy, onUncertain)
   const load = useCallback((signal: AbortSignal) => receptionBadges(church, q, page, signal), [church, q, page]), query = useRead(`${church}:${q}:${page}`, load)
   return <section><h2>Crachás e QR Codes</h2><form onSubmit={e => { e.preventDefault(); void command.run(signal => createBadge(church, label, signal), result => onDone(`Crachá ${result.label} cadastrado. Baixe o QR para preparar o crachá físico.`, result)) }}>
     <label>Identificação física do crachá<input required maxLength={80} value={label} onChange={e => setLabel(e.target.value)} placeholder="Exemplo: 001"/></label><button disabled={command.blocked}>Cadastrar crachá</button>

@@ -49,23 +49,23 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
   }}</ReadResult>
 }
 function Workspace({ church }: { church: string }) {
-  const [mode, setMode] = useState<'issue' | 'close' | 'badges'>('issue'), [epoch, setEpoch] = useState(0), [busy, setBusy] = useState(false)
+  const [mode, setMode] = useState<'issue' | 'close' | 'badges'>('issue'), [epoch, setEpoch] = useState(0), [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false)
   const [message, setMessage] = useState(''), [lastBadge, setLastBadge] = useState<Badge | null>(null), [lost, setLost] = useState<Delivery | null>(null), [lossEpoch, setLossEpoch] = useState(0)
   const loadName = useCallback(async (signal: AbortSignal) => (await discoverResources(signal)).find(v => v.resourceType === 'CHURCH' && v.resourceId === church)?.label ?? 'Igreja selecionada', [church])
   const name = useRead(church, loadName)
   const done = useCallback((text: string, badge?: Badge) => { setBusy(false); setMessage(text); setLastBadge(badge ?? null); setLost(null); setEpoch(v => v + 1) }, [])
-  function reload() { if (busy) return; setMessage(''); setLastBadge(null); setLost(null); setEpoch(v => v + 1) }
+  function reload() { if (busy) return; setBlocked(false); setMessage(''); setLastBadge(null); setLost(null); setEpoch(v => v + 1) }
   return <>
     {name.state.kind === 'ready' && <h2>{name.state.data}</h2>}
     <button disabled={busy} onClick={reload}>Atualizar recepção</button>{busy && <p role="status" aria-busy="true">Aguarde a confirmação do servidor…</p>}
     <ResourceAccess key={epoch} permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
       {message && <p role="status" className="reception-message">{message}</p>}{lastBadge && <BadgeQr badge={lastBadge}/>}
-      <fieldset disabled={busy} className="reception-workspace"><legend>Atendimento da recepção</legend>
+      <fieldset disabled={busy || blocked} className="reception-workspace"><legend>Atendimento da recepção</legend>
         <nav aria-label="Operações de recepção"><button aria-pressed={mode === 'issue'} onClick={() => { setMode('issue'); setLost(null) }}>Entregar</button>{' '}
           <button aria-pressed={mode === 'close'} onClick={() => { setMode('close'); setLost(null) }}>Devolver ou registrar perda</button>{' '}
           <button aria-pressed={mode === 'badges'} onClick={() => { setMode('badges'); setLost(null) }}>Crachás e QR Codes</button>
         </nav>
-        {mode === 'issue' ? <DeliverForm church={church} onBusy={setBusy} onDone={done}/> : mode === 'close' ? <CloseForm key={`${lost?.id ?? 'scan'}:${lossEpoch}`} church={church} onBusy={setBusy} onDone={done} lost={lost}/> : <BadgesForm church={church} onBusy={setBusy} onDone={done}/>}
+        {mode === 'issue' ? <DeliverForm church={church} onBusy={setBusy} onDone={done} onUncertain={() => setBlocked(true)}/> : mode === 'close' ? <CloseForm key={`${lost?.id ?? 'scan'}:${lossEpoch}`} church={church} onBusy={setBusy} onDone={done} onUncertain={() => setBlocked(true)} lost={lost}/> : <BadgesForm church={church} onBusy={setBusy} onDone={done} onUncertain={() => setBlocked(true)}/>}
         <Pending church={church} onLoss={value => { if (!busy) { setLost(value); setLossEpoch(v => v + 1); setMode('close') } }}/>
       </fieldset>
     </ResourceAccess>
