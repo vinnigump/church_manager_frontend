@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
 import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
@@ -28,7 +28,7 @@ function Registration() {
 
 export default function RegistrationPage() {
   const { churchId = '' } = useParams()
-  return <><h1>Cadastrar pessoa</h1><p>Cadastro com associação à igreja deste contexto, sem criar membresia ou conta.</p>
+  return <><h1>Cadastrar pessoa</h1><Link to="/pessoas">Voltar a Pessoas</Link><p>Cadastro com associação à igreja deste contexto, sem criar membresia ou conta.</p>
     <p>Cadastro sem associação à igreja indisponível enquanto a autorização global não estiver definida.</p>
     {!isUuid(churchId) ? <p role="alert">Contexto inválido. Abra um recurso autorizado.</p>
       : <ResourceAccess preserveDuringRecheck permissionCode="identity:person:contextual:create" resourceType="CHURCH" resourceId={churchId}>

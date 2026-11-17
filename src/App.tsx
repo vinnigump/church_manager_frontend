@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { Guard } from './auth'
 import LoginPage from './LoginPage'
 import RegistrationPage from './people/RegistrationPage'
+import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
 import HomePage from './HomePage'
 import OwnTrailPages from './trails/OwnTrailPages'
@@ -44,6 +45,8 @@ export default function App() {
     <Route path="entrar" element={<LoginPage />}/>
     <Route path="sair" element={<SignOutPage />}/>
     <Route element={<Guard />}>
+    <Route path="pessoas" element={<PeopleDirectoryPages />}/>
+    <Route path="pessoas/igrejas/:churchId" element={<PeopleDirectoryPages directory />}/>
     <Route path="pessoas/igrejas/:churchId/cadastrar" element={<RegistrationPage />}/>
     <Route path="seguranca/denominacoes/:denominationId/delegacoes/:delegationId/revogar" element={<DelegationRevokePage />}/>
     <Route path="seguranca/denominacoes/:denominationId/auditoria" element={<AuditPage />}/>
