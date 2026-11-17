@@ -50,11 +50,12 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
   const [busy, setBusy] = useState(false)
   const [invalid, setInvalid] = useState(false)
   const locked = useRef(false)
-  const [documentType, setDocumentType] = useState<'CPF' | 'CIN_CPF'>('CPF')
+  const [documentType, setDocumentType] = useState<'CPF' | 'CIN_CPF' | 'NO_DOCUMENT'>('CPF')
+  const noDocument = administrative && documentType === 'NO_DOCUMENT'
   const alternative = acceptedAlternativeDocument?.label.trim()
   async function submit() {
     if (locked.current) return
-    if (!draft.fullName.trim() || (!draft.cpf.trim() && !alternative)
+    if (!draft.fullName.trim() || (!draft.cpf.trim() && !alternative && !noDocument)
       || (!draft.email.trim() && !draft.phone.trim()) || (birthDateRequired && !draft.birthDate)) {
       setInvalid(true)
       return
@@ -78,13 +79,15 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
       <input id={`${id}-name`} required maxLength={200} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.fullName.trim()} aria-describedby={invalid ? `${id}-validation` : undefined}
         value={draft.fullName} onChange={event => setDraft({ ...draft, fullName: event.target.value })}/>
-      {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => setDocumentType(e.target.value as 'CPF' | 'CIN_CPF')}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option></select></label>}
+      {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => { setDocumentType(e.target.value as 'CPF' | 'CIN_CPF' | 'NO_DOCUMENT'); setDraft({ ...draft, cpf: '' }) }}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option><option value="NO_DOCUMENT">Sem documento</option></select></label>}
+      {!noDocument && <>
       <label htmlFor={`${id}-cpf`}>CPF{alternative ? ' (opcional)' : ''}</label>
       <input id={`${id}-cpf`} maxLength={20} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.cpf.trim() && !alternative}
         aria-describedby={`${id}-document${invalid ? ` ${id}-validation` : ''}`}
         value={draft.cpf} onChange={event => setDraft({ ...draft, cpf: event.target.value })}/>
       <p id={`${id}-document`}>{alternative ? `Documento alternativo aceito: ${alternative}.` : 'Informe CPF ou forneça um documento alternativo aceito pelo serviço responsável.'} A validação do documento cabe ao serviço responsável.</p>
+      </>}
       <p id={`${id}-contact`}>Informe pelo menos um contato, e-mail ou telefone.</p>
       <label htmlFor={`${id}-email`}>E-mail</label>
       <input id={`${id}-email`} type="email" autoComplete="off" disabled={busy}
@@ -100,7 +103,7 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
       <input id={`${id}-birth`} type="date" required={birthDateRequired} autoComplete="off" disabled={busy}
         aria-invalid={invalid && birthDateRequired && !draft.birthDate}
         value={draft.birthDate} onChange={event => setDraft({ ...draft, birthDate: event.target.value })}/>
-      {invalid && <p id={`${id}-validation`} role="alert">Informe nome completo, CPF ou documento alternativo aceito, pelo menos um contato e nascimento quando obrigatório.</p>}
+      {invalid && <p id={`${id}-validation`} role="alert">{noDocument ? 'Informe nome completo, pelo menos um contato e nascimento quando obrigatório.' : 'Informe nome completo, CPF ou documento alternativo aceito, pelo menos um contato e nascimento quando obrigatório.'}</p>}
       {busy && <p role="status">Aguardando confirmação do cadastro…</p>}
       {result?.kind === 'conflict' && <p role="alert">Não foi possível confirmar o cadastro por conflito. Confira os dados com o serviço responsável antes de nova tentativa.</p>}
       {result?.kind === 'error' && <p role="alert">Não foi possível confirmar o cadastro. Confira o resultado com o serviço responsável antes de nova tentativa.</p>}
