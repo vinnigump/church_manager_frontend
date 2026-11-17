@@ -1,0 +1,89 @@
+/* Stitch v4: event workspace. Rules stay scoped to event screens. */
+.records { max-width: none; color: #131e1b; }
+.records .record-page-heading { margin-bottom: 24px; }
+.records .record-page-heading h1 { margin: 4px 0 8px; font-size: 28px; line-height: 36px; letter-spacing: -.015em; font-weight: 600; }
+.records .record-page-heading p { margin: 0; color: #56615c; font-size: 14px; }
+.records .record-page-heading .record-eyebrow { color: #00513c; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: .09em; }
+.records > nav { font-size: 13px; margin-bottom: 24px; }
+.records a { color: #00513c; }
+.records .record-create-action { display: flex; justify-content: flex-end; margin: 0 0 16px; }
+.records .record-primary, .records .record-actions button:last-child { background: #00513c; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 0; }
+.records .agenda-view-switch { display: inline-flex; gap: 4px; padding: 4px; background: #e4f1ec; border-radius: 9px; margin: 0 0 20px; }
+.records .agenda-view-switch button { border: 0; background: transparent; color: #56615c; font-size: 13px; padding: 9px 16px; border-radius: 6px; }
+.records .agenda-view-switch button[aria-pressed="true"] { background: white; color: #00513c; box-shadow: 0 1px 4px #131e1b0d; font-weight: 600; }
+.records .agenda-calendar { padding: 24px; background: white; border-radius: 16px; box-shadow: 0 1px 8px #131e1b06; }
+.records .agenda-period-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.records .agenda-period-heading h2 { font-size: 20px; margin: 0; text-transform: capitalize; }
+.records .agenda-period-heading p, .records .agenda-calendar > p { font-size: 12px; color: #56615c; }
+.records .agenda-calendar > nav { margin: 16px 0 24px; gap: 8px; }
+.records .agenda-calendar > nav button { background: #eaf6f1; color: #00513c; border: 0; border-radius: 8px; padding: 8px 14px; }
+.records .agenda-weekdays { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); text-align: center; color: #56615c; font-size: 12px; font-weight: 600; padding-bottom: 12px; }
+.records .agenda-month, .records .agenda-week { gap: 6px; }
+.records .agenda-day { border: 0; background: #f4faf7; border-radius: 8px; min-height: 112px; padding: 8px; }
+.records .agenda-day h2 button { border: 0; padding: 4px; background: transparent; color: #56615c; border-radius: 50%; font-size: 12px; }
+.records .agenda-day h2 button[aria-pressed="true"] { background: #00513c; color: white; width: auto; min-width: 28px; text-align: center; }
+.records .agenda-day ul { list-style: none; padding: 0; margin: 0; }
+.records .agenda-day li { background: #e4f1ec; border-radius: 5px; padding: 5px 7px; margin: 5px 0; border-left: 3px solid #176b52; }
+.records .agenda-day li a { font-size: 11px; font-weight: 600; text-decoration: none; }
+.records .agenda-day li p { font-size: 10px; color: #56615c; }
+.records .event-list { grid-template-columns: minmax(0,1fr); }
+.records .event-list > li { background: white; border: 0; border-left: 4px solid #176b52; border-radius: 12px; padding: 20px 24px; }
+.records .event-list h2 { font-size: 18px; margin: 12px 0 8px; }
+.records .event-list p { font-size: 13px; color: #56615c; }
+.records .record-badge { border: 0; background: #e4f1ec; color: #00513c; font-size: 11px; padding: 5px 10px; }
+.records form[aria-label="Cadastro de evento"] { background: transparent; border: 0; padding: 0; }
+.records form[aria-label="Cadastro de evento"] > fieldset { padding: 0; border: 0; }
+.records form[aria-label="Cadastro de evento"] > fieldset > legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.records .record-form-section { background: white; border-radius: 12px; border-left: 5px solid #00513c; padding: 24px; margin: 20px 0; box-shadow: 0 1px 6px #131e1b05; }
+.records .record-form-section:nth-of-type(2) { border-left-color: #56615c; }
+.records .record-form-section h2 { font-size: 18px; display: flex; align-items: center; gap: 10px; margin: 0 0 24px; }
+.records .record-form-section h2 span { background: #e4f1ec; color: #00513c; display: inline-grid; place-items: center; height: 26px; width: 26px; border-radius: 50%; font-size: 12px; }
+.records .record-form-section label { font-size: 13px; font-weight: 500; }
+.records .record-form-section input:not([type="checkbox"]), .records .record-form-section select { border: 1px solid transparent; border-radius: 8px; background: #eaf6f1; min-height: 44px; padding: 10px 12px; color: #131e1b; font: inherit; }
+.records .record-form-section input:focus, .records .record-form-section select:focus { outline: 2px solid #00513c55; outline-offset: 1px; background: white; }
+.records .record-form-section p, .records form > fieldset > p { color: #56615c; font-size: 12px; line-height: 1.6; }
+.records .record-form-section details { background: #f4faf7; border: 0; border-radius: 8px; }
+.records .record-panel { background: white; border: 0; border-radius: 16px; padding: 28px; }
+.records .record-panel > h2 { font-size: 24px; margin: 16px 0; }
+.records .record-panel dl { display: grid; grid-template-columns: minmax(130px, 1fr) 2fr; gap: 12px 24px; background: #eaf6f1; padding: 24px; border-radius: 12px; }
+.records .record-panel dt { font-size: 13px; font-weight: 500; color: #56615c; }
+.records .record-panel dd { font-size: 14px; margin: 0; }
+.records .record-panel > a { display: inline-flex; margin: 10px 16px 10px 0; }
+.visitor-registration { max-width: 720px; margin: 24px auto; padding: 28px; background: white; border-radius: 16px; color: #131e1b; }
+.visitor-registration h1 { font-size: 28px; }
+.visitor-registration p { color: #56615c; line-height: 1.6; font-size: 14px; }
+.visitor-registration fieldset { border: 0; padding: 0; margin-top: 24px; }
+.visitor-registration label { display: grid; gap: 8px; margin: 16px 0; font-size: 13px; }
+.visitor-registration input { background: #eaf6f1; border: 0; border-radius: 8px; padding: 12px; min-width: 0; }
+.visitor-registration button { background: #00513c; color: white; padding: 12px 18px; border: 0; border-radius: 8px; }
+.events-panel .event-list > li { background: white; border: 0; border-radius: 12px; padding: 24px; }
+.events-panel .event-list h2 { font-size: 18px; }
+@media (max-width: 640px) {
+  .records .record-page-heading h1, .visitor-registration h1 { font-size: 24px; line-height: 32px; }
+  .records .agenda-calendar { padding: 14px; border-radius: 12px; }
+  .records .agenda-period-heading { align-items: flex-start; flex-direction: column; gap: 0; }
+  .records .agenda-period-heading h2 { font-size: 18px; }
+  .records .agenda-month { gap: 3px; }
+  .records .agenda-month .agenda-day { min-height: 65px; padding: 3px; }
+  .records .agenda-count { font-size: 9px; color: #56615c; }
+  .records .agenda-weekdays { font-size: 10px; }
+  .records .agenda-view-switch { width: 100%; box-sizing: border-box; }
+  .records .agenda-view-switch button { flex: 1; }
+  .records .record-create-action a { width: 100%; text-align: center; }
+  .records .record-form-section, .records .record-panel { padding: 18px; }
+  .records .record-panel dl { grid-template-columns: 1fr; gap: 6px; padding: 16px; }
+  .records .record-panel dd { margin-bottom: 12px; }
+  .records .record-actions { background: white; border-radius: 12px; padding: 16px; }
+  .visitor-registration { padding: 20px; margin: 16px 0; }
+}
+.records .record-list-item { display: flex; align-items: flex-start; gap: 20px; }
+.records .record-date-tile { display: grid; place-items: center; flex: 0 0 64px; min-height: 72px; border-radius: 12px; background: #eaf6f1; color: #00513c; padding: 6px; }
+.records .record-date-tile strong { font-size: 26px; line-height: 32px; }
+.records .record-date-tile span { font-size: 11px; text-transform: uppercase; }
+.records .record-list-content { min-width: 0; }
+@media (max-width: 640px) {
+  .records .record-list-item { gap: 12px; padding: 16px; }
+  .records .record-date-tile { flex-basis: 48px; min-height: 60px; }
+  .records .record-date-tile strong { font-size: 22px; }
+}
+.app-content .records .agenda-workspace>button{float:right;background:white;color:#00513c;border:1px solid #d9e5df;box-shadow:none;font-size:12px;min-height:40px}

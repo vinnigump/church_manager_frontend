@@ -42,10 +42,10 @@ export function OwnExecution({ id, person }: { id: string; person: string }) {
     const run = value ?? data
     if (!run) return <p>Este percurso não está disponível para execução. <Link to={`/minhas-trilhas/${id}`}>Consultar o registro do percurso</Link>.</p>
     return <>
-      <h2>{run.name}</h2><p>{stateLabel[run.status] ?? 'Situação em conferência'}</p>
+      <div className="trail-run-summary"><span className="trail-eyebrow">Seu percurso</span><h2>{run.name}</h2><p>{stateLabel[run.status] ?? 'Situação em conferência'}</p></div>
       {blockLabel(run.blockReason) && <p role="status">{blockLabel(run.blockReason)}</p>}
       <button type="button" disabled={write.busy || eventBusy || write.blocked} onClick={() => void write.run(signal => trails.refresh(id, person, signal), setValue, 'Andamento conferido.')}>Conferir andamento</button>
-      <ol className="event-list">{run.steps.map(s => <li key={s.id}>
+      <ol className="event-list trail-timeline">{run.steps.map(s => <li key={s.id} data-step-state={s.status}>
         <h3>{s.position}. {s.name}</h3><p>{kindLabel[s.kind]} · {stateLabel[s.status] ?? 'Situação em conferência'}</p>
         <p className="trail-instructions">{s.instructions}</p>
         {s.satisfactionMode === 'WAIVED' && <p>Requisito dispensado pela equipe.</p>}

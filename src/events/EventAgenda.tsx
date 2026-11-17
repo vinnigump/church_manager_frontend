@@ -38,11 +38,12 @@ function Calendar({ church, month }: { church: string; month: boolean }) {
     }
     const events = (date: string) => byDay.get(date) ?? []
     const links = (date: string) => events(date).map(v => <EventLink key={v.id} value={v} church={church} date={date} agenda={agenda} search={search}/>)
-    return <>
-      <p>Fuso da igreja: <strong>{agenda.timeZone}</strong> · Hoje: {agenda.today}</p>
+    return <section className="agenda-calendar" aria-label="Calendário de eventos">
+      <div className="agenda-period-heading"><h2>{new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${agenda.anchorDate}T00:00:00Z`))}</h2><p>Fuso da igreja: <strong>{agenda.timeZone}</strong> · Hoje: {agenda.today}</p></div>
       <p role="status">{agenda.total} eventos no período · {agenda.startsOn} até {addDays(agenda.endsOnExclusive, -1)}</p>
       <nav aria-label="Período da agenda"><button onClick={() => navigate(adjacent(-1))}>Anterior</button><button onClick={() => { navigate(); query.refresh() }}>Hoje</button><button onClick={() => navigate(adjacent(1))}>Próximo</button></nav>
       {!agenda.items.length && <p>Nenhum evento neste período.</p>}
+      {month && <div className="agenda-weekdays" aria-hidden="true">{['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(label => <span key={label}>{label}</span>)}</div>}
       <div className={month ? 'agenda-month' : 'agenda-week'}>
         {month && Array.from({ length: (new Date(`${days[0]}T00:00:00Z`).getUTCDay() + 6) % 7 }, (_, i) => <div key={`blank-${i}`} aria-hidden="true" className="agenda-spacer"/>)}
         {days.map(date => <section key={date} className="agenda-day" aria-label={civilLabel(date)}>
@@ -54,15 +55,15 @@ function Calendar({ church, month }: { church: string; month: boolean }) {
       {month && <section className="agenda-selected" aria-label="Eventos do dia selecionado"><h2>{civilLabel(day)}</h2>
         {events(day).length ? <ul>{links(day)}</ul> : <p>Nenhum evento neste dia.</p>}
       </section>}
-    </>
+    </section>
   }}</ReadResult>
 }
 export default function EventAgenda({ church, list }: { church: string; list: ReactNode }) {
   const [params, setParams] = useSearchParams(), selected = params.get('view')
   const view = selected === 'month' || selected === 'list' ? selected : 'week'
-  return <><nav aria-label="Visualização dos eventos">{(['week', 'month', 'list'] as const).map(value => <button key={value} aria-pressed={view === value} onClick={() => {
+  return <div className="agenda-workspace"><nav className="agenda-view-switch" aria-label="Visualização dos eventos">{(['week', 'month', 'list'] as const).map(value => <button key={value} aria-pressed={view === value} onClick={() => {
     const next = new URLSearchParams(params); next.set('view', value); next.delete('page'); next.delete('day'); setParams(next)
   }}>{{ week: 'Semana', month: 'Mês', list: 'Lista' }[value]}</button>)}</nav>
     {view === 'list' ? list : <Calendar key={`${church}:${view}`} church={church} month={view === 'month'}/>}
-  </>
+  </div>
 }

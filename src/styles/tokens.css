@@ -1,25 +1,13 @@
+
 :root {
-  color-scheme: light;
-  --rio-font-family: 'Segoe UI', system-ui, sans-serif;
-  --rio-color-background: #f4f7f6;
-  --rio-color-surface: #ffffff;
-  --rio-color-text: #213c35;
-  --rio-color-muted: #61756c;
-  --rio-color-primary: #155c50;
-  --rio-color-on-primary: #ffffff;
-  --rio-color-primary-hover: #10483e;
-  --rio-color-soft: #e8f3ed;
-  --rio-color-border: #d9e5de;
-  --rio-color-input-border: #647c78;
-  --rio-color-focus: #976000;
-  --rio-color-error: #9b2424;
-  --rio-color-error-background: #fff0ef;
-  --rio-space-1: .25rem;
-  --rio-space-2: .5rem;
-  --rio-space-3: .75rem;
-  --rio-space-4: 1rem;
-  --rio-space-5: 1.5rem;
-  --rio-space-6: 2rem;
-  --rio-radius-control: 8px;
-  --rio-radius-card: 17px;
+ color-scheme:light;
+ --rio-font-family:'Inter Variable', 'Inter',system-ui,sans-serif;
+ --rio-color-background:#f0fcf7; --rio-color-surface:#fff; --rio-color-text:#131e1b;
+ --rio-color-muted:#56615c; --rio-color-primary:#00513c; --rio-color-on-primary:#fff;
+ --rio-color-primary-hover:#176b52; --rio-color-soft:#eaf6f1; --rio-color-border:#d9e5df;
+ --rio-color-input-border:#bec9c2; --rio-color-focus:#176b52; --rio-color-error:#ba1a1a;
+ --rio-color-error-background:#ffdad6;
+ --rio-space-1:.25rem; --rio-space-2:.5rem; --rio-space-3:.75rem; --rio-space-4:1rem; --rio-space-5:1.5rem; --rio-space-6:2rem;
+ --rio-radius-control:8px; --rio-radius-card:16px;
+ --rio-shadow-card:0 2px 8px rgb(19 30 27 / .035);
 }

@@ -4,6 +4,8 @@ import { LoginRedirect, useAuth } from '../auth'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { listOwnTrails, listOwnTrailTasks, readOwnTrail, type OwnTrail, type OwnTrailTask } from './own-trail-api'
+import TrailPageHeader from './TrailPageHeader'
+import './trails.css'
 import '../events/events.css'
 import '../events/occurrences.css'
 
@@ -18,7 +20,7 @@ function List() {
     <p role="status">{data.total} percursos · Página {page + 1}</p>
     {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}>
       <h2>{v.name}</h2><p>{v.churchName} · {trailLabel[v.status]}</p>
-      <p>{v.completedTaskCount} de {v.taskCount} etapas com conclusão registrada.</p>
+      <p>{v.completedTaskCount} de {v.taskCount} etapas com conclusão registrada.</p><progress className="trail-progress" value={v.completedTaskCount} max={Math.max(1, v.taskCount)} aria-label="Etapas concluídas"/>
       <Link to={`/minhas-trilhas/${v.id}`}>Acompanhar {v.name}</Link>
     </li>)}</ul> : <p>Você ainda não tem percursos registrados.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das minhas trilhas"/>
@@ -36,7 +38,7 @@ function Detail({ id }: { id: string }) {
     <p><Link to={`/minhas-trilhas/${id}/atividades`}>Abrir atividades do percurso</Link></p>
     <p>Versão {trail.versionNumber} · {trail.completedTaskCount} de {trail.taskCount} etapas com conclusão registrada.</p>
     <p>Acompanhe as etapas abaixo. Uma atividade pode ser realizada por outra pessoa responsável pelo seu percurso.</p>
-    {tasks.items.length ? <ol className="event-list">{tasks.items.map(v => <li key={v.id}>
+    {tasks.items.length ? <ol className="event-list trail-timeline">{tasks.items.map(v => <li key={v.id} data-step-state={v.status}>
       <h3>{v.position}. {v.name}</h3><p>{typeLabel[v.type]} · {v.required ? 'Obrigatória' : 'Opcional'}</p><p>{taskLabel[v.status]}</p>
     </li>)}</ol> : <p>Nenhuma etapa nesta página.</p>}
     <p>A conclusão da trilha depende dos requisitos de cada etapa.</p>
@@ -50,7 +52,7 @@ export default function OwnTrailPages({ detail = false }: { detail?: boolean }) 
   if (scope.account !== account) { setScope({ account, session: scope.session + 1 }); return null }
   if (!account) return <LoginRedirect/>
   const title = detail ? 'Meu percurso' : 'Minhas trilhas'
-  return <div className="occurrences"><h1 data-page-title={title}>{title}</h1>
+  return <div className="occurrences sequential-trails own-trails"><TrailPageHeader title={title} description="Acompanhe as etapas da sua jornada e os próximos passos do seu percurso."/>
     <nav aria-label="Navegação das minhas trilhas"><Link to="/">Voltar ao Início</Link>{detail && <Link to="/minhas-trilhas">Todas as minhas trilhas</Link>}</nav>
     <div key={`${scope.session}:${refresh}:${trailId}:${detail}`}>
       {detail && !isUuid(trailId) ? <p role="alert">Acesso inválido ao percurso. Abra novamente sua lista de trilhas.</p> : detail ? <Detail id={trailId}/> : <List/>}

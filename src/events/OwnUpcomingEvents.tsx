@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
+import UiIcon from '../components/UiIcon'
 import { ReadResult, useRead } from '../security/SecurityPages'
 import { instantNanos } from './occurrence-api'
 import { ownUpcomingEvents, type UpcomingEvent } from './own-upcoming-api'
 
 function EventCard({ value, reference }: { value: UpcomingEvent; reference: string }) {
   const format = (instant: string) => new Intl.DateTimeFormat('pt-BR', { timeZone: value.timeZone, dateStyle: 'short', timeStyle: 'short' }).format(new Date(instant))
-  return <li><h3>{value.name}</h3><p>{value.churchName}</p>
+  const start = new Date(value.startsAt)
+  return <li><div className="home-event-date" aria-hidden="true"><strong>{new Intl.DateTimeFormat('pt-BR',{day:'2-digit',timeZone:value.timeZone}).format(start)}</strong><span>{new Intl.DateTimeFormat('pt-BR',{month:'short',timeZone:value.timeZone}).format(start)}</span></div>
+    <div className="home-event-content"><span className="home-event-church">{value.churchName}</span><h3>{value.name}</h3>
     {instantNanos(value.startsAt) <= instantNanos(reference) && <p className="home-event-ongoing"><strong>Em andamento</strong></p>}
-    <p><time dateTime={value.startsAt}>{format(value.startsAt)}</time> até <time dateTime={value.endsAt}>{format(value.endsAt)}</time> ({value.timeZone})</p>
-    <p>{value.location ?? 'Local ainda não informado'}</p><Link to={`/eventos/participar/igrejas/${value.churchId}`}>Calendário de {value.churchName}</Link>
+    <p className="home-event-meta"><UiIcon kind="events"/><span><time dateTime={value.startsAt}>{format(value.startsAt)}</time> até <time dateTime={value.endsAt}>{format(value.endsAt)}</time> ({value.timeZone})</span></p>
+    <p>{value.location ?? 'Local ainda não informado'}</p><Link to={`/eventos/participar/igrejas/${value.churchId}`}>Calendário de {value.churchName}<UiIcon kind="arrow"/></Link></div>
   </li>
 }
 function Preview() {

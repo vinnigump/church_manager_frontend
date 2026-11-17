@@ -1,0 +1,6 @@
+export type IconKind = 'home' | 'events' | 'ministries' | 'reception' | 'account' | 'login' | 'task' | 'arrow' | 'search' | 'church'
+export default function UiIcon({kind}:{kind:IconKind}) {
+ return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+ {kind==='home'?<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z"/>:kind==='events'?<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></>:kind==='ministries'?<><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a6 6 0 0 0-3-5"/></>:kind==='reception'?<><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M9 5V2h6v3M8 10h3v3H8Zm5 6h3v2h-3M8 17h2m5-7h1v3"/></>:kind==='account'?<><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></>:kind==='task'?<><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2h6v4H9Zm0 10 2 2 4-4M9 17h6"/></>:kind==='arrow'?<path d="M5 12h14m-5-5 5 5-5 5"/>:kind==='search'?<><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></>:kind==='church'?<><path d="M12 2v6M9 5h6M4 21V12l8-5 8 5v9ZM10 21v-6h4v6"/></>:<path d="M14 3h6v18h-6M3 12h12m-4-4 4 4-4 4"/>}
+ </svg>
+}

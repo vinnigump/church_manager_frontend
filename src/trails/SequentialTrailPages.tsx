@@ -8,6 +8,7 @@ import { isUuid } from '../validation'
 import { Enroll, OwnExecution } from './SequentialOwnPages'
 import TrailModelManagement from './TrailModelManagement'
 import ManagedTrailExecutions from './ManagedTrailExecutions'
+import TrailPageHeader from './TrailPageHeader'
 import { Query } from './TrailWidgets'
 import '../events/events.css'
 import '../events/occurrences.css'
@@ -21,7 +22,7 @@ export default function SequentialTrailPages({ view }: { view: View }) {
   if (!account) return <LoginRedirect/>
   const kind = view === 'denomination' ? 'DENOMINATION' : 'CHURCH', scopeId = kind === 'CHURCH' ? churchId : denominationId
   const title = view === 'enroll' ? 'Participar de uma trilha' : view === 'own' ? 'Atividades do percurso' : view === 'access' ? 'Gestão de trilhas' : view === 'denomination' ? 'Modelos da denominação' : 'Trilhas da igreja'
-  return <div className="occurrences sequential-trails"><h1 data-page-title={title}>{title}</h1>
+  return <div className="occurrences sequential-trails"><TrailPageHeader title={title} description={view === 'own' ? 'Acompanhe seu percurso e realize cada atividade disponível.' : view === 'enroll' ? 'Escolha a igreja e conheça as trilhas disponíveis para você.' : 'Organize modelos, etapas e acompanhe os percursos da igreja.'}/>
     <nav aria-label="Navegação das trilhas"><Link to="/minhas-trilhas">Minhas trilhas</Link><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link>{view !== 'access' && <Link to="/trilhas/gestao">Acesso da equipe</Link>}</nav>
     <div key={`${session.generation}:${view}:${scopeId}:${trailId}`}>
       {view === 'enroll' ? <Enroll person={account.personId}/> : view === 'access' ? <ManagementAccess/> : view === 'own' ? isUuid(trailId) ? <OwnExecution id={trailId} person={account.personId}/> : <p role="alert">Abra o percurso pela lista de suas trilhas.</p> : !isUuid(scopeId) ? <p role="alert">Abra a gestão de trilhas pelo acesso da equipe.</p> :

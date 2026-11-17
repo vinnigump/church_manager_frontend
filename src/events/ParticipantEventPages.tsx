@@ -7,6 +7,7 @@ import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { confirmRegistration } from './participation-api'
 import { cancelOwnRegistration, eventChurches, ownEventRegistrations, ownOccurrenceOption, participantEvents, type OwnEventRegistration, type PublicEvent } from './participant-events-api'
 import './events.css'
+import './stitch-events.css'
 
 const eventState = (value: string) => ({ AVAILABLE: 'Disponível', PUBLISHED: 'Disponível', IN_PROGRESS: 'Em andamento', COMPLETED: 'Concluído', CANCELLED: 'Cancelado' }[value] ?? value)
 const registrationState = (value: string) => ({ CONFIRMED: 'Confirmada', PENDING: 'Pendente', WAITLISTED: 'Em espera', CANCELLED: 'Cancelada' }[value] ?? value)

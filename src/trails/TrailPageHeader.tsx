@@ -1,0 +1,1 @@
+export default function TrailPageHeader({ title, description }: { title: string; description: string }) { return <header className="trail-page-header"><span className="trail-eyebrow">Comunhão e discipulado</span><h1 data-page-title={title}>{title}</h1><p>{description}</p></header> }
