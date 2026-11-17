@@ -6,6 +6,7 @@ import RegistrationPage from './people/RegistrationPage'
 import PersonBasicEditPage from './people/PersonBasicEditPage'
 import PeopleDirectoryPages from './people/PeopleDirectoryPages'
 import AccountPage from './AccountPage'
+import ReportPages from './reports/ReportPages'
 import HomePage from './HomePage'
 import OwnTrailPages from './trails/OwnTrailPages'
 import SequentialTrailPages from './trails/SequentialTrailPages'
@@ -85,6 +86,8 @@ export default function App() {
     <Route path="questionarios/igrejas/:churchId/respostas/:applicationId" element={<QuestionnairePages view="response" />}/>
     <Route path="questionarios/igrejas/:churchId/exportar" element={<QuestionnairePages view="export" />}/>
     <Route path="conta" element={<AccountPage />}/>
+    <Route path="relatorios" element={<ReportPages />}/>
+    <Route path="relatorios/igrejas/:churchId" element={<ReportPages directory />}/>
     <Route path="conta/senha" element={<PasswordPage />}/>
     <Route path="minhas-trilhas" element={<OwnTrailPages />}/>
     <Route path="minhas-trilhas/participar" element={<SequentialTrailPages view="enroll" />}/>
