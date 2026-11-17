@@ -47,6 +47,7 @@ export async function createBadge(church: string, label: string, signal: AbortSi
   if (result.label !== label.trim() || result.state !== 'AVAILABLE') throw invalid(); return result
 }
 export async function scanBadge(church: string, code: string, signal: AbortSignal, client: ApiClient = api): Promise<Scan> {
+  code = code.trim().toLowerCase()
   if (!isUuid(code)) throw new Error('Leia o QR Code do crachá ou cole seu código completo.')
   const v = await client.request<unknown>(`${base(church)}/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ qrCode: code }), signal })
   if (!object(v)) throw invalid(); const b = badge(v.badge), open = v.openDelivery === null ? null : delivery(v.openDelivery, church)

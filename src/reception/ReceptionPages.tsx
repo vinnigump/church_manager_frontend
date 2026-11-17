@@ -50,7 +50,7 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
 }
 function Workspace({ church }: { church: string }) {
   const [mode, setMode] = useState<'issue' | 'close' | 'badges'>('issue'), [epoch, setEpoch] = useState(0), [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState(''), [lastBadge, setLastBadge] = useState<Badge | null>(null), [lost, setLost] = useState<Delivery | null>(null)
+  const [message, setMessage] = useState(''), [lastBadge, setLastBadge] = useState<Badge | null>(null), [lost, setLost] = useState<Delivery | null>(null), [lossEpoch, setLossEpoch] = useState(0)
   const loadName = useCallback(async (signal: AbortSignal) => (await discoverResources(signal)).find(v => v.resourceType === 'CHURCH' && v.resourceId === church)?.label ?? 'Igreja selecionada', [church])
   const name = useRead(church, loadName)
   const done = useCallback((text: string, badge?: Badge) => { setBusy(false); setMessage(text); setLastBadge(badge ?? null); setLost(null); setEpoch(v => v + 1) }, [])
@@ -65,8 +65,8 @@ function Workspace({ church }: { church: string }) {
           <button aria-pressed={mode === 'close'} onClick={() => { setMode('close'); setLost(null) }}>Devolver ou registrar perda</button>{' '}
           <button aria-pressed={mode === 'badges'} onClick={() => { setMode('badges'); setLost(null) }}>Crachás e QR Codes</button>
         </nav>
-        {mode === 'issue' ? <DeliverForm church={church} onBusy={setBusy} onDone={done}/> : mode === 'close' ? <CloseForm key={lost?.id ?? 'scan'} church={church} onBusy={setBusy} onDone={done} lost={lost}/> : <BadgesForm church={church} onBusy={setBusy} onDone={done}/>}
-        <Pending church={church} onLoss={value => { if (!busy) { setLost(value); setMode('close') } }}/>
+        {mode === 'issue' ? <DeliverForm church={church} onBusy={setBusy} onDone={done}/> : mode === 'close' ? <CloseForm key={`${lost?.id ?? 'scan'}:${lossEpoch}`} church={church} onBusy={setBusy} onDone={done} lost={lost}/> : <BadgesForm church={church} onBusy={setBusy} onDone={done}/>}
+        <Pending church={church} onLoss={value => { if (!busy) { setLost(value); setLossEpoch(v => v + 1); setMode('close') } }}/>
       </fieldset>
     </ResourceAccess>
   </>
