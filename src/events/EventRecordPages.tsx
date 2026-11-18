@@ -8,6 +8,9 @@ import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { editableRecord, listRecords, readRecord, saveRecord, type EventRecord } from './record-api'
 import { changeOffset, fieldsForRecord, recordInput, visibilityLabel, type RecordFields } from './record-form'
 import RecordForm from './RecordForm'
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
+import { eventDurationLabel } from './event-duration'
+import { schedulingInput, submitRecord, type SchedulingInput } from './submission-api'
 import EventAgenda from './EventAgenda'
 import { readAgendaReference } from './agenda-api'
 import { recordRoute, recordSearch, recordStatusLabel } from './record-presentation'
@@ -17,7 +20,7 @@ import './stitch-events.css'
 
 function Dates({ value }: { value: EventRecord; timeZone: string }) {
   const display = (instant: string) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo', hour12: false }).format(new Date(instant))
-  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Término: <time dateTime={value.endsAt}>{display(value.endsAt)}</time> (horário de Brasília)</p>
+  return <p>Início: <time dateTime={value.startsAt}>{display(value.startsAt)}</time> · Duração: {eventDurationLabel(value.startsAt,value.endsAt)} (horário de Brasília)</p>
 }
 function List({ church }: { church: string }) {
   const [search, setSearch] = useSearchParams(), rawPage = search.get('page')
@@ -60,6 +63,7 @@ function Detail({ church, id }: { church: string; id: string }) {
       <dt>Público</dt><dd>{v.audience ? visibilityLabel[v.audience.visibility] : 'Ainda não configurado'}</dd>
     </dl>
     {v.draft && <p>Este rascunho fica oculto para os participantes.</p>}
+    {v.recurrenceRuleId&&<p><Link to={`/eventos/igrejas/${church}/planejamento/series/${v.recurrenceRuleId}`}>Repetições do evento</Link></p>}
     {editableRecord(v) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={church} optional>
       <Link to={`${recordRoute(church)}/${id}/editar${recordSearch(search)}`}>Editar evento</Link>
       <Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/inscricao-publica`}>Inscrição sem cadastro prévio</Link>
@@ -100,6 +104,7 @@ function Editor({ church, id }: { church: string; id?: string }) {
   // Draft and command lock live above guards; focus reauthorization cannot reset them.
   const [draft, setDraft] = useState<Draft | null>(null), [epoch, setEpoch] = useState(0), [attempt, setAttempt] = useState(0)
   const [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false), [message, setMessage] = useState(''), [saved, setSaved] = useState<EventRecord | null>(null)
+  const [submissionId]=useState(()=>crypto.randomUUID())
   const pending = useRef<AbortController | null>(null)
   useEffect(() => () => pending.current?.abort(), [])
   useEffect(() => { const refresh = () => setEpoch(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
@@ -108,24 +113,27 @@ function Editor({ church, id }: { church: string; id?: string }) {
   const offset = (value: string) => { if (draft) change(changeOffset(draft.fields, value)) }
   async function save(asDraft: boolean) {
     if (!draft || pending.current || blocked || saved) return
-    let input
-    try { input = recordInput(draft.fields, asDraft, draft.before) } catch (e) { setMessage(e instanceof Error ? e.message : 'Revise os dados.'); return }
+    let input, options:SchedulingInput|null=null
+    try { input = recordInput(draft.fields, asDraft, draft.before);options=!draft.before&&draft.fields.scheduling?schedulingInput(draft.fields.scheduling,input):null } catch (e) { setMessage(e instanceof Error ? e.message : 'Revise os dados.'); return }
     const controller = new AbortController(); pending.current = controller; setBusy(true); setMessage('')
     try {
-      const v = await saveRecord(church, input, draft.before, controller.signal)
-      if (!controller.signal.aborted) { setSaved(v); setMessage(v.draft ? 'Rascunho salvo.' : `Evento salvo: ${recordStatusLabel(v.status)}.`) }
+      const extended=options&&(options.repeat||options.registrationWindow||options.visitorRegistration)
+      const batch=options&&extended?await submitRecord(church,submissionId,input,options,controller.signal):null
+      const v=batch?batch.items[0]:await saveRecord(church, input, draft.before, controller.signal)
+      if (!controller.signal.aborted) { setSaved(v); setMessage(batch?`${batch.items.length} evento(s) salvo(s)${options?.registrationWindow?' com período de inscrição configurado':''}. ${v.draft?'Rascunhos ficam ocultos.':'Disponibilidade conforme o público e o horário de cada evento.'}`:v.draft ? 'Rascunho salvo.' : `Evento salvo: ${recordStatusLabel(v.status)}.`) }
     } catch (e) {
       if (!controller.signal.aborted) { setBlocked(true); setMessage(`${e instanceof ApiError ? e.message : 'Não foi possível confirmar a gravação.'} ${id ? 'Recarregue e confira os dados antes de tentar novamente.' : 'Confira a lista de eventos antes de iniciar outro cadastro; o evento pode ter sido salvo.'}`) }
     } finally { if (pending.current === controller) pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
   return <ResourceAccess key={attempt} permissionCode={id ? 'EVENT_EDIT' : 'EVENT_CREATE'} resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
+    <UnsavedChangesGuard dirty={Boolean(!saved&&draft&&JSON.stringify(draft.fields)!==JSON.stringify(fieldsForRecord(draft.before)))}/>
     {message && <p role={saved ? 'status' : 'alert'}>{message}</p>}
     {busy && <p role="status" aria-busy="true">Salvando evento…</p>}
     {saved ? <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={church} optional fallback={<p>Cadastro concluído.</p>}>
       <Link to={`${recordRoute(church)}/${saved.id}${recordSearch(search)}`}>Ver evento salvo</Link>
     </ResourceAccess> : <>
-      <button type="button" disabled={busy} onClick={() => { setDraft(null); setBlocked(false); setMessage(''); setAttempt(v => v + 1); setEpoch(v => v + 1) }}>Descartar alterações e recarregar</button>
       <EditorData church={church} id={id} control={{ draft, observe, busy, blocked, change, offset, save, epoch }}/>
+      <button className="read-refresh" type="button" disabled={busy} onClick={() => { if(draft&&JSON.stringify(draft.fields)!==JSON.stringify(fieldsForRecord(draft.before))&&!window.confirm('Descartar as alterações não salvas?'))return;setDraft(null); setBlocked(false); setMessage(''); setAttempt(v => v + 1); setEpoch(v => v + 1) }}>Descartar alterações e recarregar</button>
     </>}
   </ResourceAccess>
 }

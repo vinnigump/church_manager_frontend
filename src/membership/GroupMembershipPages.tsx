@@ -4,6 +4,7 @@ import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
+import { ResourceAccess } from '../authorization'
 import { useAuth } from '../auth'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
@@ -77,9 +78,9 @@ function Detail({ context, id, page, setPage, command }: { context: GroupContext
     <h2>{item.displayName}</h2><p>Estado {item.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}.</p>
     <p>Vinculado em {formatDateTime(item.linkedAt)} por {item.linkedByName ?? 'Equipe autorizada'}.</p>{item.releasedAt && <p>Desvinculado em {formatDateTime(item.releasedAt)} por {item.releasedByName ?? 'Equipe autorizada'}.</p>}
     <Release key={`${item.id}:${item.revision}`} item={item} command={command}/>
-    <h2>Histórico autorizado</h2><p>Consulta de vínculo e histórico ocorre em pedidos separados; alterações concorrentes podem aparecer entre eles. O servidor revalida a revisão antes de desvincular.</p>
+    <h2>Histórico autorizado</h2><p>Confira as entradas e saídas registradas para esta pessoa.</p>
     <p>Página {history.page + 1} · {history.total} registros.</p>
-    {history.items.length ? <ol>{history.items.map(entry => <li key={entry.id}><h3>{entry.action === 'LINKED' ? 'Ingresso' : 'Saída registrada'}</h3><p>{entry.beforeStatus ?? 'Sem estado anterior'} → {entry.afterStatus}.</p><p>{formatDateTime(entry.occurredAt)} · por {entry.actorName ?? 'Equipe autorizada'}.</p><p>Motivo: {entry.reason ?? 'Não informado'}</p></li>)}</ol> : <p>Nenhum registro de histórico nesta página.</p>}
+    {history.items.length ? <ol>{history.items.map(entry => <li key={entry.id}><h3>{entry.action === 'LINKED' ? 'Ingresso' : 'Saída registrada'}</h3><p>{entry.beforeStatus === 'ACTIVE' ? 'Ativo' : entry.beforeStatus === 'INACTIVE' ? 'Inativo' : 'Sem vínculo anterior'} → {entry.afterStatus === 'ACTIVE' ? 'Ativo' : 'Inativo'}.</p><p>{formatDateTime(entry.occurredAt)} · por {entry.actorName ?? 'Equipe autorizada'}.</p><p>Motivo: {entry.reason ?? 'Não informado'}</p></li>)}</ol> : <p>Nenhum registro de histórico nesta página.</p>}
     <Pagination page={page} total={history.total} setPage={setPage} label="Páginas do histórico do vínculo"/>
   </>}</ReadResult>
 }
@@ -105,7 +106,7 @@ function WorkspaceData({ context, id, command }: { context: GroupContext; id?: s
     {command.message && <p role={command.failed ? 'alert' : 'status'}>{command.message}</p>}{command.busy && <p role="status" aria-busy="true">Registrando alteração…</p>}
     <button disabled={command.busy} onClick={command.refresh}>Atualizar dados e reavaliar acesso</button>
     {query.state.kind === 'loading' ? <p role="status">Carregando unidade…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <>
-      <h2>{query.state.data.name}</h2><p>{query.state.data.churchName}{context.kind === 'DEPARTMENT' && ` · Ministério ${query.state.data.ministryName}`}</p>{!query.state.data.active && <p>Unidade inativa. Consulte os vínculos e seu histórico.</p>}
+      <h2>{query.state.data.name}</h2><nav className="ministry-tabs" aria-label="Ações da unidade"><ResourceAccess permissionCode="MINISTRY_UNIT_MANAGE" resourceType="CHURCH" resourceId={context.churchId} optional><Link to={`/ministerios/estrutura/igrejas/${context.churchId}`}>Organizar departamentos</Link></ResourceAccess><ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={context.churchId} optional><Link to={`/ministerios/igrejas/${context.churchId}/escalas`}>Escalas da igreja</Link></ResourceAccess><ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={context.churchId} optional><Link to={`/tarefas/igrejas/${context.churchId}`}>Tarefas da igreja</Link></ResourceAccess></nav><p>{query.state.data.churchName}{context.kind === 'DEPARTMENT' && ` · Ministério ${query.state.data.ministryName}`}</p>{!query.state.data.active && <p>Unidade inativa. Consulte os vínculos e seu histórico.</p>}
       {id ? <><p><Link to={groupRoute(context)}>Voltar aos integrantes</Link></p><Detail context={context} id={id} page={page} setPage={setPage} command={command}/></> : <>
         {query.state.data.active && <Include context={context} command={command}/>}
         <form onSubmit={e => { e.preventDefault(); setPage(0); setFilter(field || undefined) }}><fieldset disabled={command.busy}><label>Estado do vínculo<select value={field} onChange={e => setField(e.target.value as GroupStatus | '')}><option value="">Todos</option><option value="ACTIVE">Ativos</option><option value="INACTIVE">Inativos</option></select></label><button>Aplicar filtro de vínculos</button></fieldset></form>

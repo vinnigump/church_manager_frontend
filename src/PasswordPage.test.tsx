@@ -1,3 +1,4 @@
+import { browserSessionResponse } from './test-browser-session'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -10,13 +11,13 @@ const json = (value: unknown) => new Response(JSON.stringify(value))
 afterEach(() => api.clear())
 async function show() {
   render(<MemoryRouter initialEntries={['/conta/senha']}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-  fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+  fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
   fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'old-password' } })
   fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
   await screen.findByLabelText('Senha atual')
 }
 function server(status = 204) {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CUSTOM-CSRF', token: 'controlled-token' })
     return new Response(null, { status })
@@ -47,19 +48,19 @@ describe('alteração da própria senha', () => {
   it.each(['short', 'é'.repeat(37), ' '.repeat(12)])('valida limite e bytes da nova senha', async password => {
     const fetcher = server(); await show(); submit(password)
     expect(await screen.findByRole('alert')).toHaveTextContent('até 72 bytes')
-    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenCalledTimes(4)
     expect(screen.getByLabelText('Senha atual')).toHaveValue('')
   })
   it('confirmação diferente não envia comando', async () => {
     const fetcher = server(); await show(); submit('new-password-123', 'other-password')
     expect(screen.getByRole('alert')).toHaveTextContent('confirmação')
-    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenCalledTimes(4)
   })
   it.each([400, 403, 404, 409])('erro conhecido %s não anuncia sucesso nem repete automaticamente', async status => {
     const fetcher = server(status); await show(); submit()
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Alterar senha' })).toBeEnabled()
-    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(fetcher).toHaveBeenCalledTimes(5)
     expect(screen.getByLabelText('Nova senha')).toHaveValue('')
   })
   it('401 encerra a sessão', async () => {
@@ -68,7 +69,9 @@ describe('alteração da própria senha', () => {
   })
   it.each(['network', '500', 'schema'])('resultado incerto %s bloqueia repetição e permite encerrar sessão', async mode => {
     const fetcher = server(); await show()
-    fetcher.mockImplementation(async () => {
+    fetcher.mockImplementation(async (url: string) => {
+      if (url.endsWith('/csrf')) return json({ headerName: 'X-CUSTOM-CSRF', token: 'controlled-token' })
+      if (url.endsWith('/session/logout')) return new Response(null, { status: 204 })
       if (mode === 'network') throw new Error('sensitive-details')
       return mode === '500' ? new Response(null, { status: 500 }) : json({ unexpected: true })
     })
@@ -86,7 +89,7 @@ describe('alteração da própria senha', () => {
     submit()
     const form = screen.getByRole('button', { name: 'Alterando senha…' }).closest('form')!
     fireEvent.submit(form)
-    expect(fetcher).toHaveBeenCalledTimes(3)
+    expect(fetcher).toHaveBeenCalledTimes(5)
     expect(screen.getByLabelText('Nova senha')).toHaveValue('')
     await act(async () => finish(new Response(null, { status: 204 })))
     await waitFor(() => expect(screen.getByLabelText('Login')).toBeInTheDocument())

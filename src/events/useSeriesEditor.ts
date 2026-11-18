@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api'
-import { editableOccurrence } from './occurrence-api'
+import { editableSeriesOccurrence } from './series-api'
 import { previewSeries, saveSeries, type SeriesChange, type SeriesConfig, type SeriesPage, type SeriesPreview, type SeriesSelection } from './series-api'
 import { validateAnnualPattern, type AnnualPattern, type Frequency } from './generation-api'
 
@@ -38,7 +38,7 @@ export function useSeriesEditor(churchId: string, seriesId: string) {
       setFields({ ...empty, year: String(p?.year ?? data.boundedYear ?? ''), frequency: p?.frequency ?? '', interval: p ? String(p.interval) : '',
         firstStartsAt: p?.firstStartsAt ?? '', through: p?.through ?? '', durationMinutes: p ? String(p.durationMinutes) : '' })
     } else if (rootRef.current.revision !== data.revision) { rootStaleRef.current = true; setRootStale(true) }
-    const changed = data.items.filter(item => selectedRef.current[item.id] && (selectedRef.current[item.id].before.revision !== item.revision || !editableOccurrence(item))).map(item => item.id)
+    const changed = data.items.filter(item => selectedRef.current[item.id] && (selectedRef.current[item.id].before.revision !== item.revision || !editableSeriesOccurrence(item))).map(item => item.id)
     if (changed.length) setStale(old => [...new Set([...old, ...changed])])
   }, [seriesId, churchId])
   function change(field: keyof SeriesFields, value: string) {

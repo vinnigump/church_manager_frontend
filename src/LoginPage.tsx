@@ -4,7 +4,7 @@ import { loginDestination, useAuth } from './auth'
 import './access.css'
 
 export default function LoginPage() {
-  const { account, login, expired, passwordNotice: notice } = useAuth()
+  const { account, login, restoring, expired, passwordNotice: notice } = useAuth()
   const { state } = useLocation()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const pending = useRef(false)
   const passwordNotice = notice === 'changed' ? 'Senha alterada. Entre novamente com a nova senha.'
     : notice === 'uncertain' ? 'Resultado da alteração não confirmado. Entre com a senha válida para continuar.' : null
+  if (restoring) return <p role="status">Restaurando sessão…</p>
   if (account) return <Navigate to={loginDestination(state)} replace />
 
   async function submit(event: FormEvent<HTMLFormElement>) {

@@ -1,3 +1,4 @@
+import AssignmentGrantForm from './AssignmentGrantForm'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth'
@@ -13,14 +14,14 @@ function List({ denominationId, delegationId }: { denominationId: string; delega
   const query = useRead(JSON.stringify([denominationId, delegationId, page]), load)
   const { refresh } = query
   useEffect(() => { window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [refresh])
-  return <ReadResult query={query} label="atribuições da fonte">{data => <>
+  return <><AssignmentGrantForm denominationId={denominationId} delegationId={delegationId} onGranted={query.refresh}/><ReadResult query={query} label="atribuições da fonte">{data => <>
     <p role="status">Página {page + 1} · {data.total} atribuições desta fonte.</p>
     {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}>
-      <h2>Atribuição {item.id}</h2><AssignmentMetadata value={item}/>
-      <Link to={`${route(denominationId, delegationId)}/${item.id}`}>Consultar atribuição {item.id}</Link>
+      <h2>{item.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={item}/>
+      <Link to={`${route(denominationId, delegationId)}/${item.id}`}>Consultar acesso</Link>
     </li>)}</ul> : <p>Nenhuma atribuição desta fonte nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das atribuições da fonte"/>
-  </>}</ReadResult>
+  </>}</ReadResult></>
 }
 function Detail({ denominationId, delegationId, assignmentId }: { denominationId: string; delegationId: string; assignmentId: string }) {
   const load = useCallback((signal: AbortSignal) => readDelegatedAssignment(denominationId, delegationId, assignmentId, signal), [denominationId, delegationId, assignmentId])
@@ -28,7 +29,7 @@ function Detail({ denominationId, delegationId, assignmentId }: { denominationId
   const { refresh } = query
   useEffect(() => { window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [refresh])
   return <><Link to={route(denominationId, delegationId)}>Voltar às atribuições desta fonte</Link>
-    <ReadResult query={query} label="atribuição da fonte">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
+    <ReadResult query={query} label="atribuição da fonte">{data => <><h2>{data.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={data}/>
       {data.status === 'ACTIVE' && <Link to={`${route(denominationId, delegationId)}/${data.id}/revogar`}>Revogar atribuição desta fonte</Link>}
     </>}</ReadResult>
   </>

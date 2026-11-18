@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -16,7 +17,7 @@ const version = { id: versionId, versionNumber: 1, name: 'Consulta original', st
 const account = { id: '10000000-0000-0000-0000-000000000001', personId: '10000000-0000-0000-0000-000000000002', login: 'ana', status: 'ACTIVE' }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed })
@@ -65,7 +66,7 @@ describe('consultas administrativas denominacionais', () => {
   it.each([true, false])('acesso vindo do catálogo denominacional exige permissão própria %s', async allowed => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) {
         const code = new URL(url, 'https://example.test').searchParams.get('permissionCode')
         return json({ allowed: code === 'EVENT_TEMPLATE_MANAGE' || (allowed && code === 'security:profile:manage') })
@@ -85,17 +86,17 @@ describe('consultas administrativas denominacionais', () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('navigation', { name: 'Segurança da denominação' })).not.toBeInTheDocument()
   })
-  it.each([`${root('invalid')}/perfis`, `${root()}/perfis/invalid`, `${profileRoute()}/versoes/invalid`])('rota inválida %s não consulta', path => {
+  it.each([`${root('invalid')}/perfis`, `${root()}/perfis/invalid`, `${profileRoute()}/versoes/invalid`])('rota inválida %s não consulta', async path => {
     const fetcher = server()
     show(path)
     expect(screen.getByRole('alert')).toHaveTextContent('acesso administrativo é inválido')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('visitante é enviado ao login e retorna ao recurso após autenticar', async () => {
     const fetcher = server()
     render(<MemoryRouter initialEntries={[versionRoute]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(fetcher).not.toHaveBeenCalled()
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     expect(await screen.findByText('RETIRED_CODE')).toBeInTheDocument()
@@ -103,7 +104,7 @@ describe('consultas administrativas denominacionais', () => {
   it('perfis vazios não inventam opções e desabilitam paginação seguinte', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.includes('/profiles?') ? json({ items: [], page: 0, size: 20, total: 0 }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/profiles?') ? json({ items: [], page: 0, size: 20, total: 0 }) : handler(url) })
     show()
     expect(await screen.findByText('Nenhum perfil nesta página.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
@@ -112,7 +113,7 @@ describe('consultas administrativas denominacionais', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let finish!: (value: Response) => void
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/profiles?page=1')) return new Promise<Response>(resolve => { finish = resolve })
       if (url.includes('/profiles?')) return json({ items: [profile], page: 0, size: 20, total: 21 })
       return handler(url)
@@ -128,7 +129,7 @@ describe('consultas administrativas denominacionais', () => {
   it.each([403, 404, 409, 422, 500])('erro %s no perfil não expõe corpo ou histórico', async status => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.endsWith(`/profiles/${profileId}`) ? new Response('privado', { status }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(`/profiles/${profileId}`) ? new Response('privado', { status }) : handler(url) })
     show(profileRoute())
     expect(await screen.findByRole('alert')).not.toHaveTextContent('privado')
     expect(screen.queryByRole('region', { name: 'Histórico de versões' })).not.toBeInTheDocument()
@@ -137,7 +138,7 @@ describe('consultas administrativas denominacionais', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let fail = true
-    fetcher.mockImplementation(async (url: string) => { if (url.includes('/profiles?') && fail) { fail = false; throw new TypeError('network') } return handler(url) })
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;  if (url.includes('/profiles?') && fail) { fail = false; throw new TypeError('network') } return handler(url) })
     show()
     fireEvent.click(await screen.findByRole('button', { name: 'Atualizar perfis' }))
     expect(await screen.findByRole('heading', { name: profile.name })).toBeInTheDocument()
@@ -155,7 +156,7 @@ describe('consultas administrativas denominacionais', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let finish!: (value: Response) => void
-    fetcher.mockImplementation(async (url: string) => url.includes(`/denominations/${denomination}/profiles?`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes(`/denominations/${denomination}/profiles?`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url) })
     show(`${root()}/perfis`, true)
     await screen.findByText('Carregando perfis…')
     fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
@@ -166,12 +167,12 @@ describe('consultas administrativas denominacionais', () => {
   it('401 em consulta de versão encerra sessão', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.endsWith(`/versions/${versionId}`) ? new Response(null, { status: 401 }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(`/versions/${versionId}`) ? new Response(null, { status: 401 }) : handler(url) })
     render(<MemoryRouter initialEntries={[versionRoute]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     expect(await screen.findByText('Sua sessão expirou. Entre novamente.')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
   })
 })

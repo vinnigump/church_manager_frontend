@@ -1,3 +1,4 @@
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { formatDate } from '../time'
 import { DefaultChurchAccess } from '../church-context'
 import UiIcon from '../components/UiIcon'
@@ -71,6 +72,7 @@ function Editor({ church, id }: { church: string; id?: string }) {
   }, [church, id])
   return <ResourceAccess permissionCode={permission} resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
     {command.message && <p role="alert">{command.message}</p>}{validation && <p role="alert">{validation}</p>}
+    <UnsavedChangesGuard dirty={!saved && draft !== null && (draft.name !== (draft.before?.name ?? '') || draft.description !== (draft.before?.description ?? ''))}/>
     {saved ? <><p role="status">Grupo salvo.</p><Link to={`${groupManagementRoute(church)}/${saved.id}`}>Ver grupo salvo</Link></> : <>
       <button disabled={command.busy} onClick={() => { command.reset(); setDraft(null); setValidation(''); setEpoch(v => v + 1) }}>Descartar alterações e recarregar</button>
       <ScopedRead context={`${church}:${id}:${epoch}`} load={load} label="cadastro do grupo" manualRefresh>{current => {

@@ -1,3 +1,4 @@
+import { browserSessionResponse } from './test-browser-session'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -23,10 +24,10 @@ describe('falhas de leitura do corpo HTTP', () => {
     expect(read).not.toHaveBeenCalled()
   })
   it.each(['/accounts/me', '/csrf'])('login não mostra corpo inválido de %s e permanece desconectado', async brokenPath => {
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => url.endsWith(brokenPath)
-      ? new Response('dado-privado-na-resposta') : json(url.endsWith('/csrf') ? csrf : account)))
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(brokenPath)
+      ? new Response('dado-privado-na-resposta') : json(url.endsWith('/csrf') ? csrf : account) }))
     render(<MemoryRouter initialEntries={['/entrar']}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     expect(await screen.findByRole('alert')).toHaveTextContent(invalidMessage)
@@ -45,8 +46,8 @@ describe('falhas de leitura do corpo HTTP', () => {
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
   it('erro de corpo de uma escrita não repete a operação automaticamente', async () => {
-    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => init?.method === 'POST'
-      ? new Response('dado-privado') : json(url.endsWith('/csrf') ? csrf : account))
+    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return init?.method === 'POST'
+      ? new Response('dado-privado') : json(url.endsWith('/csrf') ? csrf : account) })
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     await client.login('ana', 'test-password')
@@ -59,7 +60,7 @@ describe('falhas de leitura do corpo HTTP', () => {
     let fail!: (error: Error) => void
     const oldResponse = new Response('{}')
     vi.spyOn(oldResponse, 'json').mockImplementation(() => { started(); return new Promise((_, reject) => { fail = reject }) })
-    const fetcher = vi.fn().mockResolvedValueOnce(oldResponse).mockImplementation(async (url: string) => json(url.endsWith('/csrf') ? csrf : account))
+    const fetcher = vi.fn().mockResolvedValueOnce(oldResponse).mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return json(url.endsWith('/csrf') ? csrf : account) })
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     const old = client.login('ana', 'old-password')

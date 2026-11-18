@@ -62,13 +62,13 @@ export default function RosterForm({ church, fields, change, disabled, submit }:
   church: string; fields: Fields; change: Change; disabled: boolean; submit: (e: FormEvent) => void
 }) {
   return <form aria-label="Cadastro de escala" onSubmit={submit}><fieldset disabled={disabled}><legend>Previsão de atuação</legend>
+    <label className="roster-check"><input type="checkbox" checked={fields.eventEnabled} onChange={e => change({ ...fields, eventEnabled: e.target.checked })}/>Associar a um evento</label>
+    {fields.eventEnabled && <EventPicker church={church} fields={fields} change={change}/>}
     <UnitPicker church={church} fields={fields} change={change}/>
     <label>Início<BrazilianDateTimeField required disabled={fields.eventEnabled} value={fields.startsAt} onChange={e => change({ ...fields, startsAt: e.target.value })}/></label>
     <label>Término<BrazilianDateTimeField required disabled={fields.eventEnabled} value={fields.endsAt} onChange={e => change({ ...fields, endsAt: e.target.value })}/></label>
     <p>Horários de Brasília (24 horas).{fields.eventEnabled && ' O período acompanha exatamente o evento associado.'}</p>
     <AccountPicker church={church} fields={fields} change={change}/>
-    <label className="roster-check"><input type="checkbox" checked={fields.eventEnabled} onChange={e => change({ ...fields, eventEnabled: e.target.checked })}/>Associar a um evento</label>
-    {fields.eventEnabled && <EventPicker church={church} fields={fields} change={change}/>}
     <p>Salvar organiza a escala prevista. A presença será registrada separadamente por uma pessoa autorizada.</p>
     <button type="submit">Salvar escala</button>
   </fieldset></form>

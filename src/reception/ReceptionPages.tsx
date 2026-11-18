@@ -38,7 +38,7 @@ function Pending({ church, onLoss }: { church: string; onLoss: (delivery: Delive
     const date = (instant: string) => formatDateTime(instant)
     return <>
       <section aria-label="Contagem de crachás"><h2>Faltam recolher {s.pendingTotal} crachás</h2>
-        <p>Dia {s.day.split('-').reverse().join('/')} · horário de Brasília · consulta do servidor às {date(s.referenceAt)}.</p>
+        <p>Dia {s.day.split('-').reverse().join('/')} · horário de Brasília · atualizado às {date(s.referenceAt)}.</p>
         <dl className="reception-counters"><div><dt>Distribuídos hoje</dt><dd>{s.distributed}</dd></div><div><dt>Devolvidos das entregas de hoje</dt><dd>{s.returned}</dd></div>
           <div><dt>Perdidos das entregas de hoje</dt><dd>{s.lost}</dd></div><div><dt>A recolher · total</dt><dd>{s.pendingTotal}</dd></div><div><dt>Pendentes de dias anteriores</dt><dd>{s.pendingFromEarlierDays}</dd></div>
         </dl><p>{s.pending} entregas de hoje ainda pendentes. As entregas de outros dias continuam pendentes até devolução ou registro de perda.</p>
@@ -72,7 +72,7 @@ function Workspace({ church }: { church: string }) {
   function reload() { if (busy) return; setBlocked(false); setMessage(''); setLastBadge(null); setLost(null); setEpoch(v => v + 1) }
   return <>
     {name.state.kind === 'ready' && <h2>{name.state.data}</h2>}
-    <button disabled={busy} onClick={reload}>Atualizar recepção</button>{busy && <p role="status" aria-busy="true">Aguarde a confirmação do servidor…</p>}
+    <button disabled={busy} onClick={reload}>Atualizar recepção</button>{busy && <p role="status" aria-busy="true">Confirmando atendimento…</p>}
     <ResourceAccess key={epoch} permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
       {message && <p role="status" className="reception-message">{message}</p>}{lastBadge && <BadgeQr badge={lastBadge}/>}
       <fieldset disabled={busy || blocked} className="reception-workspace"><legend>Atendimento da recepção</legend>

@@ -1,3 +1,4 @@
+import { browserSessionResponse } from './test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -22,8 +23,8 @@ describe('contrato de própria decisão', () => {
     expect(fetcher.mock.calls[0][1]).toMatchObject({ cache: 'no-store', credentials: 'same-origin' })
   })
   it('preserva Basic em memória na consulta real do cliente', async () => {
-    const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(
-      url.includes('/authorization?') ? { allowed: true } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : account)))
+    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return new Response(JSON.stringify(
+      url.includes('/authorization?') ? { allowed: true } : url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : account)) })
     vi.stubGlobal('fetch', fetcher)
     const client = new ApiClient()
     await client.login('ana', 'test-password')
@@ -38,10 +39,10 @@ describe('contrato de própria decisão', () => {
 })
 
 describe('guarda por recurso', () => {
-  it('não consulta para anônimo', () => {
+  it('não consulta para anônimo', async () => {
     const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
     render(tree(null))
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(fetcher).not.toHaveBeenCalled()
   })
   it('bloqueia enquanto carrega e só exibe com allowed=true', async () => {
@@ -111,9 +112,9 @@ describe('guarda por recurso', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
   })
   it('401 invalida sessão pelo fluxo existente', async () => {
-    const fetcher = vi.fn().mockImplementation(async (url: string) => url.includes('/authorization?')
+    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?')
       ? new Response(null, { status: 401 })
-      : new Response(JSON.stringify(url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : account)))
+      : new Response(JSON.stringify(url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : account)) })
     vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter><AuthProvider><SessionTest/></AuthProvider></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: 'Conectar' }))

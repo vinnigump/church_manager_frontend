@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +16,7 @@ const json = (value: unknown) => new Response(JSON.stringify(value))
 afterEach(() => api.clear())
 async function server() {
   let revoked = false
-  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CUSTOM-CSRF', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed: true })

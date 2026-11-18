@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -12,7 +13,7 @@ const account = { id, personId: denomination, login: 'ana', status: 'ACTIVE' }
 const source = { id, profileId: denomination, organizationUnitId: denomination, delegateeUserId: id, status: 'REVOKED', revision: 2, startsAt: '2026-11-01T12:00:00Z', endsAt: null }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.includes('/authorization?')) return json({ allowed })
     if (url.includes('/delegations?')) {
       const page = Number(new URL(url, 'https://example.test').searchParams.get('page'))
@@ -48,11 +49,11 @@ describe('consulta de fontes de delegação', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
-  it('visitante não consulta metadados', () => {
+  it('visitante não consulta metadados', async () => {
     const fetcher = server()
     render(<MemoryRouter initialEntries={[`${route}/${id}`]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByLabelText('Login')).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByLabelText('Login')).toBeInTheDocument()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('pagina e recupera página vazia', async () => {
     server(); show()
@@ -85,6 +86,6 @@ describe('consulta de fontes de delegação', () => {
     fetcher.mockClear()
     await expect(listDelegations(denomination, 100001)).rejects.toThrow('validar')
     await expect(readDelegation('invalid', id)).rejects.toThrow('validar')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
 })

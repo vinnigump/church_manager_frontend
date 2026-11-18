@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -14,7 +15,7 @@ const assignment = { id, userId: id, profileId: denomination, organizationUnitId
 const root = (source = sourceId) => `/seguranca/denominacoes/${denomination}/delegacoes/${source}/atribuicoes`
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server() {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.includes('/assignments?')) {
       const page = Number(new URL(url, 'https://example.test').searchParams.get('page'))
       return json({ items: page ? [] : [assignment], page, size: 20, total: 21 })
@@ -39,11 +40,11 @@ describe('consulta de atribuições por fonte', () => {
     })
     show(`/seguranca/denominacoes/${denomination}/delegacoes/${sourceId}`)
     fireEvent.click(await screen.findByRole('link', { name: 'Consultar atribuições desta fonte' }))
-    expect(await screen.findByRole('link', { name: `Consultar atribuição ${id}` })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Consultar acesso' })).toBeInTheDocument()
   })
   it('envia fonte obrigatória, usa autorização do GET e navega ao detalhe', async () => {
     const fetcher = server(); show()
-    fireEvent.click(await screen.findByRole('link', { name: `Consultar atribuição ${id}` }))
+    fireEvent.click(await screen.findByRole('link', { name: 'Consultar acesso' }))
     expect(await screen.findByRole('button', { name: 'Atualizar atribuição da fonte' })).toBeInTheDocument()
     expect(fetcher.mock.calls[0][0]).toBe(`/api/v1/security/denominations/${denomination}/assignments?page=0&size=20&delegationId=${sourceId}`)
     expect(fetcher.mock.calls.some(([url]) => url.includes('/authorization?'))).toBe(false)
@@ -57,23 +58,23 @@ describe('consulta de atribuições por fonte', () => {
     expect(await screen.findByText('Nenhuma atribuição desta fonte nesta página.')).toBeInTheDocument()
     expect(fetcher.mock.calls[1][0]).toContain(`page=1&size=20&delegationId=${sourceId}`)
     fireEvent.click(screen.getByRole('button', { name: 'Página anterior' }))
-    expect(await screen.findByRole('link', { name: `Consultar atribuição ${id}` })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Consultar acesso' })).toBeInTheDocument()
   })
   it.each([403, 404, 500])('erro %s nega dados sem revelar origem/proprietário', async status => {
     const fetcher = server(); fetcher.mockImplementation(async () => new Response('private-owner', { status }))
     show()
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.queryByText('private-owner')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: `Consultar atribuição ${id}` })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Consultar acesso' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Atualizar atribuições da fonte' })).toBeInTheDocument()
   })
   it('foco recarrega política do servidor e remove dados ao perder fonte utilizável', async () => {
     const fetcher = server(); show()
-    await screen.findByRole('link', { name: `Consultar atribuição ${id}` })
+    await screen.findByRole('link', { name: 'Consultar acesso' })
     let finish!: (response: Response) => void
     fetcher.mockImplementation(() => new Promise(resolve => { finish = resolve }))
     fireEvent(window, new Event('focus'))
-    expect(screen.queryByRole('link', { name: `Consultar atribuição ${id}` })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Consultar acesso' })).not.toBeInTheDocument()
     await act(async () => finish(new Response(null, { status: 403 })))
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
@@ -86,17 +87,17 @@ describe('consulta de atribuições por fonte', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Outra fonte' }))
     await screen.findByText('Nenhuma atribuição desta fonte nesta página.')
     await act(async () => finish(json({ items: [assignment], page: 0, size: 20, total: 1 })))
-    expect(screen.queryByRole('link', { name: `Consultar atribuição ${id}` })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Consultar acesso' })).not.toBeInTheDocument()
     expect(fetcher.mock.calls[1][0]).toContain(`delegationId=${other}`)
   })
-  it('visitante não consulta e rota inválida não faz rede', () => {
+  it('visitante não consulta e rota inválida não faz rede', async () => {
     const fetcher = server()
     const view = render(<MemoryRouter initialEntries={[root()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByLabelText('Login')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Login')).toBeInTheDocument()
     view.unmount()
     show(root('invalid'))
     expect(screen.getByRole('alert')).toHaveTextContent('inválido')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it.each([null, other])('rejeita atribuição de origem %s na lista e no detalhe', async delegationId => {
     const fetcher = server()
@@ -109,6 +110,6 @@ describe('consulta de atribuições por fonte', () => {
     const fetcher = server()
     await expect(listDelegatedAssignments(denomination, '')).rejects.toThrow('validar')
     await expect(readDelegatedAssignment(denomination, '', id)).rejects.toThrow('validar')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
 })

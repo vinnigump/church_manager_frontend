@@ -44,3 +44,5 @@
 }
 .app-navigation-context{padding:0 12px 16px;margin-bottom:8px;border-bottom:1px solid #dfebe6;font-size:12px;line-height:1.5}.app-navigation-context>span{display:block;font-size:10px;color:#56615c;margin-bottom:4px}.app-navigation-context>strong{font-weight:600;color:#00513c}
 @media(max-width:767px){.app-navigation-context{display:none}}
+.app-content button.read-refresh{display:block;width:auto;min-height:36px;margin:12px 0 4px;padding:5px 9px;background:transparent;color:#426458;border:1px solid #d9e7e1;box-shadow:none;font-size:12px;font-weight:400}
+.app-area-submenu a[aria-current=page],.app-secondary-links a[aria-current=page]{background:#eaf6f1;color:#00513c;font-weight:650;box-shadow:none}

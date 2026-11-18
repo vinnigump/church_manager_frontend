@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -11,7 +12,7 @@ function show(path = '/', history = false) {
   render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}>{history && <History/>}<App/></AuthContext.Provider></MemoryRouter>)
 }
 describe('shell RIO e navegação real', () => {
-  it('mantém uma navegação com destinos reais e ícones decorativos', () => {
+  it('mantém uma navegação com destinos reais e ícones decorativos', async () => {
     show()
     const nav = screen.getByRole('navigation', { name: 'Principal' })
     expect(Array.from(nav.querySelectorAll('.app-area-link')).map(link => link.getAttribute('href'))).toEqual(['/', '/pessoas', '/eventos', '/ministerios', '/recepcao'])
@@ -22,7 +23,7 @@ describe('shell RIO e navegação real', () => {
     expect(screen.getByRole('img', { name: 'RIO' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
-  it('estado ativo não marca Início em outras páginas e preserva foco/título', () => {
+  it('estado ativo não marca Início em outras páginas e preserva foco/título', async () => {
     show()
     expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page')
     fireEvent.click(screen.getByRole('link', { name: 'Minha conta' }))
@@ -31,13 +32,13 @@ describe('shell RIO e navegação real', () => {
     expect(screen.getByRole('main')).toHaveFocus()
     expect(document.title).toBe('Minha conta | Church Manager')
   })
-  it('destino de conta permanece ativo na troca de senha', () => {
+  it('destino de conta permanece ativo na troca de senha', async () => {
     show('/conta/senha')
     expect(screen.getByRole('link', { name: 'Minha conta' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Eventos' })).not.toHaveAttribute('aria-current')
     expect(screen.getByRole('heading', { name: 'Alterar minha senha' })).toBeInTheDocument()
   })
-  it('voltar e avançar preservam rota, estado ativo e foco', () => {
+  it('voltar e avançar preservam rota, estado ativo e foco', async () => {
     show('/conta', true)
     fireEvent.click(screen.getByRole('link', { name: 'Eventos' }))
     expect(screen.getByRole('link', { name: 'Eventos' })).toHaveAttribute('aria-current', 'page')
@@ -48,16 +49,16 @@ describe('shell RIO e navegação real', () => {
     expect(screen.getByRole('link', { name: 'Eventos' })).toHaveAttribute('aria-current', 'page')
     expect(document.title).toBe('Eventos | Church Manager')
   })
-  it('visitante acessa o login na Home sem navegação interna nem saída', () => {
+  it('visitante acessa o login na Home sem navegação interna nem saída', async () => {
     render(<MemoryRouter initialEntries={['/']}><AuthProvider><App/></AuthProvider></MemoryRouter>)
     expect(screen.queryByRole('link', { name: 'Eventos' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Minha conta' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Entrar' })).not.toBeInTheDocument()
   })
-  it('rota desconhecida não marca destino incorreto e preserva skip link', () => {
+  it('rota desconhecida não marca destino incorreto e preserva skip link', async () => {
     show('/inexistente')
     expect(screen.getByRole('navigation', { name: 'Principal' }).querySelector('[aria-current]')).toBeNull()
     const skip = screen.getByRole('link', { name: 'Ir para o conteúdo' })
@@ -67,7 +68,7 @@ describe('shell RIO e navegação real', () => {
     expect(document.title).toBe('Página não encontrada | Church Manager')
   })
   it('layout não concede gestão administrativa por autenticação', async () => {
-    const fetcher = vi.fn(async (url: string) => new Response(JSON.stringify(url.endsWith('/church-context') ? { defaultChurchId: account.personId, churches: [{ churchId: account.personId, name: 'Igreja própria' }] } : url.endsWith('/authorization/contexts') ? { contexts: [{ resourceType: 'CHURCH', resourceId: account.personId, label: 'Igreja própria' }] } : { allowed: false })))
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return new Response(JSON.stringify(url.endsWith('/church-context') ? { defaultChurchId: account.personId, churches: [{ churchId: account.personId, name: 'Igreja própria' }] } : url.endsWith('/authorization/contexts') ? { contexts: [{ resourceType: 'CHURCH', resourceId: account.personId, label: 'Igreja própria' }] } : { allowed: false })) })
     vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/admin']}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><ChurchContextProvider><App/></ChurchContextProvider></AuthContext.Provider></MemoryRouter>)
     expect(screen.getByRole('alert')).toHaveTextContent('Acesso indisponível')

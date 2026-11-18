@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -17,7 +18,7 @@ const json = (v: unknown) => new Response(JSON.stringify(v))
 const route = `/seguranca/denominacoes/${denomination}/auditoria`
 function show(path = route) { return render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>) }
 function server(handler?: (url: string) => Response | undefined) {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     const custom = handler?.(url); if (custom !== undefined) return custom
     if (url.includes('/authorization?')) return json({ allowed: true })
     const params = new URL(url, 'https://example.test').searchParams

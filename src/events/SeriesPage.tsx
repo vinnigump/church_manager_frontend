@@ -7,12 +7,15 @@ import { useAuth } from '../auth'
 import { ResourceAccess } from '../authorization'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
-import { editableOccurrence } from './occurrence-api'
+import { editableSeriesOccurrence } from './series-api'
+import { durationLabel } from './event-duration'
 import { readSeries, validateSeriesConfig, validateSeriesSelections, type SeriesPage as SeriesData } from './series-api'
 import { useSeriesEditor, type SeriesEditor, type SeriesFields, type SeriesIntent } from './useSeriesEditor'
 import './occurrences.css'
 
 function PatternForm({ control }: { control: SeriesEditor }) {
+  const [customDuration, setCustomDuration] = useState(false)
+  const durations = Array.from({ length: 48 }, (_, i) => String((i + 1) * 30))
   const f = control.fields
   const change = (field: keyof SeriesFields, value: string) => control.change(field, value)
   return <form aria-label="Proposta de horários da série" onSubmit={event => { event.preventDefault(); void control.calculate() }}><fieldset disabled={control.busy || control.attempted || control.rootStale || !control.root}>
@@ -22,7 +25,7 @@ function PatternForm({ control }: { control: SeriesEditor }) {
     <label>Intervalo entre repetições<input required type="number" min="1" max="366" step="1" value={f.interval} onChange={e => change('interval', e.target.value)}/></label>
     <label>Primeiro início (Brasília)<BrazilianDateTimeField required value={f.firstStartsAt} onChange={e => change('firstStartsAt', e.target.value)}/></label>
     <label>Última data nominal inclusiva<input required type="date" value={f.through} onChange={e => change('through', e.target.value)}/></label>
-    <label>Duração em minutos<input required type="number" min="1" max="527040" step="1" value={f.durationMinutes} onChange={e => change('durationMinutes', e.target.value)}/></label>
+    <label>Duração em minutos<select required value={customDuration ? 'custom' : f.durationMinutes} onChange={e => { if(e.target.value === 'custom'){setCustomDuration(true);return}setCustomDuration(false);change('durationMinutes',e.target.value) }}><option value="">Selecione</option>{durations.map(v => <option key={v} value={v}>{durationLabel(String(BigInt(v)*60000000000n))}</option>)}{/^\d+$/.test(f.durationMinutes) && !durations.includes(f.durationMinutes) && <option value={f.durationMinutes}>{durationLabel(String(BigInt(f.durationMinutes)*60000000000n))} · duração existente</option>}<option value="custom">Mais de 24 horas…</option></select></label>{customDuration && <label>Outra duração em minutos<input required type="number" min="1470" max="527040" step="30" value={f.durationMinutes} onChange={e => change('durationMinutes',e.target.value)}/></label>}
     <button>Calcular prévia sem gravar</button>
   </fieldset></form>
 }
@@ -51,13 +54,13 @@ function SelectionForm({ data, control }: { data: SeriesData; control: SeriesEdi
     <label>Participação<select required value={fields.participationMode} onChange={e => field('participationMode', e.target.value)}><option value="">Selecione</option><option value="REGISTRATION_REQUIRED">Inscrição obrigatória</option><option value="OPEN_EVENT">Evento aberto</option></select></label>
     <label>Check-in obrigatório<select required value={fields.checkInRequired} onChange={e => field('checkInRequired', e.target.value)}><option value="">Selecione explicitamente</option><option value="false">Não</option><option value="true">Sim</option></select></label>
     <p>A configuração acima será aplicada a todas as selecionadas, incluindo seus ajustes individuais. O servidor revalida capacidade, inscrições existentes e disponibilidade do tipo.</p>
-    {data.items.map(item => <p key={item.id}><label><input type="checkbox" checked={Boolean(control.selected[item.id])} disabled={!control.selected[item.id] && (!editableOccurrence(item) || entries.length >= 366)} onChange={e => { control.selection(item.id, e.target.checked ? { before: item, slotIndex: -1 } : null); changed() }}/>Selecionar ocorrência {item.id}</label></p>)}
+    {data.items.map((item,index) => <p key={item.id}><label><input type="checkbox" checked={Boolean(control.selected[item.id])} disabled={!control.selected[item.id] && (!editableSeriesOccurrence(item) || entries.length >= 366)} onChange={e => { control.selection(item.id, e.target.checked ? { before: item, slotIndex: -1 } : null); changed() }}/>Selecionar ocorrência {data.page*20+index+1} · {formatDateTime(item.startsAt)}</label></p>)}
     <h3>Associações explícitas ({entries.length})</h3><p>Nenhum horário é associado automaticamente. Cada destino pode ser usado uma vez; seleções fora da página continuam abaixo.</p>
-    {entries.map(entry => <div key={entry.before.id}>
-      <p>Origem {entry.before.id} · revisão original {entry.before.revision} · {formatDateTime(entry.before.startsAt)} até {formatDateTime(entry.before.endsAt)}.</p>
-      <label>Destino para {entry.before.id}<select value={entry.slotIndex < 0 ? '' : entry.slotIndex} onChange={e => { control.selection(entry.before.id, { ...entry, slotIndex: e.target.value === '' ? -1 : Number(e.target.value) }); changed() }}>
-        <option value="">Selecione um horário calculado</option>{control.preview?.slots.map(slot => <option key={slot.index} value={slot.index}>Índice {slot.index}: {formatDateTime(slot.startsAt)} até {formatDateTime(slot.endsAt)}{slot.adjusted ? ' (ajustado)' : ''}</option>)}
-      </select></label>{' '}<button type="button" onClick={() => { control.selection(entry.before.id, null); changed() }}>Remover seleção {entry.before.id}</button>
+    {entries.map((entry,index) => <div key={entry.before.id}>
+      <p>Seleção {index+1} · {formatDateTime(entry.before.startsAt)} até {formatDateTime(entry.before.endsAt)}.</p><details><summary>Identificação da seleção</summary><p>Origem {entry.before.id} · revisão original {entry.before.revision}</p></details>
+      <label>Destino da seleção {index+1}<select value={entry.slotIndex < 0 ? '' : entry.slotIndex} onChange={e => { control.selection(entry.before.id, { ...entry, slotIndex: e.target.value === '' ? -1 : Number(e.target.value) }); changed() }}>
+        <option value="">Selecione um horário calculado</option>{control.preview?.slots.map(slot => <option key={slot.index} value={slot.index}>Horário {slot.index+1}: {formatDateTime(slot.startsAt)} até {formatDateTime(slot.endsAt)}{slot.adjusted ? ' (ajustado)' : ''}</option>)}
+      </select></label>{' '}<button type="button" onClick={() => { control.selection(entry.before.id, null); changed() }}>Remover seleção {index+1}</button>
     </div>)}
     {control.stale.length > 0 && <p role="alert">Há seleção alterada na consulta atual. Remova e selecione novamente para revisar os novos dados. Revisões originais não foram substituídas.</p>}
     {error && <p role="alert">{error}</p>}
@@ -65,10 +68,10 @@ function SelectionForm({ data, control }: { data: SeriesData; control: SeriesEdi
   </fieldset></form>
     {confirmation && !control.attempted && !control.rootStale && !control.stale.length && control.preview === confirmation.preview && <section aria-label="Confirmar edição seletiva">
       <h2>Confirmar somente {confirmation.selections.length} ocorrências</h2>
-      <p>Revisão da série {confirmation.before.revision} · ano {confirmation.preview.pattern.year} · horário de Brasília · {confirmation.preview.pattern.frequency} a cada {confirmation.preview.pattern.interval}, de {confirmation.preview.pattern.firstStartsAt} até {confirmation.preview.pattern.through}, duração {confirmation.preview.pattern.durationMinutes} minutos.</p>
+      <p>Horário de Brasília · repetição {({ DAILY: 'diária', WEEKLY: 'semanal', MONTHLY: 'mensal' })[confirmation.preview.pattern.frequency]} a cada {confirmation.preview.pattern.interval} período(s), iniciando em {formatDateTime(`${confirmation.preview.pattern.firstStartsAt}-03:00`)} até {confirmation.preview.pattern.through.split('-').reverse().join('/')}, duração {durationLabel(String(BigInt(confirmation.preview.pattern.durationMinutes)*60000000000n))}.</p>
       <p>Capacidade {confirmation.config.capacity ?? 'ilimitada'} · modalidade {confirmation.config.modality} · participação {confirmation.config.participationMode} · check-in {confirmation.config.checkInRequired ? 'obrigatório' : 'não obrigatório'}.</p>
-      <ul>{confirmation.selections.map(entry => { const slot = confirmation.preview.slots.find(value => value.index === entry.slotIndex)!; return <li key={entry.before.id}>{entry.before.id} (revisão {entry.before.revision}) → índice {slot.index}: {formatDateTime(slot.startsAt)} até {formatDateTime(slot.endsAt)}.</li> })}</ul>
-      <p>Publicadas e não selecionadas permanecem intactas. Tipo, versão vinculada e espaço são preservados. Não cria ou exclui ocorrências, inscrições, presenças ou notificações. Prévia não reserva horário.</p>
+      <ul>{confirmation.selections.map(entry => { const slot = confirmation.preview.slots.find(value => value.index === entry.slotIndex)!; return <li key={entry.before.id}>{formatDateTime(entry.before.startsAt)} → {formatDateTime(slot.startsAt)} até {formatDateTime(slot.endsAt)}.</li> })}</ul>
+      <p>Histórico e ocorrências não selecionadas permanecem intactos. Tipo, versão vinculada e espaço são preservados. Não cria ou exclui ocorrências, inscrições, presenças ou notificações. Prévia não reserva horário.</p>
       <button disabled={control.busy} onClick={() => void control.apply(confirmation)}>Confirmar edição da seleção</button>{' '}<button disabled={control.busy} onClick={() => setConfirmation(null)}>Voltar sem gravar</button>
     </section>}
   </>
@@ -78,11 +81,10 @@ function Records({ churchId, seriesId, control }: { churchId: string; seriesId: 
   const load = useCallback(async (signal: AbortSignal) => { const data = await readSeries(churchId, seriesId, page, signal); if (!signal.aborted) observe(data); return data }, [churchId, seriesId, page, observe])
   const query = useRead(`${churchId}:${seriesId}:${page}`, load)
   return <ReadResult query={query} label="série">{data => <>
-    <h2>Série {data.id}</h2><p>Revisão consultada {data.revision} · horário de Brasília · ano delimitado {data.boundedYear ?? 'não demonstrado'} · indicador ativo {data.active ? 'sim' : 'não'}.</p>
-    <p>Regra descritiva: {data.rrule}. Não é reinterpretada pelo navegador.</p>
+    <h2>Horários e ocorrências da série</h2><p>Horário de Brasília · ano {data.boundedYear ?? 'a conferir'} · {data.total} ocorrências.</p><details><summary>Detalhes técnicos da série</summary><p>Série {data.id} · Revisão consultada {data.revision} · ativa {data.active ? 'sim' : 'não'}.</p><p>Regra descritiva: {data.rrule}. Não é reinterpretada pelo navegador.</p></details>
     {data.pattern === null && <p>Série legada sem parâmetros completos. Informe proposta explícita; o servidor valida seu limite anual e fuso.</p>}
-    <p>Página {data.page + 1} · {data.total} ocorrências em todos os estados. Total não representa rascunhos editáveis.</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/ocorrencias/${item.id}`}>Ocorrência {item.id}</Link><p>Estado {item.status} · revisão {item.revision} · {formatDateTime(item.startsAt)} até {formatDateTime(item.endsAt)}.</p><p>{editableOccurrence(item) ? 'Rascunho nunca publicado; seleção permitida com edição.' : 'Consulta preservada; não pode ser selecionada para edição.'}</p></li>)}</ul> : <p>Nenhuma ocorrência nesta página da série.</p>}
+    <p>Página {data.page + 1} · {data.total} ocorrências em todos os estados. O servidor confere cada seleção antes de gravar.</p>
+    {data.items.length ? <ul className="event-list">{data.items.map(item => <li key={item.id}><Link to={`/eventos/igrejas/${churchId}/cadastro/${item.id}`}>Evento em {formatDateTime(item.startsAt)}</Link><p>{formatDateTime(item.startsAt)} até {formatDateTime(item.endsAt)}.</p><details><summary>Identificação do evento</summary><p>{item.id} · Estado {item.status} · revisão {item.revision}</p></details><p>{editableSeriesOccurrence(item) ? 'Edição permitida se o servidor confirmar ausência de histórico incompatível.' : 'Consulta preservada; não pode ser selecionada para edição.'}</p></li>)}</ul> : <p>Nenhuma ocorrência nesta página da série.</p>}
     <Pagination page={page} total={data.total} setPage={control.setPage} label="Páginas da série"/>
     {!control.result && <><PatternForm control={control}/>
       {control.preview && <section aria-label="Prévia calculada"><h2>Horários calculados sem gravação</h2><p>{control.preview.slots.length} destinos · horário de Brasília. Datas inexistentes avançam ao próximo válido; ambíguas usam primeiro offset, conforme servidor.</p><ul>{control.preview.slots.map(slot => <li key={slot.index}>Índice {slot.index}: {formatDateTime(slot.startsAt)} até {formatDateTime(slot.endsAt)} · {slot.adjusted ? 'Ajustado pelo servidor' : 'Sem ajuste'}.</li>)}</ul></section>}
@@ -96,14 +98,14 @@ function Workspace({ churchId, seriesId }: { churchId: string; seriesId: string 
     <button disabled={control.busy} onClick={control.reload}>Descartar proposta e recarregar série</button>
     {control.rootStale && <p role="alert">A revisão da série mudou. Descarte a proposta e recarregue antes de continuar.</p>}
     {control.message && <p role="alert">{control.message}</p>}{control.busy && <p role="status" aria-busy="true">Processando proposta…</p>}
-    {control.result && <section aria-label="Edição confirmada"><h2>Edição confirmada pelo servidor</h2><p>Revisão da série {control.result.revision} · padrão {control.result.patternChanged ? 'alterado' : 'preservado'}.</p><ul>{control.result.items.map(item => <li key={item.id}>{item.id}: revisão {item.beforeRevision} → {item.revision}, índice {item.slotIndex}, {item.changed ? 'alterada' : 'sem alteração'}.</li>)}</ul><p>Recarregue a série para consultar os registros atuais antes de outra edição.</p></section>}
+    {control.result && <section aria-label="Edição confirmada"><h2>Edição confirmada pelo servidor</h2><p>{control.result.items.length} ocorrências conferidas · padrão {control.result.patternChanged ? 'alterado' : 'preservado'}.</p><details><summary>Detalhes técnicos da gravação</summary><p>Revisão da série {control.result.revision}</p><ul>{control.result.items.map(item => <li key={item.id}>{item.id}: revisão {item.beforeRevision} → {item.revision}, índice {item.slotIndex}, {item.changed ? 'alterada' : 'sem alteração'}.</li>)}</ul></details><p>Recarregue a série para consultar os registros atuais antes de outra edição.</p></section>}
     {control.attempted && !control.result && <p>Nova escrita bloqueada. Confira os registros antes de descartar esta tentativa.</p>}
     <Records churchId={churchId} seriesId={seriesId} control={control}/>
   </EventEditorReadAccess>
 }
 export default function SeriesPage() {
   const { churchId = '', seriesId = '' } = useParams(); const { account } = useAuth()
-  return <div className="occurrences"><h1 data-page-title="Série anual">Consulta e edição seletiva de série anual</h1><Link to="/eventos">Voltar a Eventos</Link>
+  return <div className="occurrences"><h1 data-page-title="Série anual">Editar horários da série</h1><Link to="/eventos">Voltar a Eventos</Link>
     {!isUuid(churchId) || !isUuid(seriesId) ? <p role="alert">O acesso à série é inválido. Abra a série vinculada de uma ocorrência autorizada.</p> : <Workspace key={`${account?.id}:${churchId}:${seriesId}`} churchId={churchId} seriesId={seriesId}/>}
   </div>
 }

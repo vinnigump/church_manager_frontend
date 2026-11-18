@@ -4,19 +4,23 @@ import { api, type Account } from './api'
 
 export interface Grant { permission: string; scope: string }
 export type PasswordNotice = 'changed' | 'uncertain'
-interface Auth { account: Account | null; grants: Grant[]; expired: boolean; passwordNotice?: PasswordNotice; login: (name: string, password: string) => Promise<void>; logout: (notice?: PasswordNotice) => void }
+interface Auth { restoring?: boolean; account: Account | null; grants: Grant[]; expired: boolean; passwordNotice?: PasswordNotice; login: (name: string, password: string) => Promise<void>; logout: (notice?: PasswordNotice) => void | Promise<void> }
 export const AuthContext = createContext<Auth | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null)
+  const [restoring, setRestoring] = useState(true)
   const [expired, setExpired] = useState(false)
   const [passwordNotice, setPasswordNotice] = useState<PasswordNotice>()
   useEffect(() => {
-    api.onUnauthorized = () => { setAccount(null); setExpired(true) }
-    return () => { api.onUnauthorized = undefined; api.clear() }
+    let initial = true
+    api.onUnauthorized = () => { setAccount(null); if (!initial) setExpired(true) }
+    let active = true
+    void api.restore().then(value => { if (active) { setAccount(value); setExpired(false) } }).catch(() => { /* No valid session: show login. */ }).finally(() => { initial = false; if (active) setRestoring(false) })
+    return () => { active = false; api.onUnauthorized = undefined }
   }, [])
-  return <AuthContext.Provider value={{ account, grants: [], expired, passwordNotice,
-    login: async (name, password) => { const result = await api.login(name, password); setAccount(result); setExpired(false); setPasswordNotice(undefined) },
-    logout: notice => { api.clear(); setAccount(null); setExpired(false); setPasswordNotice(notice) },
+  return <AuthContext.Provider value={{ account, restoring, grants: [], expired, passwordNotice,
+    login: async (name, password) => { const result = await api.login(name, password); await api.establishSession(); setAccount(result); setExpired(false); setPasswordNotice(undefined) },
+    logout: async notice => { if (notice === 'changed') api.clear(); else await api.logout(); setAccount(null); setExpired(false); setPasswordNotice(notice) },
   }}>{children}</AuthContext.Provider>
 }
 export function useAuth() { const value = useContext(AuthContext); if (!value) throw new Error('AuthProvider ausente'); return value }
@@ -35,7 +39,8 @@ export function loginDestination(state: unknown): string {
     && !/^\/(?:entrar|sair)\/?$/i.test(path) ? path : '/'
 }
 export function Guard({ permission, scope }: { permission?: string; scope?: string }) {
-  const { account, grants } = useAuth()
+  const { account, grants, restoring } = useAuth()
+  if (restoring) return <p role="status">Restaurando sessão…</p>
   if (!account) return <LoginRedirect />
   if (permission && (!scope || !hasGrant(grants, permission, scope))) return <>
     <p role="alert">Acesso indisponível para esta permissão e escopo.</p>

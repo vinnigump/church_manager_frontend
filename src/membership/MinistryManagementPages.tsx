@@ -1,3 +1,4 @@
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { DefaultChurchAccess } from '../church-context'
 import './membership-visual.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -42,7 +43,7 @@ function Workspace({ church }: { church: string }) {
     setCreationAttempt(attempt)
     void command(signal => createDepartment(church, attempt.ministry, attempt.requestId, attempt.name, signal), () => { setCreationAttempt(null); setRequestId(crypto.randomUUID()); setName('') })
   }
-  return <><p>Habilite ministérios do catálogo da denominação e organize seus departamentos. A gestão de integrantes fica na consulta de ministérios.</p>
+  return <><UnsavedChangesGuard dirty={Boolean(name || editing && rename !== editing.name)}/><p>Habilite ministérios do catálogo da denominação e organize seus departamentos. A gestão de integrantes fica na consulta de ministérios.</p>
     {message && <p role="status">{message}</p>}<button disabled={busy} onClick={refresh}>Consultar novamente</button>
     {query.state.kind === 'loading' ? <p role="status">Carregando ministérios…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <fieldset disabled={busy}>
       <legend>Estrutura da igreja</legend><h2>Catálogo da denominação</h2>
@@ -50,7 +51,7 @@ function Workspace({ church }: { church: string }) {
       <Pagination page={catalogPage} total={query.state.data.catalog.total} setPage={setCatalogPage} label="Páginas do catálogo de ministérios"/>
       <h2>Ministérios da igreja</h2>{query.state.data.locals.items.length ? <ul>{query.state.data.locals.items.map(v => <li key={v.id}>{v.name} · {v.status === 'ACTIVE' ? 'Ativo' : 'Inativo'} <button disabled={creationAttempt !== null} onClick={() => { setMinistry(v.id); setDepartmentPage(0); setEditing(null) }}>Departamentos de {v.name}</button></li>)}</ul> : <p>Nenhum ministério habilitado.</p>}
       <Pagination page={page} total={query.state.data.locals.total} setPage={setPage} label="Páginas dos ministérios da igreja"/>
-      {ministry && query.state.data.departments && <section><h2>Departamentos</h2>
+      {ministry && query.state.data.departments && <section><h2>Departamentos de {query.state.data.locals.items.find(v => v.id === ministry)?.name ?? 'ministério selecionado'}</h2>
         <form onSubmit={e => { e.preventDefault(); create({ ministry, requestId, name }) }}><fieldset disabled={blocked || creationAttempt !== null}><legend>Criar departamento</legend><label>Nome<input required maxLength={160} value={name} onChange={e => setName(e.target.value)}/></label><button>Criar departamento</button></fieldset></form>
         {creationAttempt && !busy && !blocked && <section><p>Confira a lista antes de continuar. A tentativa anterior mantém os mesmos dados.</p><button onClick={() => create(creationAttempt)}>Repetir confirmação da mesma criação</button><button onClick={() => { setCreationAttempt(null); setRequestId(crypto.randomUUID()); setName('') }}>Após conferir a lista, iniciar outra criação</button></section>}
         {query.state.data.departments.items.length ? <ul>{query.state.data.departments.items.map(v => <li key={v.id}>{v.name} · {v.status === 'ACTIVE' ? 'Ativo' : 'Inativo'} <button disabled={blocked} onClick={() => { setEditing(v); setRename(v.name) }}>Editar {v.name}</button></li>)}</ul> : <p>Nenhum departamento neste ministério.</p>}

@@ -1,4 +1,4 @@
-import { formatDateTime } from '../time'
+import { formatDateTime, formatDate } from '../time'
 import { DefaultChurchAccess } from '../church-context'
 import UiIcon from '../components/UiIcon'
 import './reports.css'
@@ -23,19 +23,19 @@ function Workspace({ church }: { church: string }) {
   const query = useRead(JSON.stringify([church, applied, page]), load)
   return <><form className="report-filters" onSubmit={e => { e.preventDefault(); setPage(0); setApplied({ kind, q: search.trim(), from, to }) }}>
     <label>Relatório<select value={kind} onChange={e => setKind(e.target.value as ReportKind)}>{Object.entries(reportNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-    <label>Pesquisar pessoa, ministério ou crachá<input maxLength={120} value={search} onChange={e => setSearch(e.target.value)}/></label>
+    <label>Pesquisar pessoa, ministério ou crachá<input placeholder={kind === 'PENDING_BADGES' ? 'Nome da pessoa ou identificação do crachá' : kind === 'MINISTRY_MEMBERS' ? 'Nome da pessoa ou ministério' : 'Nome da pessoa'} maxLength={120} value={search} onChange={e => setSearch(e.target.value)}/></label>
     {kind === 'SERVICE_ATTENDANCE' && <><label>De<input required type="date" value={from} onChange={e => setFrom(e.target.value)}/></label><label>Até<input required type="date" min={from} value={to} onChange={e => setTo(e.target.value)}/></label></>}
     <button>Consultar relatório</button>
   </form><ReadResult query={query} label="relatório">{data => {
     const when = (value: string | null) => value ? formatDateTime(value) : '—'
     return <section className="report-results"><header className="report-result-heading"><div><span className="report-eyebrow">Resultado da consulta</span><h2>{reportNames[data.kind]}</h2><p>Página {page + 1} · horário de Brasília</p></div><div className="report-total"><strong>{data.total}</strong><span>registros encontrados</span></div></header>
-      {data.kind === 'SERVICE_ATTENDANCE' && <p>Período de {data.from} a {data.to}. Previsão, presença manual e atuação com crachá aparecem separadas; a mesma pessoa pode ter mais de uma linha.</p>}
+      {data.kind === 'SERVICE_ATTENDANCE' && <p>Período de {data.from?formatDate(data.from):'—'} a {data.to?formatDate(data.to):'—'}. Previsão, presença manual e atuação com crachá aparecem separadas; a mesma pessoa pode ter mais de uma linha.</p>}
       {data.kind === 'PENDING_BADGES' && <p>Inclui crachás ainda não recolhidos de dias anteriores.</p>}
       {data.items.length ? <div className="report-table-scroll" role="region" aria-label="Dados do relatório" tabIndex={0}><table><caption>{reportNames[data.kind]}</caption><thead><tr><th>Pessoa</th><th>{['PEOPLE', 'MEMBERS'].includes(data.kind) ? 'Membresia' : 'Situação'}</th>
         {!['PEOPLE', 'MEMBERS'].includes(data.kind) && <><th>Ministério / departamento</th>{data.kind === 'SERVICE_ATTENDANCE' && <><th>Origem</th><th>Previsto</th></>}<th>{data.kind === 'MINISTRY_MEMBERS' ? 'Incluído em' : 'Registro / entrega'}</th>{data.kind === 'SERVICE_ATTENDANCE' && <th>Encerramento</th>}{data.kind !== 'MINISTRY_MEMBERS' && <th>Crachá</th>}</>}
       </tr></thead><tbody>{data.items.map(row => <tr key={row.id}><td>{row.person}</td><td><span className="report-status">{statusName(row.status)}</span></td>
         {!['PEOPLE', 'MEMBERS'].includes(data.kind) && <><td>{[row.ministry, row.department].filter(Boolean).join(' / ') || '—'}</td>{data.kind === 'SERVICE_ATTENDANCE' && <><td>{row.source === 'ROSTER_MANUAL' ? 'Escala' : 'Atuação com crachá'}</td><td>{when(row.planned_at)}</td></>}<td>{when(row.recorded_at)}</td>{data.kind === 'SERVICE_ATTENDANCE' && <td>{when(row.closed_at)}</td>}{data.kind !== 'MINISTRY_MEMBERS' && <td>{row.badge ?? '—'}</td>}</>}
-      </tr>)}</tbody></table></div> : <p>Nenhum registro com estes filtros.</p>}
+      </tr>)}</tbody></table></div> : <p>Nenhum registro com estes filtros. Confira o período e o termo de pesquisa.</p>}
       <Pagination page={page} total={data.total} setPage={setPage} label="Páginas do relatório"/>
     </section>
   }}</ReadResult></>

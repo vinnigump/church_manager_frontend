@@ -31,6 +31,25 @@ export class ApiClient {
       return account
     } catch (error) { if (generation === this.generation) this.clear(); throw error }
   }
+  async establishSession(): Promise<void> {
+    try { await this.request<void>('/session', { method: 'POST' }, 204) }
+    finally { this.authorization = undefined }
+  }
+  async restore(): Promise<Account> {
+    const account = parseAccount(await this.request<unknown>('/accounts/me'))
+    this.csrf = parseCsrf(await this.request<unknown>('/csrf'))
+    return account
+  }
+  async logout(): Promise<void> {
+    try {
+      this.csrf = parseCsrf(await this.request<unknown>('/csrf'))
+      await this.request<void>('/session/logout', { method: 'POST' }, 204)
+      this.clear()
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) { this.clear(); return }
+      throw error
+    }
+  }
   async request<T>(path: string, init: RequestInit = {}, expectedStatus?: number, representation: 'json' | 'text' = 'json'): Promise<T> {
     if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) throw new Error('Caminho inválido.')
     const generation = this.generation

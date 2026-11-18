@@ -1,3 +1,4 @@
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { useId, useRef, useState } from 'react'
 import './people.css'
 
@@ -73,21 +74,21 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
     : <PersonRecord person={result.person}/>}</>
   const blocked = busy || result?.kind === 'error' || result?.kind === 'conflict'
   return <section className="access-panel person-panel" aria-labelledby={`${id}-title`}>
-    <h2 id={`${id}-title`}>Dados da pessoa</h2>
+    <UnsavedChangesGuard dirty={Object.values(draft).some(Boolean)}/><h2 id={`${id}-title`}>Dados da pessoa</h2>
     <form noValidate aria-busy={busy} onSubmit={event => { event.preventDefault(); void submit() }}>
-      <div className="people-form-section"><h3><span>1</span> Identificação básica</h3><p>Identificação principal para o cadastro institucional.</p>
+      <div className="people-form-section"><h3><span>1</span> Identificação básica</h3><p>{administrative ? 'Informe nome e pelo menos um contato. Se não houver CPF, selecione Sem documento.' : 'Informe os dados de identificação e pelo menos um contato.'}</p>
       <label htmlFor={`${id}-name`}>Nome completo (obrigatório)</label>
       <input id={`${id}-name`} required maxLength={200} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.fullName.trim()} aria-describedby={invalid ? `${id}-validation` : undefined}
         value={draft.fullName} onChange={event => setDraft({ ...draft, fullName: event.target.value })}/>
       {administrative && <label>Tipo de documento<select disabled={busy} value={documentType} onChange={e => { setDocumentType(e.target.value as 'CPF' | 'CIN_CPF' | 'NO_DOCUMENT'); if (e.target.value === 'NO_DOCUMENT') setDraft({ ...draft, cpf: '' }) }}><option value="CPF">CPF</option><option value="CIN_CPF">CIN baseada em CPF</option><option value="NO_DOCUMENT">Sem documento</option></select></label>}
       {!noDocument && <>
-      <label htmlFor={`${id}-cpf`}>CPF{alternative ? ' (opcional)' : ''}</label>
+      <label htmlFor={`${id}-cpf`}>CPF{administrative || alternative ? ' (opcional)' : ''}</label>
       <input id={`${id}-cpf`} maxLength={20} autoComplete="off" disabled={busy}
         aria-invalid={invalid && !draft.cpf.trim() && !alternative}
         aria-describedby={`${id}-document${invalid ? ` ${id}-validation` : ''}`}
         value={draft.cpf} onChange={event => setDraft({ ...draft, cpf: event.target.value })}/>
-      <p id={`${id}-document`}>{alternative ? `Documento alternativo aceito: ${alternative}.` : 'Informe CPF ou forneça um documento alternativo aceito pelo serviço responsável.'} A validação do documento cabe ao serviço responsável.</p>
+      <p id={`${id}-document`}>{administrative ? 'Não possui CPF? Selecione Sem documento acima.' : alternative ? `Documento alternativo aceito: ${alternative}.` : 'Informe CPF ou documento alternativo aceito.'}</p>
       </>}
       </div><div className="people-form-section"><h3><span>2</span> Dados de contato</h3>
       <p id={`${id}-contact`}>Informe pelo menos um contato, e-mail ou telefone.</p>
@@ -114,7 +115,7 @@ export function PersonForm({ onSubmit, acceptedAlternativeDocument, birthDateReq
       <button type="submit" disabled={blocked}>Cadastrar pessoa</button>
       {blocked && !busy && <p role="status">Novo envio bloqueado até reconciliação pelo chamador.</p>}
     </form>
-    <p>Rascunho temporário mantido apenas em memória. Sair ou perder o contexto descarta os dados. A edição não cria uma pessoa.</p>
+    <p>O rascunho fica somente nesta tela até a confirmação do cadastro.</p>
     <p>Cadastrar a pessoa não envia convite nem cria membresia.</p>
   </section>
 }

@@ -1,4 +1,5 @@
-import BrazilianDateTimeField from '../components/BrazilianDateTimeField'
+import EventTimingFields from './EventTimingFields'
+import EventSchedulingOptions from './EventSchedulingOptions'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { listChurchCatalog } from './catalog-api'
@@ -38,11 +39,7 @@ export default function RecordForm({ church, before, fields, change, busy, block
     <TypePicker church={church} fields={fields} change={change} fixed={Boolean(before?.recurrenceRuleId)}/>
     <label>Local ou endereço de acesso público<input required maxLength={500} value={fields.location} onChange={e => set('location', e.target.value)} aria-describedby="record-location-help"/></label>
     <p id="record-location-help">Este local será exibido ao público escolhido. Use apenas informações que podem ser compartilhadas.</p>
-    <div className="record-grid">
-      <label>Início<BrazilianDateTimeField required step="1" value={fields.startsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('startsAt', e.target.value)}/></label>
-      <label>Término<BrazilianDateTimeField required step="1" value={fields.endsAt} disabled={Boolean(before?.recurrenceRuleId)} onChange={e => set('endsAt', e.target.value)}/></label>
-    </div>
-    <p>Todos os horários são de Brasília, no formato de 24 horas.</p>
+    <EventTimingFields fields={fields} before={before} change={change}/>
     {before?.recurrenceRuleId && <p>Este evento pertence a uma série. Tipo e datas são mantidos neste cadastro.</p>}
     <label>Modalidade<select required value={fields.modality} onChange={e => set('modality', e.target.value)}>
       <option value="">Selecione</option><option value="IN_PERSON">Presencial</option><option value="ONLINE">Online</option><option value="HYBRID">Híbrido</option>
@@ -54,12 +51,12 @@ export default function RecordForm({ church, before, fields, change, busy, block
     </select></label>
     {fields.participationMode === 'REGISTRATION_REQUIRED' && <>
       <label className="record-check"><input type="checkbox" checked={fields.checkInRequired} onChange={e => set('checkInRequired', e.target.checked)}/>Exigir check-in dos participantes</label>
-      <p>Após salvar, configure o período de inscrição no detalhe do evento para permitir novas inscrições.</p>
+      {before&&<p>O período de inscrição pode ser alterado no detalhe do evento.</p>}
     </>}
     <details><summary>Limite de participantes</summary>
       <label>Capacidade (vazia: sem limite)<input type="number" min="0" max="2147483647" step="1" value={fields.capacity} onChange={e => set('capacity', e.target.value)}/></label>
     </details>
-    </section><section className="record-form-section"><h2><span>3</span>Audiência e acesso</h2>
+    </section><section className="record-form-section"><h2><span>3</span>Público e participação</h2>
     <label>Quem pode ver o evento?<select required value={fields.visibility} onChange={e => set('visibility', e.target.value)}>
       <option value="">Selecione o público</option>{Object.entries(visibilityLabel).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
     </select></label>
@@ -70,9 +67,10 @@ export default function RecordForm({ church, before, fields, change, busy, block
       <div className="record-grid"><label>Idade mínima<input type="number" min="0" max="2147483647" value={fields.minimumAge} onChange={e => set('minimumAge', e.target.value)}/></label>
         <label>Idade máxima<input type="number" min="0" max="2147483647" value={fields.maximumAge} onChange={e => set('maximumAge', e.target.value)}/></label></div>
       {audienceCategories.filter(key => before?.audience?.[key].length).map(key => <p key={key}>{categories[key]}: {fields[key].length} seleções existentes preservadas.</p>)}
-      <p>Novas seleções de ministérios, departamentos e funções ainda não estão disponíveis neste formulário.</p>
+
     </details>
-    </section><p>Rascunhos ficam ocultos. Salvar como disponível mostra o evento conforme o público escolhido.</p>
-    <div className="record-actions"><button type="submit" value="draft">Salvar rascunho</button><button type="submit" value="available">Salvar e disponibilizar</button></div>
+    </section>{!before&&fields.scheduling&&<EventSchedulingOptions value={fields.scheduling} change={scheduling=>change({...fields,scheduling})} startsAt={fields.startsAt} registrationRequired={fields.participationMode==='REGISTRATION_REQUIRED'} visitorCompatible={fields.visibility==='PUBLIC'&&!fields.churchLinkRequired&&!fields.activeMembershipRequired&&!fields.functionIds.length&&!fields.ministryIds.length&&!fields.departmentIds.length&&(fields.maximumAge===''||Number(fields.maximumAge)>=18)}/>}
+    <p>Rascunhos ficam ocultos. Salvar evento mostra o evento conforme o público escolhido.</p>
+    <div className="record-actions"><button type="submit" value="draft">Salvar rascunho</button><button type="submit" value="available">Salvar evento</button></div>
   </fieldset></form>
 }

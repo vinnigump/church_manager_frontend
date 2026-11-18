@@ -1,3 +1,4 @@
+import { permissionLabel } from './permission-labels'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -71,7 +72,7 @@ function PermissionPicker({ catalog, scope, selected, setSelected, disabled }: {
     {choices.length ? choices.map(code => {
       const permitted = catalog.permissions.some(item => item.code === code && item.available && item.scopeTypes.includes(scope as SecurityScope))
       const checked = selected.includes(code)
-      return <label key={code}><input type="checkbox" checked={checked} disabled={!permitted && !checked} onChange={event => setSelected(event.target.checked ? [...selected, code] : selected.filter(value => value !== code))}/><span>{code}{!permitted && <small> — indisponível ou incompatível; remova antes de salvar ou publicar</small>}</span></label>
+      return <label key={code}><input type="checkbox" checked={checked} disabled={!permitted && !checked} onChange={event => setSelected(event.target.checked ? [...selected, code] : selected.filter(value => value !== code))}/><span>{permissionLabel(code)} <small>({code})</small>{!permitted && <small> — indisponível ou incompatível; remova antes de salvar ou publicar</small>}</span></label>
     }) : <p>Nenhuma permissão disponível neste escopo.</p>}
     {!selected.length && <p>Nenhuma permissão selecionada.</p>}
   </fieldset>

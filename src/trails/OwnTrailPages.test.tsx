@@ -20,6 +20,7 @@ function tree(path = '/minhas-trilhas', current: typeof account | null = account
 function backend(handler?: (url: string, init: RequestInit) => Response | Promise<Response> | undefined) {
   const fetcher = vi.fn(async (url: string, init: RequestInit = {}) => {
     const custom = handler?.(url, init); if (custom !== undefined) return custom
+    if (url.endsWith('/execution')) return new Response('', { status: 404 })
     if (url.includes('/tasks?')) return json(page([task]))
     if (url.endsWith(`/trails/${id}`)) return json(trail)
     if (url.includes('/trails?')) return json(page([trail]))

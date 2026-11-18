@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -12,7 +13,7 @@ const account = { id: denomination, personId: id, login: 'ana', status: 'ACTIVE'
 const assignment = { id, userId: id, profileId: denomination, organizationUnitId: denomination, delegationId: null, status: 'ACTIVE', revision: 2, startsAt: '2027-01-01T12:00:00Z', endsAt: null }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.includes('/authorization?')) return json({ allowed })
     if (url.includes('/assignments?')) {
       const page = Number(new URL(url, 'https://example.test').searchParams.get('page'))
@@ -30,10 +31,10 @@ describe('consultas de atribuições', () => {
   it('exige permissão própria, consulta detalhe e distingue estado de autorização', async () => {
     const fetcher = server()
     show()
-    fireEvent.click(await screen.findByRole('link', { name: `Consultar atribuição ${id}` }))
+    fireEvent.click(await screen.findByRole('link', { name: 'Consultar acesso' }))
     expect(await screen.findByRole('button', { name: 'Atualizar atribuição' })).toBeInTheDocument()
     expect(screen.getByText(/não representam autorização efetiva/)).toBeInTheDocument()
-    expect(screen.getByText('Estado registrado: ACTIVE')).toBeInTheDocument()
+    expect(screen.getByText('Estado registrado: Ativo')).toBeInTheDocument()
     expect(screen.getByText('Fim exclusivo: Sem fim definido')).toBeInTheDocument()
     expect(document.title).toBe('Detalhes da atribuição | Church Manager')
     expect(new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams.get('permissionCode')).toBe('security:assignment:manage')
@@ -44,14 +45,14 @@ describe('consultas de atribuições', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Próxima página' }))
     expect(await screen.findByText('Nenhuma atribuição nesta página.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Página anterior' }))
-    expect(await screen.findByRole('link', { name: `Consultar atribuição ${id}` })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Consultar acesso' })).toBeInTheDocument()
   })
   it.each([route, `${route}/${id}`])('nega %s sem GET de domínio', async path => {
     const fetcher = server(false); show(path)
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
-  it('não consulta rota inválida', () => {
+  it('não consulta rota inválida', async () => {
     const fetcher = server(); show(`${route}/invalid`)
     expect(screen.getByRole('alert')).toHaveTextContent('inválido')
     expect(fetcher).not.toHaveBeenCalled()

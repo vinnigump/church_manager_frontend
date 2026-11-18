@@ -1,3 +1,4 @@
+import { browserSessionResponse } from './test-browser-session'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -9,7 +10,7 @@ const account = { id: '10000000-0000-0000-0000-000000000001', personId: '1000000
 const csrf = { headerName: 'X-CSRF-TOKEN', token: 'test-token' }
 const message = 'Não foi possível validar os dados da sessão. Entre novamente.'
 function server(accountValue: unknown = account, csrfValue: unknown = csrf) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(url.endsWith('/accounts/me') ? accountValue : url.endsWith('/csrf') ? csrfValue : {})))
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return new Response(JSON.stringify(url.endsWith('/accounts/me') ? accountValue : url.endsWith('/csrf') ? csrfValue : {})) })
   vi.stubGlobal('fetch', fetcher)
   return fetcher
 }
@@ -59,7 +60,7 @@ describe('validação das respostas que estabelecem a sessão', () => {
   it.each([true, false])('interface não autentica com resposta inválida de conta=%s', async badAccount => {
     server(badAccount ? {} : account, badAccount ? csrf : {})
     render(<MemoryRouter initialEntries={['/conta']}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     expect(await screen.findByRole('alert')).toHaveTextContent(message)

@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +16,7 @@ const json = (value: unknown) => new Response(JSON.stringify(value))
 afterEach(() => api.clear())
 async function server(delegationId: string | null = null) {
   let revoked = false
-  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CUSTOM-CSRF', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed: true })
@@ -41,7 +42,7 @@ describe('revogação central de atribuição', () => {
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar revogação' }))
     await confirm()
-    expect(await screen.findByText('Estado registrado: REVOKED')).toBeInTheDocument()
+    expect(await screen.findByText('Estado registrado: Revogado')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Revogar atribuição' })).not.toBeInTheDocument()
     const [url, init] = fetcher.mock.calls.find(([, init]) => init?.method === 'POST')!
     expect(url).toBe(`/api/v1/security/denominations/${denomination}/assignments/${id}/revoke`)
@@ -118,7 +119,7 @@ describe('revogação pelo contexto de fonte', () => {
     expect(await screen.findByRole('button', { name: 'Revogar atribuição' })).toBeInTheDocument()
     expect(screen.getByText(/exige fonte própria válida/)).toBeInTheDocument()
     await confirm()
-    expect(await screen.findByText('Estado registrado: REVOKED')).toBeInTheDocument()
+    expect(await screen.findByText('Estado registrado: Revogado')).toBeInTheDocument()
     expect(fetcher.mock.calls.some(([url]) => url.includes('/authorization?'))).toBe(false)
     const [, init] = fetcher.mock.calls.find(([, init]) => init?.method === 'POST')!
     expect(new Headers(init?.headers).get('X-Expected-Revision')).toBe('7')

@@ -83,7 +83,7 @@ function Records({ churchId, occurrenceId, control }: { churchId: string; occurr
   }, [churchId, occurrenceId, observe])
   const query = useRead(`${churchId}:${occurrenceId}`, load)
   return <ReadResult query={query} label="janela de inscrição">{snapshot => <>
-    <h2>Janela da ocorrência {occurrenceId}</h2><p>Revisão compartilhada consultada: {snapshot.window.revision}.</p>
+    <h2>Período de inscrições</h2><details><summary>Detalhes do registro</summary><p>Revisão compartilhada consultada: {snapshot.window.revision}.</p></details>
     <p>Início da ocorrência: <time dateTime={snapshot.occurrence.startsAt}>{formatDateTime(snapshot.occurrence.startsAt)}</time>.</p>
     {snapshot.window.configured ? <Dates value={snapshot.window as WindowDates}/> : <p>Janela não configurada. Ausência não significa inscrição pública ilimitada.</p>}
     <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={churchId} optional><Editor current={snapshot} control={control}/></ResourceAccess>

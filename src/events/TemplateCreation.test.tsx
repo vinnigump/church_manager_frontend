@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +16,7 @@ const json = (value: unknown, status = 200) => new Response(JSON.stringify(value
 afterEach(() => api.clear())
 function server({ post, allowed = true, failReadAfterCreate = false }: { post?: () => Promise<Response>; allowed?: boolean; failReadAfterCreate?: boolean } = {}) {
   let saved = false
-  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed })
@@ -149,7 +150,7 @@ describe('formulário autorizado de criação denominacional', () => {
     await submit()
     await screen.findByRole('alert')
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes('/types?') ? new Response(null, { status: 500 }) : handler(url, init))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/types?') ? new Response(null, { status: 500 }) : handler(url, init) })
     fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
     await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(2))
     expect(screen.getByRole('button', { name: 'Criar template' })).toBeDisabled()
@@ -160,7 +161,7 @@ describe('formulário autorizado de criação denominacional', () => {
     const handler = fetcher.getMockImplementation()!
     let finish!: (value: Response) => void
     let delayed = true
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/types?') && delayed) { delayed = false; return new Promise<Response>(resolve => { finish = resolve }) }
       return handler(url, init)
     })
@@ -201,7 +202,7 @@ describe('formulário autorizado de criação denominacional', () => {
   it('401 na criação encerra a sessão com AuthProvider', async () => {
     server({ post: async () => new Response(null, { status: 401 }) })
     render(<MemoryRouter initialEntries={[route()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     await submit()

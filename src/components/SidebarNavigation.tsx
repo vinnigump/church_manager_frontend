@@ -28,7 +28,7 @@ function currentArea(path: string): Area | null {
 }
 type Resolved = { label: string; path: string }[]
 export default function SidebarNavigation() {
- const { account }=useAuth(),{defaultChurchId,churches,ready}=useDefaultChurch(),{pathname}=useLocation()
+ const { account }=useAuth(),{defaultChurchId,churches,ready}=useDefaultChurch(),{pathname,search}=useLocation()
  const [mobile,setMobile]=useState(()=>typeof window.matchMedia==='function' && window.matchMedia('(max-width:767px)').matches)
  useEffect(()=>{
   if(typeof window.matchMedia!=='function')return
@@ -67,7 +67,7 @@ export default function SidebarNavigation() {
  // Definitions and specs are immutable projections of this key.
  },[account,key])
  const links=snapshot.account===account&&snapshot.key===key?snapshot.links:[]
- const render=(items:Action[])=>items.flatMap(spec=>links.filter(v=>v.label===spec.label||v.label.startsWith(spec.label+' · '))).map(v=><Link key={v.label} to={v.path}>{v.label}</Link>)
+ const render=(items:Action[])=>items.flatMap(spec=>links.filter(v=>v.label===spec.label||v.label.startsWith(spec.label+' · '))).map(v=><Link key={v.label} to={v.path} aria-current={pathname===v.path.split('?')[0]&&(!v.path.includes('?')||search===v.path.slice(v.path.indexOf('?')))?'page':undefined}>{v.label}</Link>)
  const submenu=area?<div className="app-area-submenu">{render(definitions[area])}</div>:null
  const secondary=<div className="app-secondary-navigation"><span>Acessos da equipe</span>{([['management','Gestão da igreja',management],['settings','Configurações',settings]] as const).map(([id,label,items])=><div key={id}><button type="button" aria-expanded={expanded===id} onClick={()=>setExpanded(expanded===id?null:id)}>{label}<span aria-hidden="true">{expanded===id?'−':'+'}</span></button>{expanded===id&&<div className="app-secondary-links">{render([...items])}</div>}</div>)}</div>
  const churchLabel=snapshot.account===account&&snapshot.key===key?snapshot.churchLabel??churches.find(c=>c.churchId===contextId)?.name:churches.find(c=>c.churchId===contextId)?.name

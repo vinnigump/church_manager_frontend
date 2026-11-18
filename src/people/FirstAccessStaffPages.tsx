@@ -17,10 +17,16 @@ function Access() {
 function Workspace({ church }: { church: string }) {
   const [field, setField] = useState(''), [q, setQ] = useState(''), [page, setPage] = useState(0), [epoch, setEpoch] = useState(0)
   const [selected, setSelected] = useState<FirstAccessCandidate | null>(null), [issued, setIssued] = useState<IssuedLink | null>(null)
+  const [copyMessage, setCopyMessage] = useState('')
   const [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false), [message, setMessage] = useState('')
   const pending = useRef<AbortController | null>(null)
   useEffect(() => () => pending.current?.abort(), [])
   const load = useCallback((signal: AbortSignal) => firstAccessCandidates(church, q, page, signal), [church, q, page]), query = useRead(JSON.stringify([church,q,page,epoch]), load)
+  async function copyLink() {
+    if (!issued) return
+    try { await navigator.clipboard.writeText(new URL(issued.relativeUrl, window.location.origin).href); setCopyMessage('Link copiado. Entregue somente ao titular.') }
+    catch { setCopyMessage('Não foi possível copiar. Selecione o campo e copie manualmente.') }
+  }
   async function issue() {
     if (!selected || pending.current || blocked) return
     const controller = new AbortController(); pending.current = controller; setBusy(true); setMessage('')
@@ -28,13 +34,14 @@ function Workspace({ church }: { church: string }) {
     catch { if (!controller.signal.aborted) { setBlocked(true); setMessage('Não foi possível confirmar a geração. Consulte novamente antes de gerar outro link. Um novo link invalida o anterior ainda não utilizado.') } }
     finally { pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
-  function refresh() { if (pending.current) return; setIssued(null); setSelected(null); setBlocked(false); setMessage(''); setEpoch(v => v + 1) }
+  function refresh() { if (pending.current) return; setIssued(null); setCopyMessage(''); setSelected(null); setBlocked(false); setMessage(''); setEpoch(v => v + 1) }
   return <><p>O titular escolherá seu login e sua senha. O link não cria membresia nem concede permissões administrativas.</p>
     <button disabled={busy} onClick={refresh}>{issued ? 'Concluir e consultar outras pessoas' : 'Consultar novamente'}</button>
     {message && <p role="alert">{message}</p>}{busy && <p role="status">Gerando link individual…</p>}
     {issued ? <section><h2>Link de {selected?.displayName}</h2><label>Link individual<input readOnly value={new URL(issued.relativeUrl, window.location.origin).href} onFocus={e => e.target.select()}/></label>
+      <button type="button" onClick={() => void copyLink()}>Copiar link</button>{copyMessage && <p role="status">{copyMessage}</p>}
       <p>Copie e entregue somente ao titular. Válido até {formatDateTime(issued.expiresAt)} (horário de Brasília).</p>
-      <p>O link só pode ser utilizado uma vez. O login e a senha serão escolhidos pela pessoa.</p>
+      <p>O link só pode ser utilizado uma vez. Não há envio automático por e-mail. O login e a senha serão escolhidos pela pessoa.</p>
     </section> : <fieldset className="people-access-card" disabled={busy || blocked}><legend>Pessoas sem conta</legend>
       <form onSubmit={e => { e.preventDefault(); setQ(field.trim()); setPage(0); setSelected(null) }}><label>Pesquisar pelo nome<input maxLength={120} value={field} onChange={e => setField(e.target.value)}/></label><button>Pesquisar</button></form>
       {query.state.kind === 'loading' ? <p role="status">Carregando pessoas…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <>

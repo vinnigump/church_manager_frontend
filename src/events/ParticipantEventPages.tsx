@@ -1,4 +1,5 @@
 import { formatDateTime } from '../time'
+import { eventDurationLabel } from './event-duration'
 import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -13,7 +14,7 @@ import './stitch-events.css'
 
 const eventState = (value: string) => ({ AVAILABLE: 'Disponível', PUBLISHED: 'Disponível', IN_PROGRESS: 'Em andamento', COMPLETED: 'Concluído', CANCELLED: 'Cancelado' }[value] ?? value)
 const registrationState = (value: string) => ({ CONFIRMED: 'Confirmada', PENDING: 'Pendente', WAITLISTED: 'Em espera', CANCELLED: 'Cancelada' }[value] ?? value)
-function Dates({ value }: { value: { startsAt: string; endsAt: string } }) { return <p><time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time> até <time dateTime={value.endsAt}>{formatDateTime(value.endsAt)}</time> (horário de Brasília)</p> }
+function Dates({ value }: { value: { startsAt: string; endsAt: string } }) { return <p><time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time> · Duração: {eventDurationLabel(value.startsAt,value.endsAt)} (horário de Brasília)</p> }
 
 export function ParticipantEventAccess() {
   const { account } = useAuth()
