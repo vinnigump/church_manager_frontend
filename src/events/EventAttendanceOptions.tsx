@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Link } from 'react-router-dom'
+import ItemLink from '../components/ItemLink'
 import { api } from '../api'
 import { ResourceAccess } from '../authorization'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
@@ -18,7 +18,7 @@ export default function EventAttendanceOptions({ church }: { church: string }) {
   const query = useRead(`${church}:${page}`, load)
   return <ReadResult query={query} label="eventos para presença">{value => <>
     <h2>Presenças nos eventos</h2><p>Eventos com inscrição e conferência nominal de presença.</p>
-    {value.items.length ? <ul className="event-list">{value.items.map(v => <li key={v.id}><h3>{v.name}</h3><p>{formatDateTime(v.startsAt)} · Duração: {eventDurationLabel(v.startsAt,v.endsAt)}</p><ResourceAccess permissionCode="EVENT_ATTENDANCE_MANAGE" resourceType="CHURCH" resourceId={church} optional fallback={<p>Seu acesso permite consultar os eventos; a conferência de presença exige autorização da equipe.</p>}><Link to={`/eventos/igrejas/${church}/ocorrencias/${v.id}/check-in`}>Conferir presença</Link></ResourceAccess></li>)}</ul> : <p>Nenhum evento com conferência de presença nesta igreja.</p>}
+    {value.items.length ? <ul className="event-list">{value.items.map(v => <li key={v.id} className="navigation-card"><h3>{v.name}</h3><p>{formatDateTime(v.startsAt)} · Duração: {eventDurationLabel(v.startsAt,v.endsAt)}</p><ResourceAccess permissionCode="EVENT_ATTENDANCE_MANAGE" resourceType="CHURCH" resourceId={church} optional fallback={<p>Seu acesso permite consultar os eventos; a conferência de presença exige autorização da equipe.</p>}><ItemLink to={`/eventos/igrejas/${church}/ocorrencias/${v.id}/check-in`}>Conferir presença</ItemLink></ResourceAccess></li>)}</ul> : <p>Nenhum evento com conferência de presença nesta igreja.</p>}
     <Pagination page={page} total={value.total} setPage={setPage} label="Páginas dos eventos para presença"/>
   </>}</ReadResult>
 }
