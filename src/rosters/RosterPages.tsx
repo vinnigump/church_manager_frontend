@@ -13,6 +13,7 @@ import { isUuid } from '../validation'
 import { listRosters, markRosterPresence, readRoster, saveRoster, type Roster } from './roster-api'
 import { fieldsFor, writeFor, type Fields } from './roster-fields'
 import RosterForm from './RosterForm'
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import OwnServiceRosters, { RosterDates } from './OwnServiceRosters'
 import './rosters.css'
 
@@ -91,6 +92,7 @@ function RosterReadAccess({ church, children }: { church: string; children: Reac
   </ResourceAccess>
 }
 interface Draft { before: Roster | null; fields: Fields }
+const editableRoster = (fields:Fields) => JSON.stringify({unit:fields.unit?fields.unit.kind+':'+fields.unit.id:null,accounts:fields.accounts.map(v=>v.accountId).sort(),startsAt:fields.startsAt,endsAt:fields.endsAt,event:fields.eventEnabled?fields.eventId:null})
 function EditorData({ church, id, draft, observe, change, submit, disabled }: {
   church: string; id?: string; draft: Draft | null; observe: (value: Roster | null) => void; change: (fields: Fields) => void; submit: (e: FormEvent) => void; disabled: boolean
 }) {
@@ -119,10 +121,11 @@ function Editor({ church, id }: { church: string; id?: string }) {
     finally { if (pending.current === controller) pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
   return <ResourceAccess key={epoch} permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
+    <UnsavedChangesGuard dirty={Boolean(!saved&&draft&&editableRoster(draft.fields)!==editableRoster(fieldsFor(draft.before)))}/>
     {message && <p role={saved ? 'status' : 'alert'}>{message}</p>}{busy && <p role="status" aria-busy="true">Salvando escala…</p>}
     {saved ? <Link to={`${rosterRoute(church)}/${saved.id}`}>Ver escala salva</Link> : <>
-      <button type="button" disabled={busy} onClick={() => { setDraft(null); setBlocked(false); setMessage(''); setEpoch(v => v + 1) }}>Descartar alterações e recarregar escala</button>
       <EditorData key={epoch} church={church} id={id} draft={draft} observe={observe} change={change} submit={submit} disabled={busy || blocked}/>
+      <button className="read-refresh" type="button" disabled={busy} onClick={() => { if(draft&&editableRoster(draft.fields)!==editableRoster(fieldsFor(draft.before))&&!window.confirm('Descartar as alterações não salvas?'))return;setDraft(null); setBlocked(false); setMessage(''); setEpoch(v => v + 1) }}>Descartar alterações e recarregar escala</button>
     </>}
   </ResourceAccess>
 }
