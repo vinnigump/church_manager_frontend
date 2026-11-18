@@ -62,7 +62,7 @@ describe('gestão ministerial com diretório real (transporte simulado)', () => 
   })
   it('erro de permissão na descoberta falha fechado e não mostra lista parcial', async () => {
     backend(url => url.includes('/authorization?') ? new Response('private-detail', { status: 500 }) : undefined)
-    render(tree()); await screen.findByText('Não foi possível confirmar seus acessos. Tente atualizar.')
+    render(tree()); await screen.findByText('Não foi possível confirmar seus acessos.')
     expect(screen.queryByText('Igreja A')).not.toBeInTheDocument(); expect(screen.queryByText('private-detail')).not.toBeInTheDocument()
   })
   it('troca de igreja cancela consulta antiga sem exibir resposta tardia', async () => {
