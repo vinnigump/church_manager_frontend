@@ -43,7 +43,7 @@ function Workspace({ church }: { church: string }) {
 export default function ReportPages({ directory = false }: { directory?: boolean }) {
   const { churchId = '' } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <section className="reports-page" key={`${scope.epoch}:${churchId}`}><header className="report-page-heading"><div><span className="report-eyebrow">Gestão da igreja</span><h1 data-page-title="Relatórios">Relatórios operacionais</h1><p>Consulte pessoas, ministérios, escalas e crachás da igreja.</p></div><Link to="/conta">Minha conta <UiIcon kind="arrow"/></Link></header>{directory && <p><Link to="/relatorios?selecionar=1">Trocar igreja</Link></p>}
+  return <section className="reports-page" key={`${scope.epoch}:${churchId}`}><header className="report-page-heading"><div><span className="report-eyebrow">Gestão da igreja</span><h1 data-page-title="Relatórios">Relatórios operacionais</h1><p>Consulte pessoas, ministérios, escalas e crachás da igreja.</p></div><Link to="/conta">Minha conta <UiIcon kind="arrow"/></Link></header>{directory && <p><Link to="/relatorios?selecionar=1" className="legacy-context-switch">Trocar igreja</Link></p>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida.</p> : <ResourceAccess permissionCode={reportPermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace church={churchId}/></ResourceAccess>}
   </section>
 }

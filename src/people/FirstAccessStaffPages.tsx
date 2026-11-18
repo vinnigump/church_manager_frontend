@@ -55,7 +55,7 @@ function Workspace({ church }: { church: string }) {
 export default function FirstAccessStaffPages({ directory = false }: { directory?: boolean }) {
   const { churchId = '' } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <section className="people-page people-first-access" key={`${scope.epoch}:${churchId}`}><PeoplePageHeader title="Links de primeiro acesso" description="Entregue ao titular um link individual para criar sua conta de acesso."/><Link className="people-back-link" to="/pessoas">← Voltar a Pessoas</Link>{directory && <p><Link to="/pessoas/primeiro-acesso?selecionar=1">Trocar igreja</Link></p>}
+  return <section className="people-page people-first-access" key={`${scope.epoch}:${churchId}`}><PeoplePageHeader title="Links de primeiro acesso" description="Entregue ao titular um link individual para criar sua conta de acesso."/><Link className="people-back-link" to="/pessoas">← Voltar a Pessoas</Link>{directory && <p><Link to="/pessoas/primeiro-acesso?selecionar=1" className="legacy-context-switch">Trocar igreja</Link></p>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida.</p> : <ResourceAccess permissionCode={firstAccessPermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace church={churchId}/></ResourceAccess>}
   </section>
 }

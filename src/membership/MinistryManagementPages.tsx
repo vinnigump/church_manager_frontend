@@ -64,7 +64,7 @@ function Workspace({ church }: { church: string }) {
 export default function MinistryManagementPages({ directory = false }: { directory?: boolean }) {
   const { churchId = '' } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <section className="ministry-visual" key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>{directory && <p><Link to="/ministerios/estrutura?selecionar=1">Trocar igreja</Link></p>}
+  return <section className="ministry-visual" key={`${scope.epoch}:${churchId}`}><h1>Organizar ministérios</h1><Link to="/ministerios">Voltar a Ministérios</Link>{directory && <p><Link to="/ministerios/estrutura?selecionar=1" className="legacy-context-switch">Trocar igreja</Link></p>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida.</p> : <ResourceAccess permissionCode={ministryManagePermission} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Workspace church={churchId}/></ResourceAccess>}
   </section>
 }

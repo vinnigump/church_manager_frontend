@@ -11,6 +11,9 @@ import { confirmRegistration } from './participation-api'
 import { cancelOwnRegistration, eventChurches, ownEventRegistrations, ownOccurrenceOption, participantEvents, type OwnEventRegistration, type PublicEvent } from './participant-events-api'
 import './events.css'
 import './stitch-events.css'
+import ItemLink from '../components/ItemLink'
+import { ResourceAccess } from '../authorization'
+import { participantEvent } from './participant-events-api'
 
 const eventState = (value: string) => ({ AVAILABLE: 'Disponível', PUBLISHED: 'Disponível', IN_PROGRESS: 'Em andamento', COMPLETED: 'Concluído', CANCELLED: 'Cancelado' }[value] ?? value)
 const registrationState = (value: string) => ({ CONFIRMED: 'Confirmada', PENDING: 'Pendente', WAITLISTED: 'Em espera', CANCELLED: 'Cancelada' }[value] ?? value)
@@ -57,8 +60,8 @@ function Events({ church }: { church: string }) {
   const load = useCallback((signal: AbortSignal) => participantEvents(church, page, signal), [church, page]), query = useRead(`${church}:${page}`, load)
   return <fieldset disabled={busy}><legend>Eventos da igreja</legend><ReadResult query={query} label="eventos disponíveis para você">{data => <>
     <p>{data.total} eventos · todos os períodos · página {page + 1}</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(event => <li key={event.id}>
-      <h2>{event.name}</h2><Dates value={event}/><p>{event.location ?? 'Local ainda não informado'} · {eventState(event.status)}</p>
+    {data.items.length ? <ul className="event-list">{data.items.map(event => <li key={event.id} className="navigation-card">
+      <h2><ItemLink to={`/eventos/participar/igrejas/${church}/eventos/${event.id}`}>{event.name}</ItemLink></h2><Dates value={event}/><p>{event.location ?? 'Local ainda não informado'} · {eventState(event.status)}</p>
       {event.participationMode === 'OPEN_EVENT' ? <p>Entrada livre, sem inscrição e sem presença individual.</p> : <>
         <p>Com inscrição{event.checkInRequired ? ' e check-in de participante.' : '.'}</p>
         {['AVAILABLE', 'PUBLISHED'].includes(event.status) && <button onClick={() => setSelected(event.id)}>Consultar minha inscrição em {event.name}</button>}
@@ -99,13 +102,29 @@ function History() {
     </section>}
   </>}</ReadResult></fieldset></>
 }
-export default function ParticipantEventPages({ view }: { view: 'events' | 'registrations' }) {
-  const { churchId = '' } = useParams(), { account } = useAuth()
+function ParticipantDetail({ church, id }: { church: string; id: string }) {
+  const [busy,setBusy]=useState(false)
+  const load=useCallback((signal:AbortSignal)=>participantEvent(church,id,signal),[church,id])
+  const query=useRead(`${church}:${id}`,load)
+  return <fieldset disabled={busy}><legend>Informações do evento</legend><ReadResult query={query} label="detalhe do evento">{event=><article className="record-panel">
+    <h2>{event.name}</h2><Dates value={event}/><p>{event.location??'Local ainda não informado'}</p><p>{eventState(event.status)}</p>
+    {event.participationMode==='OPEN_EVENT'?<p>Entrada livre, sem inscrição e sem presença individual.</p>:<>
+      <p>Com inscrição{event.checkInRequired?' e check-in de participante.':'.'}</p>
+      {['AVAILABLE','PUBLISHED'].includes(event.status)&&<fieldset disabled={busy}><legend>Minha inscrição</legend><Registration church={church} event={event} onBusyChange={setBusy}/></fieldset>}
+    </>}
+    <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={church} optional fallback={<Link to={`/eventos/participar/igrejas/${church}`}>Ver todos os eventos</Link>}>
+      <Link to={`/eventos/igrejas/${church}/cadastro`}>Ver calendário completo</Link>
+    </ResourceAccess>
+  </article>}</ReadResult></fieldset>
+}
+export default function ParticipantEventPages({ view }: { view: 'events' | 'registrations' | 'detail' }) {
+  const { churchId = '', occurrenceId = '' } = useParams(), { account } = useAuth()
   const [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <div className="events-panel"><h1 data-page-title={view === 'events' ? 'Participar dos eventos' : 'Minhas inscrições'}>{view === 'events' ? 'Participar dos eventos' : 'Minhas inscrições'}</h1>
-    <nav aria-label="Eventos do participante"><Link to="/eventos?selecionar=1">Trocar igreja</Link>{' · '}<Link to="/minhas-inscricoes">Minhas inscrições</Link></nav>
+  const title=view==='detail'?'Detalhe do evento':view==='events'?'Participar dos eventos':'Minhas inscrições'
+  return <div className="events-panel"><h1 data-page-title={title}>{title}</h1>
+    <nav aria-label="Eventos do participante"><Link to="/eventos?selecionar=1" className="legacy-context-switch">Trocar igreja</Link>{' · '}<Link to="/minhas-inscricoes">Minhas inscrições</Link></nav>
     {view === 'registrations' ? <><p>Seu histórico permanece disponível mesmo após mudança de igreja ou do público do evento.</p><History key={`${account?.id}:${scope.epoch}`}/></>
-      : !isUuid(churchId) ? <p role="alert">Igreja inválida. Abra novamente a lista de eventos.</p> : <Events key={`${account?.id}:${scope.epoch}:${churchId}`} church={churchId}/>}
+      : !isUuid(churchId) || view==='detail'&&!isUuid(occurrenceId) ? <p role="alert">Acesso inválido. Abra novamente a lista de eventos.</p> : view==='detail'?<ParticipantDetail key={`${account?.id}:${scope.epoch}:${churchId}:${occurrenceId}`} church={churchId} id={occurrenceId}/>:<Events key={`${account?.id}:${scope.epoch}:${churchId}`} church={churchId}/>}
   </div>
 }

@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { formatDateTime } from '../time'
 import { useEffect, useState } from 'react'
 import { TemplateCreationForm, TemplateCreationResult, useTemplateCreation, type TemplateCreation } from './TemplateCreation'
@@ -48,9 +49,9 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
     <button data-tone="secondary" disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <p role="status">Página {page + 1} · {result.data.total} templates no catálogo.</p>
-      {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id}>
+      {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id} className="navigation-card">
         <h2>{item.name}</h2><p className="event-origin">Origem denominacional · obrigatório para as igrejas vinculadas</p>
-        <Link to={`/eventos/denominacoes/${denominationId}/templates/${item.id}`}>Consultar versões de {item.name}</Link>
+        <ItemLink to={`/eventos/denominacoes/${denominationId}/templates/${item.id}`}>Consultar versões de {item.name}</ItemLink>
       </li>)}</ul>}
       <Pagination page={page} size={result.data.size} total={result.data.total} onChange={setPage} label="Páginas do catálogo denominacional" disabled={creation.busy}/>
     </>}

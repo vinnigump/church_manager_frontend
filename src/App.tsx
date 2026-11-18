@@ -143,6 +143,7 @@ export default function App() {
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/janela-inscricao" element={<RegistrationWindowPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/check-in" element={<ParticipantCheckInPage />}/>
     <Route path="eventos/participar/igrejas/:churchId" element={<ParticipantEventPages view="events" />}/>
+    <Route path="eventos/participar/igrejas/:churchId/eventos/:occurrenceId" element={<ParticipantEventPages view="detail" />}/>
     <Route path="minhas-inscricoes" element={<ParticipantEventPages view="registrations" />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento" element={<PlanningPage />}/>
     <Route path="eventos/igrejas/:churchId/ocorrencias/:occurrenceId/planejamento/espaco" element={<SpaceEditorPage />}/>
@@ -158,4 +159,3 @@ export default function App() {
     <Route path="admin" element={<h1>Administração</h1>}/></Route></Route>
     <Route path="*" element={<><h1 data-page-title="Página não encontrada">Página não encontrada</h1><Link to="/">Voltar ao início</Link></>}/></Route></Routes>
 }
-

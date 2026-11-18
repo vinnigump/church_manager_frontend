@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api'
@@ -33,9 +34,9 @@ function List({ church }: { church: string }) {
   const query = useRead(`${church}:${page}`, load)
   return <ReadResult query={query} label="eventos">{data => <>
     <p role="status">{data.total} eventos · Página {page + 1}</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="record-list-item"><div className="record-date-tile" aria-hidden="true"><strong>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: data.timeZone }).format(new Date(v.startsAt))}</strong><span>{new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: data.timeZone }).format(new Date(v.startsAt))}</span></div><div className="record-list-content">
+    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="record-list-item navigation-card"><div className="record-date-tile" aria-hidden="true"><strong>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: data.timeZone }).format(new Date(v.startsAt))}</strong><span>{new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: data.timeZone }).format(new Date(v.startsAt))}</span></div><div className="record-list-content">
       <span className="record-badge">{recordStatusLabel(v.status)}</span><h2>{v.name}</h2><Dates value={v} timeZone={data.timeZone}/>
-      <p>{v.location ?? 'Local ainda não informado'}</p><Link to={`${recordRoute(church)}/${v.id}${recordSearch(search)}`}>Ver evento {v.name}</Link></div>
+      <p>{v.location ?? 'Local ainda não informado'}</p><ItemLink to={`${recordRoute(church)}/${v.id}${recordSearch(search)}`}>Ver evento {v.name}</ItemLink></div>
     </li>)}</ul> : <p>Nenhum evento cadastrado.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos eventos"/>
   </>}</ReadResult>
@@ -146,7 +147,7 @@ export default function EventRecordPages({ view }: { view: 'list' | 'detail' | '
   const title = { list: 'Eventos da igreja', detail: 'Detalhes do evento', create: 'Criar evento', edit: 'Editar evento' }[view]
   const valid = isUuid(churchId) && (view === 'list' || view === 'create' || isUuid(recordId))
   return <div className={`occurrences records records-${view}`}><header className="record-page-heading"><p className="record-eyebrow">Agenda eclesiástica</p><h1 data-page-title={title}>{title}</h1><p>{view === 'list' ? 'Gestão da agenda de cultos, encontros e reuniões ministeriais.' : view === 'detail' ? 'Informações e participação no evento.' : 'Organize as informações, a participação e o público do evento.'}</p></header>
-    <nav aria-label="Navegação dos eventos"><Link to="/eventos?selecionar=1">Trocar igreja</Link>
+    <nav aria-label="Navegação dos eventos"><Link to="/eventos?selecionar=1" className="legacy-context-switch">Trocar igreja</Link>
       {valid && <ResourceAccess permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId} optional><Link to={`${recordRoute(churchId)}${recordSearch(search)}`}>Todos os eventos</Link></ResourceAccess>}
     </nav>
     {!valid ? <p role="alert">O acesso ao evento é inválido. Volte a Eventos e escolha sua igreja.</p> : <div key={`${session.epoch}:${churchId}:${recordId}:${view}`}>

@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -21,8 +22,8 @@ function List({ denominationId }: { denominationId: string }) {
   const query = useRead(JSON.stringify([denominationId, page]), load)
   return <ReadResult query={query} label="fontes de delegação">{data => <>
     <p role="status">Página {page + 1} · {data.total} fontes.</p>
-    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}><DelegationMetadata value={item}/>
-      <Link to={`${securityRoute(denominationId)}/delegacoes/${item.id}`}>Consultar fonte {item.id}</Link>
+    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id} className="navigation-card"><DelegationMetadata value={item}/>
+      <ItemLink to={`${securityRoute(denominationId)}/delegacoes/${item.id}`}>Consultar fonte {item.id}</ItemLink>
     </li>)}</ul> : <p>Nenhuma fonte de delegação nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das fontes de delegação"/>
   </>}</ReadResult>

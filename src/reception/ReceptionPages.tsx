@@ -89,7 +89,7 @@ function Workspace({ church }: { church: string }) {
 function ReceptionSwitchLink() {
   const [params] = useSearchParams(), next = new URLSearchParams(params)
   next.set('selecionar', '1')
-  return <Link to={'/recepcao?' + next.toString()}>Trocar igreja</Link>
+  return <Link to={'/recepcao?' + next.toString()} className="legacy-context-switch">Trocar igreja</Link>
 }
 export default function ReceptionPages() {
   const { churchId } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })

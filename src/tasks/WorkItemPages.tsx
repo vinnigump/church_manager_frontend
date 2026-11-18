@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
@@ -46,11 +47,11 @@ function List({ actor, church, epoch }: { actor: string; church?: string; epoch:
   return <><Filter value={state} change={v => { setState(v); setPage(0) }}/>
     <ReadResult query={query} label="tarefas">{data => <>
       <p role="status">{data.total} tarefas · Página {page + 1}</p>
-      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} data-task-state={v.state}><span className="task-state">{label[v.state]}</span><h2>{v.title}</h2>
+      {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="navigation-card" data-task-state={v.state}><span className="task-state">{label[v.state]}</span><h2>{v.title}</h2>
         <p>Destino: {v.destinationName ?? destinationLabel[v.destinationKind]} · Executor: {v.executorName ?? (v.executorAccountId ? 'Atribuído' : 'Aguardando atribuição')}</p>
         {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
         {v.canClaim && <p>Você pode assumir esta tarefa da equipe.</p>}
-        <Link to={church ? `${route(church)}/${v.id}` : `/minhas-tarefas/${v.id}`}>Ver tarefa {v.title}</Link>
+        <ItemLink to={church ? `${route(church)}/${v.id}` : `/minhas-tarefas/${v.id}`}>Ver tarefa {v.title}</ItemLink>
       </li>)}</ul> : <p>Nenhuma tarefa nesta consulta.</p>}
       <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das tarefas"/>
     </>}</ReadResult>
@@ -145,7 +146,7 @@ export default function WorkItemPages({ view }: { view: 'mine' | 'ownDetail' | '
   const valid = (personal || isUuid(churchId)) && (!detail || isUuid(taskId))
   const title = view === 'create' ? 'Criar tarefa' : personal ? 'Minhas tarefas' : 'Tarefas da igreja'
   return <div className="occurrences task-workspace"><header className="task-page-header"><span className="task-eyebrow">Organização e cuidado</span><h1 data-page-title={title}>{title}</h1><p>{view === 'create' ? 'Defina as instruções e o destino da tarefa para organizar o trabalho da equipe.' : 'Acompanhe as atividades, assuma responsabilidades e registre as conclusões.'}</p></header><nav aria-label="Navegação das tarefas">
-    <Link to="/">Voltar ao Início</Link><Link to="/minhas-tarefas">Minhas tarefas</Link>{!personal && <Link to="/minhas-tarefas?selecionar=1">Trocar igreja</Link>}
+    <Link to="/">Voltar ao Início</Link><Link to="/minhas-tarefas">Minhas tarefas</Link>{!personal && <Link to="/minhas-tarefas?selecionar=1" className="legacy-context-switch">Trocar igreja</Link>}
     {!personal && valid && <ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={churchId} optional><Link to={route(churchId)}>Tarefas da igreja</Link></ResourceAccess>}
   </nav>
     {!valid ? <p role="alert">Acesso inválido. Abra novamente sua lista de tarefas.</p> : <div key={`${scope.session}:${churchId}:${taskId}:${view}`}>
