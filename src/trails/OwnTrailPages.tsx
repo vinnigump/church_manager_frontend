@@ -4,6 +4,7 @@ import { LoginRedirect, useAuth } from '../auth'
 import { isUuid } from '../validation'
 import { Pagination, ReadResult, useRead } from '../security/SecurityPages'
 import { listOwnTrails, listOwnTrailTasks, readOwnTrail, type OwnTrail, type OwnTrailTask } from './own-trail-api'
+import { OwnExecution } from './SequentialOwnPages'
 import TrailPageHeader from './TrailPageHeader'
 import './trails.css'
 import '../events/events.css'
@@ -26,7 +27,7 @@ function List() {
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das minhas trilhas"/>
   </>}</ReadResult></>
 }
-function Detail({ id }: { id: string }) {
+export function HistoricalTrailDetail({ id }: { id: string }) {
   const [page, setPage] = useState(0)
   const load = useCallback(async (signal: AbortSignal) => {
     const [trail, tasks] = await Promise.all([readOwnTrail(id, signal), listOwnTrailTasks(id, page, signal)])
@@ -35,7 +36,7 @@ function Detail({ id }: { id: string }) {
   const query = useRead(`${id}:${page}`, load)
   return <ReadResult query={query} label="meu percurso">{({ trail, tasks }) => <>
     <h2>{trail.name}</h2><p>{trail.churchName} · {trailLabel[trail.status]}</p>
-    <p><Link to={`/minhas-trilhas/${id}/atividades`}>Abrir atividades do percurso</Link></p>
+    <p>Registro histórico do percurso, com o andamento preservado.</p>
     <p>Versão {trail.versionNumber} · {trail.completedTaskCount} de {trail.taskCount} etapas com conclusão registrada.</p>
     <p>Acompanhe as etapas abaixo. Uma atividade pode ser realizada por outra pessoa responsável pelo seu percurso.</p>
     {tasks.items.length ? <ol className="event-list trail-timeline">{tasks.items.map(v => <li key={v.id} data-step-state={v.status}>
@@ -55,7 +56,7 @@ export default function OwnTrailPages({ detail = false }: { detail?: boolean }) 
   return <div className="occurrences sequential-trails own-trails"><TrailPageHeader title={title} description="Acompanhe as etapas da sua jornada e os próximos passos do seu percurso."/>
     <nav aria-label="Navegação das minhas trilhas"><Link to="/">Voltar ao Início</Link>{detail && <Link to="/minhas-trilhas">Todas as minhas trilhas</Link>}</nav>
     <div key={`${scope.session}:${refresh}:${trailId}:${detail}`}>
-      {detail && !isUuid(trailId) ? <p role="alert">Acesso inválido ao percurso. Abra novamente sua lista de trilhas.</p> : detail ? <Detail id={trailId}/> : <List/>}
+      {detail && !isUuid(trailId) ? <p role="alert">Acesso inválido ao percurso. Abra novamente sua lista de trilhas.</p> : detail ? <OwnExecution id={trailId} person={account.personId} fallback={<HistoricalTrailDetail id={trailId}/>}/> : <List/>}
     </div>
   </div>
 }

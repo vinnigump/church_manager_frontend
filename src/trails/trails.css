@@ -55,3 +55,11 @@
 @media(max-width:600px) { .trail-page-header h1 { font-size:24px; line-height:32px; } .sequential-trails .event-list>li,.sequential-trails .trail-step-editor,.sequential-trails fieldset { padding:18px; } .sequential-trails .trail-timeline { padding-left:22px; margin-left:8px; } .sequential-trails .trail-timeline>li::before { left:-32px; } .sequential-trails .trail-actions button { width:100%; margin:0; } }
 
 .app-content .sequential-trails .trail-timeline{grid-template-columns:minmax(0,1fr)}
+
+.sequential-trails .trail-management-tabs { display:flex; gap:12px; flex-wrap:wrap; margin-block:20px; }
+.sequential-trails .trail-management-tabs [aria-pressed="true"] { background:#00513c; color:white; }
+.sequential-trails .trail-step-editor > summary { cursor:pointer; padding:12px; font-weight:600; overflow-wrap:anywhere; }
+.sequential-trails .trail-next-step { padding:20px; margin-block:16px; background:#eaf6f1; border:1px solid #b9d9ca; border-radius:12px; }
+.sequential-trails .trail-timeline > li { scroll-margin-top:100px; }
+.sequential-trails .trail-flow-preview { margin-block:16px; }
+.sequential-trails .trail-flow-preview li { padding-block:8px; overflow-wrap:anywhere; }

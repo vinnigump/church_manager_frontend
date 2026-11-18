@@ -11,7 +11,7 @@ export interface Binding { stepId: string; destinationKind: Destination; destina
 export interface Publication { id: string | null; versionId: string; churchId: string; enabled: boolean; revision: number; bindings: Binding[] }
 export interface Available { publicationId: string; versionId: string; name: string; versionNumber: number; official: boolean }
 export interface Church { churchId: string; churchName: string }
-export interface ExecutionStep { id: string; position: number; name: string; instructions: string; kind: Kind; status: string; satisfactionMode: 'NORMAL' | 'ADMINISTRATIVE' | 'WAIVED' | null; requirementId: string | null; workItemId: string | null; requiresAdmissionAuthorization: boolean; available: boolean }
+export interface ExecutionStep { destinationName?: string | null; executorName?: string | null; executorIsParticipant?: boolean; id: string; position: number; name: string; instructions: string; kind: Kind; status: string; satisfactionMode: 'NORMAL' | 'ADMINISTRATIVE' | 'WAIVED' | null; requirementId: string | null; workItemId: string | null; requiresAdmissionAuthorization: boolean; available: boolean }
 export interface Execution { id: string; churchId: string; personId: string; participantName: string; versionId: string; name: string; status: string; official: boolean; blockReason: string | null; revision: number; steps: ExecutionStep[] }
 export interface Option { id: string; label: string }
 export interface Options { items: Option[]; page: number; size: number; total: number }
@@ -63,11 +63,17 @@ function execution(v: unknown, expected?: { id?: string; church?: string; person
   const steps = array(v.steps, row => {
     if (!object(row) || !uuid(row.id) || !natural(row.position) || !row.position || !text(row.name, 180) || !text(row.instructions, 10000)
       || !kinds.includes(row.kind as Kind) || !taskStates.includes(String(row.status)) || ![null, 'NORMAL', 'ADMINISTRATIVE', 'WAIVED'].includes(row.satisfactionMode as string | null)
+      || row.destinationName !== undefined && row.destinationName !== null && !text(row.destinationName, 500)
+      || row.executorName !== undefined && row.executorName !== null && !text(row.executorName, 200)
+      || row.executorIsParticipant !== undefined && typeof row.executorIsParticipant !== 'boolean'
       || !nullableUuid(row.requirementId) || !nullableUuid(row.workItemId) || typeof row.requiresAdmissionAuthorization !== 'boolean' || typeof row.available !== 'boolean'
       || row.kind !== 'MANUAL' && !uuid(row.requirementId) || row.available && !['AVAILABLE', 'IN_PROGRESS'].includes(String(row.status))) throw invalid()
     return { id: row.id, position: row.position, name: row.name, instructions: row.instructions, kind: row.kind as Kind, status: row.status as string,
       satisfactionMode: row.satisfactionMode as ExecutionStep['satisfactionMode'], requirementId: row.requirementId as string | null, workItemId: row.workItemId as string | null,
-      requiresAdmissionAuthorization: row.requiresAdmissionAuthorization, available: row.available }
+      requiresAdmissionAuthorization: row.requiresAdmissionAuthorization, available: row.available,
+      ...(row.destinationName !== undefined ? { destinationName: row.destinationName as string | null } : {}),
+      ...(row.executorName !== undefined ? { executorName: row.executorName as string | null } : {}),
+      ...(row.executorIsParticipant !== undefined ? { executorIsParticipant: row.executorIsParticipant as boolean } : {}) }
   }, row => row.id)
   if (!steps.length || steps.some((s, n) => s.position !== n + 1)) throw invalid()
   return { id: v.id, churchId: v.churchId, personId: v.personId, participantName: v.participantName, versionId: v.versionId, name: v.name,

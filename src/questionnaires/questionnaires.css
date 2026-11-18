@@ -36,3 +36,9 @@
   .questionnaire-workspace .event-list { grid-template-columns: 1fr; }
   .questionnaire-workspace legend { font-size: 15px; }
 }
+
+.questionnaire-workspace details.questionnaire-question-card > summary { padding:14px; cursor:pointer; font-weight:600; overflow-wrap:anywhere; }
+.questionnaire-workspace .questionnaire-preview { padding:20px; border:1px solid #b9d9ca; border-radius:12px; margin-block:16px; }
+.questionnaire-workspace .questionnaire-preview fieldset { margin-block:16px; }
+.questionnaire-workspace .questionnaire-preview label { display:block; }
+.questionnaire-workspace #questionnaire-questions, .questionnaire-workspace #questionnaire-config { margin-top:24px; }
