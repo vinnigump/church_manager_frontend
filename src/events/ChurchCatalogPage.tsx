@@ -33,11 +33,11 @@ function CatalogRecords({ churchId, mutation }: { churchId: string; mutation: Lo
   }, [churchId, page, attempt, revision, key])
 
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando catálogo…</p>
-  if (result.kind === 'error') return <><p role="alert">{result.message}</p><button data-tone="secondary" disabled={mutation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button></>
+  if (result.kind === 'error') return <><p role="alert">{result.message}</p><button data-tone="secondary" disabled={mutation.busy} onClick={() => setAttempt(value => value + 1)}>Tentar novamente</button></>
   const { data } = result
   return <>
-    <p role="status">Página {data.page + 1} · {data.total} tipos de evento no catálogo.</p>
-    <button data-tone="secondary" disabled={mutation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
+    <p role="status">Página {data.page + 1} · {data.total} tipos de evento no catálogo.</p>{mutation.failed && <button disabled={mutation.busy} onClick={() => setAttempt(value => value + 1)}>Conferir resultado</button>}
+
     {data.items.length === 0 ? <p>Nenhum tipo de evento nesta página.</p> : <ActionAccess churchId={churchId} permissionCode="EVENT_EDIT" fallback={<CatalogCards items={data.items}/>}><CatalogCards items={data.items} mutation={mutation}/></ActionAccess>}
     <nav className="catalog-pagination" aria-label="Páginas do catálogo">
       <button data-tone="secondary" disabled={mutation.busy || page === 0} onClick={() => setPage(value => value - 1)}>Página anterior</button>

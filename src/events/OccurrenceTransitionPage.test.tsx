@@ -144,7 +144,7 @@ describe('fluxo administrativo de transições', () => {
     fireEvent(window, new Event('focus'))
     expect(await screen.findByRole('button', { name: 'Cancelar ocorrência' })).toBeDisabled()
     expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar ocorrência e reavaliar acesso' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir resultado' }))
     expect(await screen.findByRole('button', { name: 'Cancelar ocorrência' })).toBeEnabled()
     expect(writes(fetcher)).toHaveLength(1)
   })

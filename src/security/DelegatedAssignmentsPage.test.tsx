@@ -45,7 +45,7 @@ describe('consulta de atribuições por fonte', () => {
   it('envia fonte obrigatória, usa autorização do GET e navega ao detalhe', async () => {
     const fetcher = server(); show()
     fireEvent.click(await screen.findByRole('link', { name: 'Consultar acesso' }))
-    expect(await screen.findByRole('button', { name: 'Atualizar atribuição da fonte' })).toBeInTheDocument()
+    expect(await screen.findByText('Estado registrado: Ativo')).toBeInTheDocument()
     expect(fetcher.mock.calls[0][0]).toBe(`/api/v1/security/denominations/${denomination}/assignments?page=0&size=20&delegationId=${sourceId}`)
     expect(fetcher.mock.calls.some(([url]) => url.includes('/authorization?'))).toBe(false)
     expect(screen.getByText(/não concede gestão denominacional/)).toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('consulta de atribuições por fonte', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.queryByText('private-owner')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Consultar acesso' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Atualizar atribuições da fonte' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
   })
   it('foco recarrega política do servidor e remove dados ao perder fonte utilizável', async () => {
     const fetcher = server(); show()

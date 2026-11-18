@@ -28,9 +28,9 @@ export function useTrailWrite() {
   return { run, busy, blocked, message, reset: () => { if (!pending.current) { setBlocked(false); setMessage('') } } }
 }
 export function Feedback({ write }: { write: ReturnType<typeof useTrailWrite> }) { return write.message ? <p role={write.blocked ? 'alert' : 'status'}>{write.message}</p> : null }
-export function Query<T>({ query, busy = false, label, refresh, hideRefresh = false, children }: { query: ReturnType<typeof useRead<T>>; busy?: boolean; label: string; refresh?: () => void; hideRefresh?: boolean; children: (value: T) => ReactNode }) {
+export function Query<T>({ query, busy = false, label, refresh, children }: { query: ReturnType<typeof useRead<T>>; busy?: boolean; label: string; refresh?: () => void; hideRefresh?: boolean; children: (value: T) => ReactNode }) {
   return <>
-    {(!hideRefresh || query.state.kind === 'error') && <button type="button" disabled={busy} onClick={refresh ?? query.refresh}>Atualizar {label}</button>}
+    {query.state.kind === 'error' && <button type="button" disabled={busy} onClick={refresh ?? query.refresh}>Tentar novamente</button>}
     {query.state.kind === 'loading' ? <p role="status" aria-busy="true">Carregando {label}…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}
   </>
 }

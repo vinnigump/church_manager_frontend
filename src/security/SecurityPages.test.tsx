@@ -140,7 +140,7 @@ describe('consultas administrativas denominacionais', () => {
     let fail = true
     fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;  if (url.includes('/profiles?') && fail) { fail = false; throw new TypeError('network') } return handler(url) })
     show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Atualizar perfis' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar novamente' }))
     expect(await screen.findByRole('heading', { name: profile.name })).toBeInTheDocument()
   })
   it('retira dados quando a permissão é revogada ao retomar foco', async () => {

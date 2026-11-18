@@ -80,7 +80,7 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
   const refresh = () => { if (control.busy) return; control.reset(); setAssignee(''); query.refresh() }
   const message = control.message && <p role={control.blocked ? 'alert' : 'status'}>{control.message}</p>
   if (query.state.kind === 'loading') return <>{message}<p role="status">Carregando tarefa…</p></>
-  if (query.state.kind === 'error') return <>{message}<p role="alert">{query.state.message}</p><button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button></>
+  if (query.state.kind === 'error') return <>{message}<p role="alert">{query.state.message}</p><button disabled={control.busy} onClick={refresh}>Tentar novamente</button></>
   const v = control.value && control.value.revision >= query.state.data.revision ? control.value : query.state.data
   return <article>{message}<h2>{v.title}</h2>
     <p className="task-detail-meta"><span className="task-state">{label[v.state]}</span></p><dl className="task-responsibility"><dt>Para quem é</dt><dd>{v.destinationName ?? destinationLabel[v.destinationKind]} · {destinationLabel[v.destinationKind]}</dd><dt>Quem vai executar</dt><dd>{v.executorAccountId === actor ? (v.executorName ? `${v.executorName} (você)` : 'Você') : v.executorAccountId ? (v.executorName ?? 'Responsável atribuído') : 'Aguardando um integrante assumir ou receber a atribuição'}</dd></dl><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
@@ -102,7 +102,7 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
       <p>Esta ação registra a conclusão administrativa, preservando o responsável e o autor real.</p>
       <button disabled={control.busy || control.blocked} onClick={() => void control.run(v, 'complete')}>Concluir administrativamente</button>
     </ResourceAccess>}
-    <button className="secondary" disabled={control.busy} onClick={refresh}>Atualizar tarefa</button>
+    {control.blocked && <button className="secondary" disabled={control.busy} onClick={refresh}>Conferir resultado</button>}
   </article>
 }
 function Create({ church }: { church: string }) {

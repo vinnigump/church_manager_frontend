@@ -31,7 +31,7 @@ describe('consulta de fontes de delegação', () => {
   it('lista com permissão central e navega para histórico sem declarar fonte operacional', async () => {
     const fetcher = server(); show()
     fireEvent.click(await screen.findByRole('link', { name: `Consultar fonte ${id}` }))
-    expect(await screen.findByRole('button', { name: 'Atualizar fonte de delegação' })).toBeInTheDocument()
+    expect(await screen.findByText('Estado registrado: REVOKED')).toBeInTheDocument()
     expect(screen.getByText('Estado registrado: REVOKED')).toBeInTheDocument()
     expect(screen.getByText(/não concede gestão denominacional/)).toBeInTheDocument()
     expect(new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams.get('permissionCode')).toBe('security:assignment:manage')
@@ -68,7 +68,7 @@ describe('consulta de fontes de delegação', () => {
     show(`${route}/${id}`)
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.queryByText('private-owner')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Atualizar fonte de delegação' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
   })
   it.each([{ revision: -1 }, { delegateeUserId: null }, { endsAt: 'invalid' }, { startsAt: '2026-02-30T12:00:00Z' }])('rejeita DTO inválido %j', async change => {
     const fetcher = server(); fetcher.mockImplementation(async () => json({ ...source, ...change }))

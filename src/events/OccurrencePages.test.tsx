@@ -94,7 +94,7 @@ describe('ocorrências administrativas', () => {
     show(); expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível concluir a solicitação.')
     // First recover page zero, then move to the second page.
     fetcher.mockImplementation(async (url: string) => url.includes('/authorization?') ? json({ allowed: true }) : json({ items: [], page: url.includes('page=1') ? 1 : 0, size: 20, total: 21 }))
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar ocorrências' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     await screen.findByText('Página 1 · 21 ocorrências.')
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await screen.findByText('Página 2 · 21 ocorrências.')
@@ -225,7 +225,7 @@ describe('configuração explícita de rascunhos', () => {
     fireEvent.click(picker.getByRole('button', { name: 'Próxima página' }))
     await screen.findByRole('option', { name: /Tipo selecionado fora desta página/ })
     expect(screen.getByLabelText('Tipo de evento')).toHaveValue(type)
-    fireEvent.click(picker.getByRole('button', { name: 'Atualizar tipos disponíveis' }))
+    expect(picker.queryByRole('button', { name: /Atualizar/ })).not.toBeInTheDocument()
     await screen.findByRole('option', { name: /Tipo selecionado fora desta página/ })
     expect(writes(fetcher)).toHaveLength(0)
   })

@@ -145,7 +145,7 @@ function ManagementRecords({ denominationId, profileId, mutation }: { denominati
     return () => { active = false; controller.abort() }
   }, [denominationId, profileId])
   return <>
-    <button disabled={mutation.busy} onClick={mutation.refresh}>Atualizar dados de gestão</button>
+    {mutation.failed && <button disabled={mutation.busy} onClick={mutation.refresh}>Conferir resultado</button>}
     {mutation.editor && <button disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh() }}>Descartar alterações locais e atualizar gestão</button>}
     {!state ? <p role="status" aria-busy="true">Carregando gestão do perfil…</p> : state.kind === 'error' ? <p role="alert">{state.message}</p>
       : <ProfileControls denominationId={denominationId} data={state.data} mutation={mutation}/>}

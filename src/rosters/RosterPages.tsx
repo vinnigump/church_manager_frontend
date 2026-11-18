@@ -32,9 +32,9 @@ function Access() {
     return rows.filter(v => creating ? v.canManage : v.canView || v.canManage)
   }, [account, creating])
   useEffect(() => { const refresh = () => setEpoch(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
-  return <><button type="button" onClick={() => setEpoch(v => v + 1)}>Atualizar acessos às escalas</button><ContextOperation contextId={String(epoch)} operation={load}>{state => {
+  return <><ContextOperation contextId={String(epoch)} operation={load}>{state => {
     if (state.kind === 'loading') return <p role="status">Consultando seus acessos…</p>
-    if (state.kind === 'error') return <p role="alert">Não foi possível consultar seus acessos às escalas.</p>
+    if (state.kind === 'error') return <><p role="alert">Não foi possível consultar seus acessos às escalas.</p><button onClick={() => setEpoch(v => v + 1)}>Tentar novamente</button></>
     return state.data.length ? <DefaultChurchAccess options={state.data.map(v => ({ churchId: v.resourceId, path: !creating && v.canView ? rosterRoute(v.resourceId) : `${rosterRoute(v.resourceId)}/nova` }))}><ul>{state.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2>
       {v.canView && !creating && <p><Link to={rosterRoute(v.resourceId)}>Consultar escalas de {v.label}</Link></p>}
       {v.canManage && <p><Link to={`${rosterRoute(v.resourceId)}/nova`}>Criar escala em {v.label}</Link></p>}
@@ -69,7 +69,7 @@ function Detail({ church, id }: { church: string; id: string }) {
     finally { if (pending.current === controller) pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
   return <>{message && <p role="status">{message}</p>}{busy && <p role="status" aria-busy="true">Registrando presença…</p>}
-    <button type="button" disabled={busy} onClick={() => { setBlocked(false); setEpoch(v => v + 1) }}>Recarregar escala</button>
+    {blocked && <button type="button" disabled={busy} onClick={() => { setBlocked(false); setEpoch(v => v + 1) }}>Conferir presença registrada</button>}
     <ReadResult query={query} label="escala">{v => <article><h2>{v.departmentName ? `${v.departmentName} · ${v.ministryName}` : v.ministryName}</h2>
       <RosterDates value={v}/>{v.eventId && <p>{v.eventName ? `Evento associado: ${v.eventName}` : 'Atuação vinculada a evento restrito'}</p>}
       <p>Registro manual de atuação. Não movimenta crachá nem realiza check-in como participante de evento.</p>

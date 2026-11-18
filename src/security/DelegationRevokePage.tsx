@@ -30,7 +30,7 @@ function Workspace({ denominationId, delegationId }: { denominationId: string; d
   const command = useSecurityCommand('Atualize a fonte e a permissão antes de tentar novamente.')
   return <><Link to={`${securityRoute(denominationId)}/delegacoes/${delegationId}`}>Voltar à fonte de delegação</Link>
     {command.message && <p role={command.failed ? 'alert' : 'status'}>{command.message}</p>}
-    <button disabled={command.busy} onClick={command.refresh}>Atualizar fonte e permissão</button>
+    {command.failed && <button disabled={command.busy} onClick={command.refresh}>Conferir resultado</button>}
     <ResourceAccess key={command.revision} permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId}>
       <Loaded denominationId={denominationId} delegationId={delegationId} command={command}/>
     </ResourceAccess>

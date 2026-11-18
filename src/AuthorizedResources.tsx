@@ -61,17 +61,17 @@ export default function AuthorizedResources() {
   if (!account) return null
   return <section aria-labelledby="authorized-resources-title">
     <h2 id="authorized-resources-title">Recursos autorizados</h2>
-    <button type="button" onClick={() => setAttempt(value => value + 1)}>Atualizar acessos</button>
-    <ResourceSnapshot key={attempt} account={account} load={load}/>
+
+    <ResourceSnapshot key={attempt} account={account} load={load} retry={() => setAttempt(value => value + 1)}/>
   </section>
 }
 
-function ResourceSnapshot({ account, load }: { account: object; load: (id: string, signal: AbortSignal) => Promise<AuthorizedResource[]> }) {
+function ResourceSnapshot({ account, load, retry }: { retry:()=>void; account: object; load: (id: string, signal: AbortSignal) => Promise<AuthorizedResource[]> }) {
   // A new session object invalidates work even when the same account logs in again.
   const operation = useCallback((id: string, signal: AbortSignal) => load(id, signal), [account, load])
   return <ContextOperation contextId="authorized-resources" operation={operation}>{state => {
     if (state.kind === 'loading') return <p role="status" aria-busy="true">Carregando recursos autorizados…</p>
-    if (state.kind === 'error') return <p role="alert">Não foi possível carregar os recursos autorizados. Atualize os acessos para tentar novamente.</p>
+    if (state.kind === 'error') return <><p role="alert">Não foi possível carregar os recursos autorizados.</p><button onClick={retry}>Tentar novamente</button></>
     return state.data.length ? <ul>{state.data.map(resource => <ResourceLinks key={`${resource.resourceType}:${resource.resourceId}`} resource={resource}/>)}</ul>
       : <p role="status">Nenhum recurso autorizado disponível.</p>
   }}</ContextOperation>
