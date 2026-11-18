@@ -35,7 +35,7 @@ function tree(currentAccount = account) {
 async function fill() {
   await screen.findByLabelText('Nome completo (obrigatório)')
   fireEvent.change(screen.getByLabelText('Nome completo (obrigatório)'), { target: { value: 'Nome digitado' } })
-  fireEvent.change(screen.getByLabelText('CPF'), { target: { value: '529.982.247-25' } })
+  fireEvent.change(screen.getByLabelText('CPF (opcional)'), { target: { value: '529.982.247-25' } })
   fireEvent.change(screen.getByLabelText('Telefone'), { target: { value: '+55 (11) 99999-9999' } })
 }
 function submit() { fireEvent.click(screen.getByRole('button', { name: 'Cadastrar pessoa' })) }
@@ -59,7 +59,7 @@ describe('cadastro administrativo integrado', () => {
     post = async () => response({ personId, fullName: 'Nome confirmado', churchId: church }, status)
     render(tree()); await fill(); submit()
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível confirmar')
-    expect(screen.getByLabelText('CPF')).toHaveValue('529.982.247-25')
+    expect(screen.getByLabelText('CPF (opcional)')).toHaveValue('529.982.247-25')
     fireEvent.change(screen.getByLabelText('Nome completo (obrigatório)'), { target: { value: 'Correção' } })
     expect(screen.getByLabelText('Nome completo (obrigatório)')).toHaveValue('Correção')
     expect(screen.queryByText('Cadastro confirmado.')).not.toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('cadastro administrativo integrado', () => {
   it('nega formulário sem concessão', async () => {
     allowed = false; render(tree())
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('CPF (opcional)')).not.toBeInTheDocument()
   })
   it.each([400, 409, 500])('preserva edição e trava ao recuperar foco após HTTP %s', async status => {
     post = async () => response({}, status)
@@ -79,11 +79,11 @@ describe('cadastro administrativo integrado', () => {
     fireEvent(window, new Event('focus'))
     expect(screen.getByRole('status')).toHaveTextContent('Verificando permissão')
     expect(screen.queryByRole('textbox', { name: 'CPF' })).not.toBeInTheDocument()
-    const field = screen.getByLabelText('CPF')
+    const field = screen.getByLabelText('CPF (opcional)')
     expect(field.closest('[hidden]')).toHaveAttribute('inert')
     await act(async () => authorize(response({ allowed: true })))
-    expect(screen.getByLabelText('CPF')).toBe(field)
-    expect(screen.getByLabelText('CPF')).toHaveValue('529.982.247-25')
+    expect(screen.getByLabelText('CPF (opcional)')).toBe(field)
+    expect(screen.getByLabelText('CPF (opcional)')).toHaveValue('529.982.247-25')
     expect(screen.getByLabelText('Nome completo (obrigatório)')).toHaveValue('Correção preservada')
     expect(screen.getByRole('button', { name: 'Cadastrar pessoa' })).toBeDisabled()
     // Even a programmatic submit cannot bypass the preserved submission lock.
@@ -102,20 +102,20 @@ describe('cadastro administrativo integrado', () => {
     allowed = false
     fireEvent(window, new Event('focus'))
     await screen.findByRole('alert')
-    expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('CPF (opcional)')).not.toBeInTheDocument()
     allowed = true
     fireEvent(window, new Event('focus'))
-    expect(await screen.findByLabelText('CPF')).toHaveValue('')
+    expect(await screen.findByLabelText('CPF (opcional)')).toHaveValue('')
   })
   it('descarta rascunho e resposta pendente quando a sessão muda', async () => {
     let finish!: (value: Response) => void
     post = () => new Promise(resolve => { finish = resolve })
     const view = render(tree()); await fill(); submit()
     view.rerender(tree({ ...account }))
-    expect(await screen.findByLabelText('CPF')).toHaveValue('')
+    expect(await screen.findByLabelText('CPF (opcional)')).toHaveValue('')
     await act(async () => finish(response({ personId, fullName: 'Nome confirmado', churchId: church }, 201)))
     expect(screen.queryByText('Cadastro confirmado.')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('CPF')).toHaveValue('')
+    expect(screen.getByLabelText('CPF (opcional)')).toHaveValue('')
   })
   it.each([{}, { personId, fullName: 'Nome confirmado', churchId: null }, { personId: 'inválido', fullName: 'Nome confirmado', churchId: church }])('rejeita confirmação 201 inválida %j', async data => {
     post = async () => response(data, 201)
@@ -127,7 +127,7 @@ describe('cadastro administrativo integrado', () => {
     post = async () => response({}, 403)
     render(tree()); await fill(); submit()
     expect(await screen.findByRole('alert')).toHaveTextContent('descartados')
-    expect(screen.queryByLabelText('CPF')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('CPF (opcional)')).not.toBeInTheDocument()
   })
   it('descarta confirmação pendente ao revalidar contexto e perder acesso', async () => {
     let finish!: (value: Response) => void

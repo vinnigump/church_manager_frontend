@@ -11,7 +11,7 @@ export interface WorkItem {
   executorAccountId: string | null; state: TaskState; revision: number; createdAt: string; createdBy: string
   assignedAt: string | null; assignedBy: string | null; completedAt: string | null; completedBy: string | null
   completionMode: 'RESPONSIBLE' | 'ADMINISTRATIVE' | null; canClaim: boolean; canComplete: boolean
-  taskInstanceId?: string | null; participantName?: string | null
+  taskInstanceId?: string | null; participantName?: string | null; destinationName?: string; executorName?: string | null
 }
 export interface CreateTask { requestId: string; title: string; instructions: string; destinationKind: Destination; destinationId: string }
 export interface Option { id: string; label: string }
@@ -29,6 +29,8 @@ function task(v: unknown, church?: string): WorkItem {
     || !states.includes(v.state as TaskState) || !natural(v.revision) || !isInstant(v.createdAt) || !uuid(v.createdBy)
     || !nullableDate(v.assignedAt) || !nullableUuid(v.assignedBy) || !nullableDate(v.completedAt) || !nullableUuid(v.completedBy)
     || ![null, 'RESPONSIBLE', 'ADMINISTRATIVE'].includes(v.completionMode as string | null)
+    || v.destinationName !== undefined && !text(v.destinationName, 500)
+    || v.executorName !== undefined && (v.executorAccountId === null ? v.executorName !== null : !text(v.executorName, 200))
     || typeof v.canClaim !== 'boolean' || typeof v.canComplete !== 'boolean'
     || v.taskInstanceId !== undefined && (!nullableUuid(v.taskInstanceId) || v.participantName !== null && !text(v.participantName, 200))
     || (v.taskInstanceId === undefined) !== (v.participantName === undefined)
@@ -44,7 +46,7 @@ function task(v: unknown, church?: string): WorkItem {
     destinationId: v.destinationId, executorAccountId: v.executorAccountId as string | null, state: v.state as TaskState, revision: v.revision,
     createdAt: v.createdAt, createdBy: v.createdBy, assignedAt: v.assignedAt as string | null, assignedBy: v.assignedBy as string | null,
     completedAt: v.completedAt as string | null, completedBy: v.completedBy as string | null, completionMode: v.completionMode as WorkItem['completionMode'],
-    canClaim: v.canClaim, canComplete: v.canComplete, ...(v.taskInstanceId !== undefined ? { taskInstanceId: v.taskInstanceId as string | null, participantName: v.participantName as string | null } : {}) }
+    canClaim: v.canClaim, canComplete: v.canComplete, ...(v.destinationName !== undefined ? { destinationName: v.destinationName as string } : {}), ...(v.executorName !== undefined ? { executorName: v.executorName as string | null } : {}), ...(v.taskInstanceId !== undefined ? { taskInstanceId: v.taskInstanceId as string | null, participantName: v.participantName as string | null } : {}) }
 }
 function page<T extends { id: string }>(v: unknown, p: number, parse: (v: unknown) => T): Page<T> {
   if (!object(v) || !Array.isArray(v.items) || v.items.length > 20 || v.page !== p || v.size !== 20 || !natural(v.total) || v.total < v.items.length) throw invalid()

@@ -1,3 +1,4 @@
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -46,6 +47,7 @@ function List({ actor, church, epoch }: { actor: string; church?: string; epoch:
     <ReadResult query={query} label="tarefas">{data => <>
       <p role="status">{data.total} tarefas · Página {page + 1}</p>
       {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} data-task-state={v.state}><span className="task-state">{label[v.state]}</span><h2>{v.title}</h2>
+        <p>Destino: {v.destinationName ?? destinationLabel[v.destinationKind]} · Executor: {v.executorName ?? (v.executorAccountId ? 'Atribuído' : 'Aguardando atribuição')}</p>
         {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
         {v.canClaim && <p>Você pode assumir esta tarefa da equipe.</p>}
         <Link to={church ? `${route(church)}/${v.id}` : `/minhas-tarefas/${v.id}`}>Ver tarefa {v.title}</Link>
@@ -79,8 +81,8 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
   if (query.state.kind === 'loading') return <>{message}<p role="status">Carregando tarefa…</p></>
   if (query.state.kind === 'error') return <>{message}<p role="alert">{query.state.message}</p><button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button></>
   const v = control.value && control.value.revision >= query.state.data.revision ? control.value : query.state.data
-  return <article>{message}<button disabled={control.busy} onClick={refresh}>Atualizar tarefa</button><h2>{v.title}</h2>
-    <p className="task-detail-meta"><span className="task-state">{label[v.state]}</span> {destinationLabel[v.destinationKind]}</p><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
+  return <article>{message}<h2>{v.title}</h2>
+    <p className="task-detail-meta"><span className="task-state">{label[v.state]}</span></p><dl className="task-responsibility"><dt>Para quem é</dt><dd>{v.destinationName ?? destinationLabel[v.destinationKind]} · {destinationLabel[v.destinationKind]}</dd><dt>Quem vai executar</dt><dd>{v.executorAccountId === actor ? (v.executorName ? `${v.executorName} (você)` : 'Você') : v.executorAccountId ? (v.executorName ?? 'Responsável atribuído') : 'Aguardando um integrante assumir ou receber a atribuição'}</dd></dl><p style={{ whiteSpace: 'pre-wrap' }}>{v.instructions}</p>
     {v.participantName && <p>Participante da trilha: {v.participantName}</p>}
     {v.completionMode === 'ADMINISTRATIVE' && <p>Conclusão administrativa registrada.</p>}
     {control.busy && <p role="status" aria-busy="true">Registrando operação…</p>}
@@ -99,6 +101,7 @@ function Detail({ id, actor, church, epoch }: { id: string; actor: string; churc
       <p>Esta ação registra a conclusão administrativa, preservando o responsável e o autor real.</p>
       <button disabled={control.busy || control.blocked} onClick={() => void control.run(v, 'complete')}>Concluir administrativamente</button>
     </ResourceAccess>}
+    <button className="secondary" disabled={control.busy} onClick={refresh}>Atualizar tarefa</button>
   </article>
 }
 function Create({ church }: { church: string }) {
@@ -115,6 +118,7 @@ function Create({ church }: { church: string }) {
     finally { if (pending.current === controller) pending.current = null; if (!controller.signal.aborted) setBusy(false) }
   }
   return <ResourceAccess permissionCode="TASK_CREATE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
+    <UnsavedChangesGuard dirty={!result && Boolean(input.title || input.instructions || input.destinationKind || input.destinationId)}/>
     {result ? <><p role="status">Tarefa registrada.</p><ResourceAccess permissionCode="TASK_VIEW" resourceType="CHURCH" resourceId={church} optional>
       <Link to={`${route(church)}/${result.id}`}>Ver tarefa registrada</Link>
     </ResourceAccess></> : <><p>Uma tarefa para usuário já fica atribuída a ele. Na equipe, um integrante pode assumir ou receber a atribuição do gestor.</p>

@@ -1,3 +1,4 @@
+import UnsavedChangesGuard from '../components/UnsavedChangesGuard'
 import { formatDateTime } from '../time'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -21,13 +22,13 @@ function Form({ person, church, saved, onBusy }: { person: BasicPerson; church: 
     finally { pending.current = null; if (!controller.signal.aborted) { setBusy(false); onBusy(false) } }
   }
   return <form className="people-edit-form" onSubmit={e => { e.preventDefault(); void submit() }} aria-busy={busy}>
-    <fieldset disabled={busy || blocked}><legend>Dados básicos</legend>
+    <UnsavedChangesGuard dirty={Object.entries(draft).some(([key, value]) => value !== (person[key as keyof BasicPerson] ?? ''))}/><fieldset disabled={busy || blocked}><legend>Dados básicos</legend>
       <label>Nome completo<input required maxLength={200} value={draft.fullName} onChange={e => setDraft({ ...draft, fullName: e.target.value })}/></label>
       <label>Nome de preferência<input maxLength={150} value={draft.preferredName} onChange={e => setDraft({ ...draft, preferredName: e.target.value })}/></label>
       <label>Nascimento<input type="date" value={draft.birthDate} onChange={e => setDraft({ ...draft, birthDate: e.target.value })}/></label>
       <label>E-mail<input type="email" maxLength={254} value={draft.email} onChange={e => setDraft({ ...draft, email: e.target.value })}/></label>
       <label>Telefone<input type="tel" maxLength={30} value={draft.phone} onChange={e => setDraft({ ...draft, phone: e.target.value })}/></label>
-      <button>Salvar alterações</button>
+      <p role="note">Ao salvar, as alterações também serão aplicadas nas demais igrejas.</p><button>Salvar alterações</button>
     </fieldset>{message && <p role="alert">{message}</p>}
     <button type="button" disabled={busy} onClick={saved}>Consultar novamente e descartar edição</button>
   </form>

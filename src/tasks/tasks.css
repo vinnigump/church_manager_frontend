@@ -31,3 +31,9 @@
 .task-workspace article>p { line-height:1.65; font-size:14px; }
 .task-workspace article>button:first-child { float:right; }
 @media(max-width:600px) { .task-page-header h1 { font-size:24px; line-height:32px; } .task-workspace .event-list>li,.task-workspace article,.task-workspace form { padding:18px; } .task-workspace article>button:first-child { float:none; } }
+
+.task-responsibility { display:grid; grid-template-columns:minmax(110px, .4fr) 1fr; gap:10px 16px; padding:16px; background:#f0f8f4; border-radius:8px; line-height:1.5; }
+.task-responsibility dt { font-weight:600; }
+.task-responsibility dd { margin:0; overflow-wrap:anywhere; }
+.task-workspace article>button.secondary { display:block; margin-top:24px; }
+@media(max-width:600px) { .task-responsibility { grid-template-columns:1fr; gap:6px; } .task-responsibility dd { margin-bottom:10px; } }
