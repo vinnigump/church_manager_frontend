@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -8,7 +9,7 @@ const denomination = '00000000-0000-0000-0000-000000000001', id = '00000000-0000
 const account = { id, personId: id, login: 'ana', status: 'ACTIVE' }
 const draft = { id: '00000000-0000-0000-0000-000000000004', number: 2, name: 'N'.repeat(180), status: 'DRAFT', revision: 1, createdAt: '2032-01-01T12:00:00Z', publishedAt: null }
 function show(status = 'PUBLISHED', hasDraft = true, reference: string | null = publishedId) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => new Response(JSON.stringify(url.includes('/authorization?') ? { allowed: true } : url.includes('/versions?') ? { items: [], page: 0, size: 20, total: 0 } : { id, status, revision: 7, publishedVersionId: reference, draft: hasDraft ? draft : null })))
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return new Response(JSON.stringify(url.includes('/authorization?') ? { allowed: true } : url.includes('/versions?') ? { items: [], page: 0, size: 20, total: 0 } : { id, status, revision: 7, publishedVersionId: reference, draft: hasDraft ? draft : null })) })
   vi.stubGlobal('fetch', fetcher)
   render(<MemoryRouter initialEntries={[`/eventos/denominacoes/${denomination}/templates/${id}`]}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>)
   return fetcher

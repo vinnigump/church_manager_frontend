@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import { canDisplayAgenda, dateTime, localDate, type AgendaItem, type CatalogItem, type ChurchContext, type ViewState } from './presentation'
 import EventAccess from './EventAccess'
+import { eventDurationLabel } from './event-duration'
 import { ParticipantEventAccess } from './ParticipantEventPages'
 import './events.css'
 
@@ -52,7 +53,7 @@ export function EventAgenda({ church, timeZone, state }: { church: ChurchContext
         .filter(item => (!start || localDate(item.endsAt, timeZone) >= start) && (!end || localDate(item.startsAt, timeZone) <= end))
         .slice().sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))
       return visible.length ? <ol className="event-list">{visible.map(item => <li key={item.id}>
-        <h3>{item.title}</h3><p><time dateTime={item.startsAt}>{dateTime(item.startsAt, timeZone)}</time> até <time dateTime={item.endsAt}>{dateTime(item.endsAt, timeZone)}</time></p>
+        <h3>{item.title}</h3><p><time dateTime={item.startsAt}>{dateTime(item.startsAt, timeZone)}</time> · Duração: {eventDurationLabel(item.startsAt,item.endsAt)}</p>
         <p>Estado: {{ draft: 'Rascunho', published: 'Publicado', inProgress: 'Em andamento', completed: 'Concluído', cancelled: 'Cancelado' }[item.status]}</p>
         <p>{item.participation === 'open' ? 'Evento aberto · sem inscrição e sem presença individual' : `Com inscrição · ${item.checkInEnabled ? 'Check-in habilitado · único por ocorrência, inclusive em múltiplos dias' : 'Sem check-in'}`}</p>
       </li>)}</ol> : <p role="status">Nenhuma ocorrência para o período selecionado.</p>

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
@@ -28,7 +28,6 @@ function backend(handler?: (url: string, init: RequestInit) => Response | Promis
 }
 function show(path = route) { return render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ account, grants: [], expired: false, login: vi.fn(), logout: vi.fn() }}><App/></AuthContext.Provider></MemoryRouter>) }
 const writes = (fetcher: ReturnType<typeof backend>) => fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')
-async function confirm() { fireEvent.click(await screen.findByRole('button', { name: 'Publicar ocorrência' })); fireEvent.click(screen.getByRole('button', { name: 'Confirmar transição' })) }
 afterEach(() => api.clear())
 
 describe('publicação 1.1.0 com gate de equipe no servidor', () => {
@@ -61,71 +60,23 @@ describe('publicação 1.1.0 com gate de equipe no servidor', () => {
   })
 })
 
-describe('confirmação administrativa de publicação', () => {
-  it.each([{ status: 'PUBLISHED', revision: 8 }, { status: 'IN_PROGRESS', revision: 9 }, { status: 'COMPLETED', revision: 9 }])('exige confirmação/CSRF e relê estado efetivo %j', async patch => {
-    let published = false
-    const fetcher = backend((url, init) => {
-      if (init.method === 'POST') { published = true; return json({ ...result, ...patch, preventive: true, moderate: true, unresolved: true }) }
-      if (url.endsWith(`/occurrences/${id}`)) return json(published ? { ...occurrence, ...patch, firstPublishedAt: occurrence.startsAt } : occurrence)
-    }); await api.login('ana', 'fixture-password'); show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar ocorrência' }))
+describe('ações antigas de publicação retiradas da interface', () => {
+  it.each(['publish', 'unpublish'])('rota direta %s orienta cadastro atual sem consultar ou escrever publicação', async action => {
+    const fetcher = backend(); show(route.replace('/publish', '/' + action))
+    expect(await screen.findByRole('heading', { name: 'Publicação de ocorrências descontinuada' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir cadastro atual do evento' })).toHaveAttribute('href', `/eventos/igrejas/${church}/cadastro/${id}`)
+    expect(screen.queryByRole('button', { name: /publicar|transição/i })).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(0)
-    expect(screen.getByText(/exatamente um coordenador/)).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar transição' }))
-    expect(await screen.findByText(`Estado registrado: ${patch.status} · Revisão: ${patch.revision}`)).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent(`Publicação confirmada. Estado confirmado pelo servidor: ${patch.status}`)
-    expect(screen.getByRole('status')).toHaveTextContent('Alerta preventivo')
-    expect(screen.getByRole('status')).toHaveTextContent('sobreposição moderada')
-    expect(screen.getByRole('status')).toHaveTextContent('espaços indefinidos')
-    expect(writes(fetcher)).toHaveLength(1)
-    const init = writes(fetcher)[0][1]
-    expect(init.headers.get('X-PUBLICATION-CSRF')).toBe('fixture')
-    expect(init.headers.get('X-Expected-Revision')).toBe('7')
-    expect(JSON.parse(init.body)).toEqual({ overrides: [] })
+    expect(fetcher.mock.calls.some(([url]) => url.includes('/occurrences/'))).toBe(false)
   })
-  it.each([{ permissions: ['EVENT_VIEW', 'EVENT_EDIT'] }, { permissions: ['EVENT_PUBLISH'] }])('exige leitura e publicação próprias %j', async ({ permissions }) => {
-    const fetcher = backend(undefined, permissions); show()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
-    expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
-  })
-  it('detalhe oferece publicação somente sob permissão própria para rascunho configurado', async () => {
+  it('detalhe preserva o histórico sem expor publicar ou despublicar mesmo com permissão legada', async () => {
     backend(); show(route.replace('/transicoes/publish', ''))
-    expect(await screen.findByRole('link', { name: 'Publicar ocorrência' })).toHaveAttribute('href', route)
+    expect(await screen.findByText('Primeira publicação')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^(Publicar|Despublicar) ocorrência$/ })).not.toBeInTheDocument()
   })
-  it('rascunho sem configuração orienta completar dados antes de publicar', async () => {
-    const fetcher = backend(url => url.endsWith(`/occurrences/${id}`) ? json({ ...occurrence, modality: null, configured: false }) : undefined); show()
-    expect(await screen.findByText('A ocorrência precisa de configuração explícita antes da publicação.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Publicar ocorrência' })).not.toBeInTheDocument()
-    expect(writes(fetcher)).toHaveLength(0)
-  })
-  it.each([403, 409, 422, 500])('recusa %s não vira sucesso nem retry automático após foco', async status => {
-    const fetcher = backend((url, init) => init.method === 'POST' ? new Response(null, { status }) : undefined)
-    await api.login('ana', 'fixture-password'); show(); await confirm()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Atualize e confira')
-    if (status === 422) expect(screen.getByRole('alert')).toHaveTextContent('coordenação formal ativa')
-    expect(screen.queryByText(/Publicação confirmada/)).not.toBeInTheDocument()
-    fireEvent(window, new Event('focus'))
-    expect(await screen.findByRole('button', { name: 'Publicar ocorrência' })).toBeDisabled()
-    expect(writes(fetcher)).toHaveLength(1)
-  })
-  it('foco invalida confirmação e consulta revisão nova', async () => {
-    let revision = 7
-    const fetcher = backend(url => url.endsWith(`/occurrences/${id}`) ? json({ ...occurrence, revision }) : undefined); show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar ocorrência' }))
-    revision = 8; fireEvent(window, new Event('focus')); await screen.findByRole('button', { name: 'Publicar ocorrência' })
-    expect(screen.queryByRole('button', { name: 'Confirmar transição' })).not.toBeInTheDocument()
-    expect(screen.getByText(/Estado registrado:/)).toHaveTextContent('Revisão: 8')
-    expect(writes(fetcher)).toHaveLength(0)
-  })
-  it('trava de publicação sobrevive a envio duplo e reautorização', async () => {
-    let finish!: (response: Response) => void
-    const fetcher = backend((url, init) => init.method === 'POST' ? new Promise<Response>(done => { finish = done }) : undefined)
-    await api.login('ana', 'fixture-password'); show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar ocorrência' }))
-    const button = screen.getByRole('button', { name: 'Confirmar transição' }); fireEvent.click(button); fireEvent.click(button)
-    fireEvent(window, new Event('focus')); expect(await screen.findByRole('button', { name: 'Publicar ocorrência' })).toBeDisabled()
-    expect(writes(fetcher)).toHaveLength(1)
-    await act(async () => finish(json(result)))
-    await screen.findByText(/Publicação confirmada/)
+  it('contexto inválido permanece bloqueado sem consultar domínio', async () => {
+    const fetcher = backend(); show(route.replace(church, 'invalida'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('acesso à transição é inválido')
+    expect(fetcher).not.toHaveBeenCalled()
   })
 })

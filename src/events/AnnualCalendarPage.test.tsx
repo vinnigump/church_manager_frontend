@@ -3,7 +3,7 @@ import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { api, ApiClient } from '../api'
-import { AuthContext, AuthProvider } from '../auth'
+import { AuthContext } from '../auth'
 import { createCalendar, readCalendar, setCalendarPublished, type AnnualCalendar } from './calendar-api'
 
 const church = '00000000-0000-0000-0000-000000000001'
@@ -93,175 +93,52 @@ describe('contrato administrativo EVT-007', () => {
   })
 })
 
-describe('calendário anual administrativo', () => {
-  it('exige permissão específica, exibe metadados e explica independência das ocorrências', async () => {
-    const fetcher = server()
-    await show()
-    expect(await screen.findByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
+describe('calendário anual histórico somente leitura', () => {
+  it.each(['DRAFT', 'PUBLISHED'] as const)('preserva metadados %s sem oferecer criação/publicação', async status => {
+    const fetcher = server({ initial: { ...calendar, status, publishedAt: status === 'PUBLISHED' ? '2026-11-07T12:30:00Z' : null } }); await show()
+    expect(await screen.findByText('Estado do planejamento: ' + (status === 'PUBLISHED' ? 'Publicado' : 'Rascunho'))).toBeInTheDocument()
+    expect(screen.getByText(/Consulta histórica somente para leitura/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /criar|publicar|retirar/i })).not.toBeInTheDocument()
+    expect(writes(fetcher)).toHaveLength(0)
     const query = new URL(fetcher.mock.calls.find(([url]) => url.includes('/authorization?'))![0], 'https://example.test').searchParams
-    expect(Object.fromEntries(query)).toEqual({ permissionCode: 'EVENT_CALENDAR_MANAGE', resourceType: 'CHURCH', resourceId: church })
-    expect(screen.getByText(/não abre inscrições ou check-in/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /inscrever|presença/i })).not.toBeInTheDocument()
-    expect(document.title).toBe('Calendário anual administrativo | Church Manager')
-    expect(screen.getByRole('main')).toHaveFocus()
+    expect(query.get('permissionCode')).toBe('EVENT_CALENDAR_MANAGE')
+  })
+  it('404 informa ausência sem criar nem oferecer publicação', async () => {
+    const fetcher = server({ initial: null }); await show()
+    expect(await screen.findByText('Não há calendário anual para 2026 nesta igreja.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /criar|publicar/i })).not.toBeInTheDocument()
     expect(writes(fetcher)).toHaveLength(0)
   })
-  it('mostra somente seleção de ano quando não informado, sem buscar calendário', async () => {
-    const fetcher = server()
-    await show(route(church, ''))
+  it('consulta outro ano somente após seleção explícita', async () => {
+    const fetcher = server(); await show(route(church, ''))
     const input = await screen.findByLabelText('Ano do calendário')
     expect(fetcher.mock.calls.some(([url]) => url.includes('/calendars/'))).toBe(false)
-    fireEvent.change(input, { target: { value: '2026' } })
-    fireEvent.submit(input.closest('form')!)
+    fireEvent.change(input, { target: { value: '2026' } }); fireEvent.submit(input.closest('form')!)
     expect(await screen.findByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
   })
-  it('nega sem consultar metadados ou oferecer ações', async () => {
-    const fetcher = server({ allowed: false })
-    await show()
+  it('nega leitura sem permissão específica antes de consultar histórico', async () => {
+    const fetcher = server({ allowed: false }); await show()
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.some(([url]) => url.includes('/calendars/'))).toBe(false)
   })
-  it.each([route('invalid'), route(church, '0'), route(church, '10000'), route(church, '2026.5')])('rota inválida %s não consulta domínio', async path => {
-    const fetcher = server()
-    await show(path)
+  it.each([route('invalid'), route(church, '0'), route(church, '10000'), route(church, '2026.5')])('contexto inválido %s não consulta domínio', async path => {
+    const fetcher = server(); await show(path)
     expect(screen.getByRole('alert')).toHaveTextContent('acesso ao calendário é inválido')
     expect(fetcher.mock.calls.some(([url]) => url.includes('/calendars/') || url.includes('/authorization?'))).toBe(false)
   })
-  it('404 confirmado oferece criação explícita, sem sucesso simulado', async () => {
-    const fetcher = server({ initial: null })
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Criar calendário anual' }))
-    expect(await screen.findByText('Calendário anual criado em rascunho.')).toBeInTheDocument()
-    expect(await screen.findByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
-    expect(writes(fetcher)).toHaveLength(1)
-  })
-  it('confirma publicação e retirada sem alterar ocorrências', async () => {
-    const fetcher = server()
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    expect(writes(fetcher)).toHaveLength(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar publicação' }))
-    expect(await screen.findByText('Estado do planejamento: Publicado')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Retirar publicação do planejamento' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar retirada de publicação' }))
-    expect(await screen.findByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
-    expect(writes(fetcher)).toHaveLength(2)
-    expect(writes(fetcher).every(([url]) => url.includes('/calendars/'))).toBe(true)
-  })
-  it('cancelar confirmação não envia escrita', async () => {
-    const fetcher = server()
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Cancelar alteração' }))
+  it('foco relê o histórico sem mutações', async () => {
+    const fetcher = server(); await show(); await screen.findByText('Estado do planejamento: Rascunho')
+    const before = fetcher.mock.calls.filter(([url]) => url.includes('/calendars/')).length
+    fireEvent.focus(window)
+    await act(async () => { await Promise.resolve() })
+    expect(fetcher.mock.calls.filter(([url]) => url.includes('/calendars/')).length).toBeGreaterThan(before)
     expect(writes(fetcher)).toHaveLength(0)
   })
-  it.each([403, 409, 422, 500])('falha de publicação %s não confirma e exige atualização', async status => {
-    const fetcher = server({ post: async () => new Response('privado', { status }) })
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar publicação' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Atualize o calendário')
-    expect(screen.getByRole('alert')).not.toHaveTextContent('privado')
-    expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar calendário' }))
-    expect(await screen.findByRole('button', { name: 'Publicar planejamento anual' })).toBeEnabled()
-    expect(writes(fetcher)).toHaveLength(1)
-  })
-  it('erro de leitura não oferece criação e permite retry', async () => {
-    const fetcher = server()
-    const handler = fetcher.getMockImplementation()!
-    let fail = true
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes('/calendars/') && fail ? new Response(null, { status: 500 }) : handler(url, init))
-    await show()
-    await screen.findByRole('alert')
-    expect(screen.queryByRole('button', { name: 'Criar calendário anual' })).not.toBeInTheDocument()
-    fail = false
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar calendário' }))
-    expect(await screen.findByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
-  })
-  it('trava publicação durante foco e ignora duplo clique', async () => {
-    let finish!: (value: Response) => void
-    const fetcher = server({ post: () => new Promise<Response>(resolve => { finish = resolve }) })
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    const button = screen.getByRole('button', { name: 'Confirmar publicação' })
-    fireEvent.click(button); fireEvent.click(button)
-    fireEvent(window, new Event('focus'))
-    expect(await screen.findByRole('button', { name: 'Publicar planejamento anual' })).toBeDisabled()
-    expect(writes(fetcher)).toHaveLength(1)
-    await act(async () => { finish(json({ ...calendar, status: 'PUBLISHED', revision: 5, publishedAt: '2026-11-07T12:30:00Z' })) })
-    expect(await screen.findByText('Planejamento anual publicado.')).toBeInTheDocument()
-  })
-  it('ignora escrita antiga ao mudar igreja', async () => {
-    let finish!: (value: Response) => void
-    const fetcher = server({ post: () => new Promise<Response>(resolve => { finish = resolve }) })
-    const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes(`/churches/${other}/`) ? json({ ...calendar, churchId: other }) : handler(url, init))
-    await show(route(), true)
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar publicação' }))
+  it('troca de igreja não conserva metadados da igreja anterior', async () => {
+    const fetcher = server(); await show(route(), true); await screen.findByText('Estado do planejamento: Rascunho')
     fireEvent.click(screen.getByRole('button', { name: 'Outra igreja' }))
-    await screen.findByText('Estado do planejamento: Rascunho')
-    await act(async () => { finish(json({ ...calendar, status: 'PUBLISHED', revision: 5, publishedAt: '2026-11-07T12:30:00Z' })) })
-    expect(screen.queryByText('Planejamento anual publicado.')).not.toBeInTheDocument()
-  })
-  it('descarta leitura do ano anterior ao selecionar outro ano', async () => {
-    const fetcher = server()
-    const handler = fetcher.getMockImplementation()!
-    let finish!: (value: Response) => void
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/calendars/2026')) return new Promise<Response>(resolve => { finish = resolve })
-      if (url.endsWith('/calendars/2027')) return json({ ...calendar, year: 2027 })
-      return handler(url, init)
-    })
-    await show()
-    await screen.findByText('Carregando calendário…')
-    const input = screen.getByLabelText('Ano do calendário')
-    fireEvent.change(input, { target: { value: '2027' } })
-    fireEvent.submit(input.closest('form')!)
-    await screen.findByText('Planejamento de 2027')
-    await act(async () => { finish(json({ ...calendar, status: 'PUBLISHED', publishedAt: '2026-11-07T12:30:00Z' })) })
-    expect(screen.queryByText('Planejamento de 2026')).not.toBeInTheDocument()
-    expect(screen.getByText('Estado do planejamento: Rascunho')).toBeInTheDocument()
-  })
-  it.each([
-    async () => { throw new TypeError('network') },
-    async () => json({ invalid: true }),
-    async () => json({ ...calendar, status: 'PUBLISHED', revision: 4, publishedAt: '2026-11-07T12:30:00Z' }),
-  ])('resultado incerto de publicação não vira sucesso ou retry', async post => {
-    const fetcher = server({ post })
-    await show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar publicação' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('resultado da alteração não pôde ser confirmado')
-    expect(writes(fetcher)).toHaveLength(1)
-    expect(screen.queryByText('Planejamento anual publicado.')).not.toBeInTheDocument()
-  })
-  it.each([true, false])('catálogo mostra acesso ao calendário somente com permissão %s', async allowed => {
-    const fetcher = server()
-    const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.includes('/authorization?')) {
-        const code = new URL(url, 'https://example.test').searchParams.get('permissionCode')
-        return json({ allowed: code === 'EVENT_VIEW' || (allowed && code === 'EVENT_CALENDAR_MANAGE') })
-      }
-      if (url.includes('/types?')) return json({ items: [], page: 0, size: 20, total: 0 })
-      return handler(url, init)
-    })
-    await show(`/eventos/igrejas/${church}/catalogo`)
-    await screen.findByText('Nenhum tipo de evento nesta página.')
-    if (allowed) expect(await screen.findByRole('link', { name: 'Calendário anual administrativo' })).toHaveAttribute('href', route(church, ''))
-    else expect(screen.queryByRole('link', { name: 'Calendário anual administrativo' })).not.toBeInTheDocument()
-  })
-  it('401 encerra sessão e volta ao login', async () => {
-    server({ post: async () => new Response(null, { status: 401 }) })
-    render(<MemoryRouter initialEntries={[route()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
-    fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
-    fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
-    fireEvent.click(await screen.findByRole('button', { name: 'Publicar planejamento anual' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar publicação' }))
-    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('Sua sessão expirou')
+    expect(screen.queryByText('Estado do planejamento: Rascunho')).not.toBeInTheDocument()
+    await screen.findByRole('alert')
+    expect(writes(fetcher)).toHaveLength(0)
   })
 })

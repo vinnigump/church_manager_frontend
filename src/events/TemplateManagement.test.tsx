@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -19,7 +20,7 @@ afterEach(() => api.clear())
 
 function server(initial: EventTemplate = editing, write?: (url: string, init: RequestInit) => Promise<Response>, allowed = true) {
   let current = structuredClone(initial)
-  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed })
@@ -125,7 +126,7 @@ describe('rascunho local durante reautorização de template', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let current = editing
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.endsWith(`/types/${typeId}`) && !init?.method ? json(current) : handler(url, init))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(`/types/${typeId}`) && !init?.method ? json(current) : handler(url, init) })
     await show()
     fireEvent.change(await screen.findByLabelText('Nome do rascunho'), { target: { value: 'Nome não salvo' } })
     current = changed; fireEvent(window, new Event('focus'))
@@ -207,7 +208,7 @@ describe('gerência autorizada de versões', () => {
   it('401 na escrita encerra a sessão sem anunciar sucesso', async () => {
     server(editing, async () => new Response(null, { status: 401 }))
     render(<MemoryRouter initialEntries={[route()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     await edit('Novo nome')

@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -17,7 +18,7 @@ const route = (id = denomination) => `/eventos/denominacoes/${id}/catalogo`
 const detailRoute = (id = denomination, templateId = type) => `/eventos/denominacoes/${id}/templates/${templateId}`
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.includes('/authorization?')) return json({ allowed })
     if (url.includes('/versions?')) return json(history)
     return json(url.includes('/types?') ? catalog : template)
@@ -61,13 +62,13 @@ describe('catálogo denominacional autorizado', () => {
     const fetcher = server()
     show(path)
     expect(screen.getByRole('alert')).toHaveTextContent('inválido')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
-  it('visitante é redirecionado ao login sem consultar APIs', () => {
+  it('visitante é redirecionado ao login sem consultar APIs', async () => {
     const fetcher = server()
     render(<MemoryRouter initialEntries={[detailRoute()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('erro na decisão mantém os dados ocultos e permite reconsulta', async () => {
     const fetcher = server()
@@ -81,7 +82,7 @@ describe('catálogo denominacional autorizado', () => {
   it('mostra catálogo vazio e permite atualizar', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.includes('/types?') ? json({ ...catalog, items: [], total: 0 }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/types?') ? json({ ...catalog, items: [], total: 0 }) : handler(url) })
     show()
     expect(await screen.findByText('Nenhum template no catálogo.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
@@ -93,7 +94,7 @@ describe('catálogo denominacional autorizado', () => {
     const fetcher = server()
     let finish!: (value: Response) => void
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.includes(`/denominations/${denomination}/`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes(`/denominations/${denomination}/`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url) })
     show(route(), true)
     await screen.findByText('Carregando templates…')
     fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
@@ -105,7 +106,7 @@ describe('catálogo denominacional autorizado', () => {
     const fetcher = server()
     let shrunk = false
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (!url.includes('/types?')) return handler(url)
       const page = Number(new URL(url, 'https://example.test').searchParams.get('page'))
       return json({ ...catalog, page, total: shrunk ? 1 : 21, items: shrunk && page === 1 ? [] : catalog.items })
@@ -132,7 +133,7 @@ describe('catálogo denominacional autorizado', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let fail = true
-    fetcher.mockImplementation(async (url: string) => url.includes('/types?') && fail ? new Response('privado', { status: 403 }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/types?') && fail ? new Response('privado', { status: 403 }) : handler(url) })
     show()
     expect(await screen.findByRole('alert')).not.toHaveTextContent('privado')
     fail = false
@@ -158,7 +159,7 @@ describe('consulta de template e histórico', () => {
   it('apresenta descontinuado com histórico preservado', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.endsWith(`/types/${type}`) ? json({ ...template, status: 'DISCONTINUED', draft: null }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(`/types/${type}`) ? json({ ...template, status: 'DISCONTINUED', draft: null }) : handler(url) })
     show(detailRoute())
     expect(await screen.findByText('Estado do template: Descontinuado')).toBeInTheDocument()
     expect(screen.getByText('Não há rascunho atual.')).toBeInTheDocument()
@@ -167,14 +168,14 @@ describe('consulta de template e histórico', () => {
   it('histórico vazio não apresenta versões sintéticas', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.includes('/versions?') ? json({ ...history, items: [], total: 0 }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/versions?') ? json({ ...history, items: [], total: 0 }) : handler(url) })
     show(detailRoute())
     expect(await screen.findByText('Nenhuma versão no histórico.')).toBeInTheDocument()
   })
   it.each([403, 404, 409, 422, 500])('erro %s no detalhe não revela histórico ou corpo recebido', async status => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.endsWith(`/types/${type}`) ? new Response('segredo privado', { status }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.endsWith(`/types/${type}`) ? new Response('segredo privado', { status }) : handler(url) })
     show(detailRoute())
     expect(await screen.findByRole('alert')).not.toHaveTextContent('segredo privado')
     expect(screen.queryByRole('region', { name: 'Histórico de versões' })).not.toBeInTheDocument()
@@ -184,7 +185,7 @@ describe('consulta de template e histórico', () => {
     const fetcher = server()
     let fail = true
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/versions?') && fail) { fail = false; throw new TypeError('network') }
       return handler(url)
     })
@@ -199,7 +200,7 @@ describe('consulta de template e histórico', () => {
     const fetcher = server()
     let finish!: (value: Response) => void
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/versions?page=1')) return new Promise<Response>(resolve => { finish = resolve })
       if (url.includes('/versions?')) return json({ ...history, total: 21 })
       return handler(url)
@@ -217,7 +218,7 @@ describe('consulta de template e histórico', () => {
     const fetcher = server()
     let finish!: (value: Response) => void
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => url.includes(`/denominations/${denomination}/`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes(`/denominations/${denomination}/`) ? new Promise<Response>(resolve => { finish = resolve }) : handler(url) })
     show(detailRoute(), true)
     await screen.findByText('Carregando template…')
     fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
@@ -233,7 +234,7 @@ describe('consulta de template e histórico', () => {
     }
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.endsWith('/accounts/me')) return json(account)
       if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
       if (url.includes('/versions?')) return new Response(null, { status: 401 })

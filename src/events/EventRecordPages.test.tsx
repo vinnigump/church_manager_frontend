@@ -48,7 +48,7 @@ const login = () => api.login('ana', 'synthetic-password')
 async function fill() {
   await screen.findByRole('option', { name: 'Encontro local' })
   for (const [label, content] of [['Nome do evento', 'Culto de domingo'], ['Local ou endereço de acesso público', 'Templo'], ['Tipo de evento', type],
-    ['Início', '2035-01-01T09:00:00'], ['Término', '2035-01-01T11:00:00'], ['Modalidade', 'IN_PERSON'],
+    ['Início', '2035-01-01T09:00:00'], ['Duração', '7200000000000'], ['Modalidade', 'IN_PERSON'],
     ['Como as pessoas participam?', 'OPEN_EVENT'], ['Quem pode ver o evento?', 'PUBLIC']]) fireEvent.change(screen.getByLabelText(label), { target: { value: content } })
 }
 afterEach(() => api.clear())
@@ -177,17 +177,17 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
   })
   it('valida o período e preserva campos antes de qualquer gravação', async () => {
     const fetcher = backend(); await login(); render(tree(`${base}/novo`)); await fill()
-    fireEvent.change(screen.getByLabelText('Término'), { target: { value: '2034-01-01T11:00:00' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar e disponibilizar' }))
-    await screen.findByText(/Revise a configuração:/)
+    fireEvent.change(screen.getByLabelText('Início'), { target: { value: 'inválido' } })
+    fireEvent.submit(screen.getByRole('form', { name: 'Cadastro de evento' }))
+    await screen.findByText(/Informe início e duração válidos/)
     expect(writes(fetcher)).toHaveLength(0); expect(screen.getByLabelText('Nome do evento')).toHaveValue('Culto de domingo')
   })
   it('abre Semana com Hoje e fuso do servidor, exibindo horário da igreja', async () => {
     backend(); render(tree(base))
     await screen.findByRole('link', { name: 'Ver evento Encontro de famílias' })
     expect(screen.getByRole('button', { name: 'Semana' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText(/Hoje: 2035-01-03/)).toHaveTextContent('Horário de Brasília')
-    expect(screen.getByText('07:00 · Rascunho')).toBeInTheDocument()
+    expect(screen.getByText(/Hoje: 03\/01\/2035/)).toHaveTextContent('Horário de Brasília')
+    expect(screen.getByText(/07:00 · Duração: .* · Rascunho/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveAttribute('href', `${base}/${id}?view=week&date=2035-01-03`)
   })
   it('Anterior/Próximo seguem o período e Hoje volta à referência do servidor', async () => {
@@ -205,16 +205,16 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
       const response = agendaResponse(url)
       return tomorrow ? response.json().then(data => json({ ...data, referenceAt: '2035-01-04T12:00:00Z', today: '2035-01-04', anchorDate: '2035-01-04' })) : response
     })
-    render(tree(base)); await screen.findByText(/Hoje: 2035-01-03/)
+    render(tree(base)); await screen.findByText(/Hoje: 03\/01\/2035/)
     tomorrow = true; fireEvent.click(screen.getByRole('button', { name: 'Hoje' }))
-    await screen.findByText(/Hoje: 2035-01-04/)
+    await screen.findByText(/Hoje: 04\/01\/2035/)
   })
   it('evento de vários dias aparece por dia com indicação de continuação', async () => {
     const crossing = { ...value, startsAt: '2035-01-02T02:00:00Z', endsAt: '2035-01-03T06:00:00Z' }
     backend(url => url.includes('/records/agenda?') ? agendaResponse(url, [crossing]) : undefined)
     render(tree(base)); await screen.findAllByRole('link', { name: 'Ver evento Encontro de famílias' })
     expect(screen.getAllByRole('link', { name: 'Ver evento Encontro de famílias' })).toHaveLength(3)
-    expect(screen.getAllByText('Continuação · Rascunho')).toHaveLength(2)
+    expect(screen.getAllByText(/Continuação · Duração: .* · Rascunho/)).toHaveLength(2)
   })
   it('voltar do detalhe restaura Mês, âncora e dia escolhido', async () => {
     backend(); render(tree(`${base}?view=month&date=2035-01-03&day=2035-01-01`))

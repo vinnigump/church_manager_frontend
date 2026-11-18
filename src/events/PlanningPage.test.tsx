@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -15,7 +16,7 @@ const page = { occurrenceId: id, outcome: 'CRITICAL', hasUnresolvedSpaces: true,
 const route = (occurrence = id) => `/eventos/igrejas/${church}/ocorrencias/${occurrence}/planejamento`
 const json = (v: unknown) => new Response(JSON.stringify(v))
 function mockBackend(handler?: (url: string) => Response | Promise<Response> | undefined) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     const custom = handler?.(url)
     if (custom !== undefined) return custom
     if (url.includes('/authorization?')) return json({ allowed: true })
@@ -68,15 +69,15 @@ describe('consulta de planejamento', () => {
     expect(fetcher).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Salão')).not.toBeInTheDocument()
   })
-  it('visitante e contexto inválido não consultam API', () => {
+  it('visitante e contexto inválido não consultam API', async () => {
     const fetcher = mockBackend()
     const view = show(route('invalid'))
     expect(screen.getByRole('alert')).toHaveTextContent('acesso ao planejamento é inválido')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
     view.unmount()
     render(<MemoryRouter initialEntries={[route()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('paginação consulta o servidor e não recalcula resumo pela página vazia', async () => {
     const fetcher = mockBackend(url => url.includes('page=1') ? json({ ...page, page: 1, items: [] }) : undefined)

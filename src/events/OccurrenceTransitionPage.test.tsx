@@ -72,7 +72,7 @@ describe('fluxo administrativo de transições', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('acesso à transição é inválido')
     expect(fetcher).not.toHaveBeenCalled()
   })
-  it.each([['cancel', 'Cancelar ocorrência', 'CANCELLED'], ['unpublish', 'Despublicar ocorrência', 'DRAFT'], ['complete', 'Concluir ocorrência', 'COMPLETED']])('confirma explicitamente %s com CSRF e revisão; consulta novamente após sucesso', async (action, label, target) => {
+  it.each([['cancel', 'Cancelar ocorrência', 'CANCELLED'], ['complete', 'Concluir ocorrência', 'COMPLETED']])('confirma explicitamente %s com CSRF e revisão; consulta novamente após sucesso', async (action, label, target) => {
     let status = 'PUBLISHED'; let revision = 7
     const fetcher = backend((url, init) => {
       if (init.method === 'POST') { status = target; revision = 8; return json({ ...result, status }) }
@@ -89,7 +89,7 @@ describe('fluxo administrativo de transições', () => {
     expect(writes(fetcher)[0][1].body).toBeUndefined()
     expect(fetcher.mock.calls.filter(([url]) => url.includes('/authorization?')).length).toBeGreaterThanOrEqual(4)
   })
-  it.each(['cancel', 'unpublish', 'complete'])('não consulta detalhe sem a permissão própria de %s', async action => {
+  it.each(['cancel', 'complete'])('não consulta detalhe sem a permissão própria de %s', async action => {
     const fetcher = backend(undefined, ['EVENT_VIEW']); show(action)
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)

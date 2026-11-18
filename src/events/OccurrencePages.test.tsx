@@ -59,15 +59,15 @@ describe('ocorrências administrativas', () => {
     expect(screen.queryByRole('button', { name: /publicar|cancelar|inscrever|presença/i })).not.toBeInTheDocument()
     await waitFor(() => expect(document.title).toBe('Detalhes da ocorrência | Church Manager'))
   })
-  it('nega antes da leitura e visitante retorna ao login sem API', async () => {
+  it('nega antes da leitura e visitante restaura sessão e retorna ao login sem consultar domínio', async () => {
     const fetcher = backend(undefined, [])
     const view = show()
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls.every(([url]) => url.includes('/authorization?'))).toBe(true)
-    view.unmount(); fetcher.mockClear()
+    view.unmount(); fetcher.mockClear(); fetcher.mockImplementation(async (url: string) => { if (url.endsWith('/accounts/me')) return new Response(null, { status: 401 }); throw new Error('Unexpected anonymous request') })
     render(<MemoryRouter initialEntries={[base]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetcher.mock.calls.every(([url]) => url.endsWith('/accounts/me'))).toBe(true)
   })
   it.each([`${base}/invalid`, '/eventos/igrejas/invalid/ocorrencias'])('não consulta contexto inválido %s', path => {
     const fetcher = backend(); show(path)

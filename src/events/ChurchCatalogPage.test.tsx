@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -22,7 +23,7 @@ function LoginThenOpen() {
   return <button onClick={async () => { await login('ana', 'test-password'); navigate(route(churchA)) }}>Abrir catálogo após login</button>
 }
 function mockCatalog(value: unknown = page, allowed = true) {
-  const fetcher = vi.fn().mockImplementation(async (url: string) => json(url.includes('/authorization?') ? { allowed: allowed && new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'EVENT_VIEW' } : value))
+  const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return json(url.includes('/authorization?') ? { allowed: allowed && new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'EVENT_VIEW' } : value) })
   vi.stubGlobal('fetch', fetcher)
   return fetcher
 }
@@ -49,7 +50,7 @@ describe('cliente do contrato de catálogo 1.0.0', () => {
     const fetcher = mockCatalog()
     await expect(listChurchCatalog('../private')).rejects.toThrow()
     await expect(listChurchCatalog(churchA, 100001)).rejects.toThrow()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
 })
 
@@ -77,20 +78,20 @@ describe('consulta paginada do catálogo autorizada', () => {
     expect(fetcher.mock.calls.map(([url]) => new URL(url, 'https://example.test').searchParams.get('permissionCode')).sort()).toEqual(['EVENT_CREATE', 'EVENT_EDIT', 'EVENT_VIEW'])
     expect(screen.queryByText(item.name)).not.toBeInTheDocument()
   })
-  it('visitante é redirecionado sem consultar decisões ou catálogo', () => {
+  it('visitante é redirecionado sem consultar decisões ou catálogo', async () => {
     const fetcher = mockCatalog()
     render(<MemoryRouter initialEntries={[route(churchA)]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
-  it('contexto inválido não consulta API', () => {
+  it('contexto inválido não consulta API', async () => {
     const fetcher = mockCatalog()
     show('invalid')
     expect(screen.getByRole('alert')).toHaveTextContent('acesso ao catálogo é inválido')
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('401 da API de catálogo encerra sessão e redireciona ao login', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       if (url.includes('/events/churches/')) return new Response(null, { status: 401 })
       return json(url.endsWith('/csrf') ? { headerName: 'X-CSRF-TOKEN', token: 'test' } : account)
@@ -110,7 +111,7 @@ describe('consulta paginada do catálogo autorizada', () => {
   })
   it('pagina sem manter registros da página anterior enquanto carrega', async () => {
     let finish!: (value: Response) => void
-    const fetcher = vi.fn().mockImplementation(async (url: string) => {
+    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       if (url.includes('page=1')) return new Promise<Response>(resolve => { finish = resolve })
       return json({ ...page, total: 21 })
@@ -128,7 +129,7 @@ describe('consulta paginada do catálogo autorizada', () => {
     expect(await screen.findByText(item.name)).toBeInTheDocument()
   })
   it.each([403, 404, 409, 422, 500])('trata erro %s na listagem após consulta autorizada', async status => {
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => url.includes('/authorization?') ? json({ allowed: true }) : new Response('dado privado', { status })))
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?') ? json({ allowed: true }) : new Response('dado privado', { status }) }))
     show()
     expect(await screen.findByRole('button', { name: 'Atualizar catálogo' })).toBeInTheDocument()
     expect(screen.getByRole('alert')).toBeInTheDocument()
@@ -137,7 +138,7 @@ describe('consulta paginada do catálogo autorizada', () => {
   })
   it('recupera erro de rede com nova tentativa', async () => {
     let attempt = 0
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       if (attempt++ === 0) throw new TypeError('network')
       return json(page)
@@ -148,7 +149,7 @@ describe('consulta paginada do catálogo autorizada', () => {
   })
   it('descarta resposta de igreja anterior mesmo que o request ignore abort', async () => {
     let finish!: (value: Response) => void
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       if (url.includes(`/churches/${churchA}/`)) return new Promise<Response>(resolve => { finish = resolve })
       return json({ ...page, items: [{ ...item, name: 'Catálogo B' }] })
@@ -166,7 +167,7 @@ describe('consulta paginada do catálogo autorizada', () => {
 describe('recuperação da paginação quando o catálogo encolhe', () => {
   it.each([0, 20])('reconsulta a primeira página quando o total cai para %s', async total => {
     let shrunk = false
-    const fetcher = vi.fn().mockImplementation(async (url: string) => {
+    const fetcher = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       const currentPage = Number(new URL(url, 'https://example.test').searchParams.get('page'))
       return json({ items: shrunk && (currentPage > 0 || total === 0) ? [] : [{ ...item, name: `Tipo da página ${currentPage + 1}` }], page: currentPage, size: 20, total: shrunk ? total : 41 })
@@ -192,7 +193,7 @@ describe('recuperação da paginação quando o catálogo encolhe', () => {
   })
 
   it('preserva a página atual quando ela ainda existe após atualizar', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       const currentPage = Number(new URL(url, 'https://example.test').searchParams.get('page'))
       return json({ ...page, page: currentPage, total: 21 })

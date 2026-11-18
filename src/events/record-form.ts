@@ -1,8 +1,12 @@
 import { BRAZIL_OFFSET, wallTimeBR, brasilInstant } from '../time'
 import { validateAudiencePolicy, type AudiencePolicy } from './audience-api'
 import { validateRecordWrite, type EventRecord, type RecordWrite } from './record-api'
+import { DEFAULT_DURATION_NS, eventDuration } from './event-duration'
+import { defaultSchedulingFields, type SchedulingFields } from './EventSchedulingOptions'
 
 export interface RecordFields {
+  durationNs?: string
+  scheduling?: SchedulingFields
   name: string; location: string; eventTypeId: string; startsAt: string; endsAt: string; offset: string
   capacity: string; modality: string; participationMode: string; checkInRequired: boolean
   visibility: string; churchLinkRequired: boolean; activeMembershipRequired: boolean
@@ -16,7 +20,7 @@ export function wallTime(instant: string, offset: string): string {
 }
 export function fieldsForRecord(v: EventRecord | null): RecordFields {
   return { name: v?.name ?? '', location: v?.location ?? '', eventTypeId: v?.eventTypeId ?? '',
-    startsAt: v ? wallTimeBR(v.startsAt) : '', endsAt: v ? wallTimeBR(v.endsAt) : '', offset: BRAZIL_OFFSET,
+    startsAt: v ? wallTimeBR(v.startsAt) : '', endsAt: v ? wallTimeBR(v.endsAt) : '', offset: BRAZIL_OFFSET, durationNs: v ? eventDuration(v.startsAt,v.endsAt) : DEFAULT_DURATION_NS, ...(!v?{scheduling:defaultSchedulingFields()}:{}),
     capacity: v?.capacity == null ? '' : String(v.capacity), modality: v?.modality ?? '', participationMode: v?.participationMode ?? '',
     checkInRequired: v?.checkInRequired ?? false, visibility: v?.audience?.visibility ?? '',
     churchLinkRequired: v?.audience?.churchLinkRequired ?? false, activeMembershipRequired: v?.audience?.activeMembershipRequired ?? false,
@@ -24,7 +28,7 @@ export function fieldsForRecord(v: EventRecord | null): RecordFields {
     functionIds: v?.audience?.functionIds ?? [], ministryIds: v?.audience?.ministryIds ?? [], departmentIds: v?.audience?.departmentIds ?? [] }
 }
 export function recordInput(f: RecordFields, draft: boolean, before: EventRecord | null): RecordWrite {
-  if (!offsetOptions.includes(f.offset) || !f.startsAt || !f.endsAt) throw new Error('Informe início e término (horário de Brasília).')
+  if (!offsetOptions.includes(f.offset) || !f.startsAt || !f.endsAt) throw new Error('Informe início e duração válidos (horário de Brasília).')
   for (const value of [f.capacity, f.minimumAge, f.maximumAge]) if (value !== '' && !/^\d+$/.test(value)) throw new Error('Capacidade e idades devem ser números inteiros positivos ou zero.')
   // Preserve the complete original Instant, including microseconds, if unchanged.
   const instant = (value: string, original?: string) => original && value === wallTimeBR(original) ? original
@@ -43,5 +47,5 @@ export function changeOffset(fields: RecordFields, next: string): RecordFields {
   return { ...fields, offset: next, startsAt: convert(fields.startsAt), endsAt: convert(fields.endsAt) }
 }
 export const visibilityLabel: Record<AudiencePolicy['visibility'], string> = {
-  PUBLIC: 'Todos', CHURCH: 'Membros da igreja', ELIGIBLE_AUDIENCE: 'Pessoas que atendem aos requisitos',
+  PUBLIC: 'Todos', CHURCH: 'Pessoas vinculadas à igreja', ELIGIBLE_AUDIENCE: 'Pessoas que atendem aos requisitos',
 }

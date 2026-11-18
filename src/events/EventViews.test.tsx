@@ -26,7 +26,7 @@ describe('catálogo isolado', () => {
     render(<EventCatalog church={church} state={state} />)
     expect(screen.getByText(new RegExp(text))).toBeInTheDocument()
   })
-  it('distingue origem e estado sem expor ações não autorizadas', () => {
+  it('distingue origem e estado sem expor ações não autorizadas', async () => {
     render(<EventCatalog church={church} state={{ kind: 'ready', items: catalog }} />)
     expect(screen.getByText('Denominacional · obrigatório no catálogo')).toBeInTheDocument()
     expect(screen.getByText('Estado: Rascunho')).toBeInTheDocument()
@@ -36,7 +36,7 @@ describe('catálogo isolado', () => {
     expect(screen.queryByText('Encontro denominacional')).not.toBeInTheDocument()
     expect(screen.getByText('Encontro local')).toBeInTheDocument()
   })
-  it('remove dados da igreja anterior quando o contexto muda', () => {
+  it('remove dados da igreja anterior quando o contexto muda', async () => {
     const view = render(<EventCatalog church={church} state={{ kind: 'ready', items: catalog }} />)
     view.rerender(<EventCatalog church={{ id: 'church-b', name: 'Igreja B' }} state={{ kind: 'ready', items: catalog }} />)
     expect(screen.queryByText('Encontro local')).not.toBeInTheDocument()
@@ -48,7 +48,7 @@ describe('agenda isolada', () => {
   function show(items: AgendaItem[] = [occurrence]) {
     return render(<EventAgenda church={church} timeZone="America/Fortaleza" state={{ kind: 'ready', items }} />)
   }
-  it('exibe fuso e datas locais, abrangendo ocorrência multi-dia', () => {
+  it('exibe fuso e datas locais, abrangendo ocorrência multi-dia', async () => {
     show()
     expect(screen.getByText(/Horário de Brasília/)).toBeInTheDocument()
     expect(screen.getByText('05/11/2026, 22:00')).toBeInTheDocument()
@@ -57,7 +57,7 @@ describe('agenda isolada', () => {
     expect(screen.getByText(occurrence.title)).toBeInTheDocument()
     expect(screen.getByText(/único por ocorrência/)).toBeInTheDocument()
   })
-  it('trata fuso inválido sem lançar exceção ou mostrar listagem parcial', () => {
+  it('trata fuso inválido sem lançar exceção ou mostrar listagem parcial', async () => {
     render(<EventAgenda church={church} timeZone="Invalid/Zone" state={{ kind: 'ready', items: [occurrence] }}/>)
     expect(screen.getByRole('alert')).toHaveTextContent('período ou fuso horário inválido')
     expect(screen.queryByText(occurrence.title)).not.toBeInTheDocument()
@@ -75,22 +75,22 @@ describe('agenda isolada', () => {
     expect(screen.queryByText(occurrence.title)).not.toBeInTheDocument()
     expect(screen.queryByRole('list')).not.toBeInTheDocument()
   })
-  it('dados inválidos de outra igreja não impedem agenda autorizada atual', () => {
+  it('dados inválidos de outra igreja não impedem agenda autorizada atual', async () => {
     show([occurrence, { ...occurrence, id: 'other', churchId: 'other', startsAt: 'invalid' }])
     expect(screen.getByText(occurrence.title)).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
-  it('aceita offset explícito e ordena pelo instante real', () => {
+  it('aceita offset explícito e ordena pelo instante real', async () => {
     show([{ ...occurrence, startsAt: '2026-11-05T22:00:00-03:00' }])
     expect(screen.getByText('05/11/2026, 22:00')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
-  it('filtra pela data local, não pelo dia UTC', () => {
+  it('filtra pela data local, não pelo dia UTC', async () => {
     show([{ ...occurrence, endsAt: '2026-11-06T02:00:00Z' }])
     fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-11-06' } })
     expect(screen.getByRole('status')).toHaveTextContent('Nenhuma ocorrência')
   })
-  it('valida intervalo e permite corrigir o filtro', () => {
+  it('valida intervalo e permite corrigir o filtro', async () => {
     show()
     fireEvent.change(screen.getByLabelText('Data inicial'), { target: { value: '2026-11-09' } })
     fireEvent.change(screen.getByLabelText('Data final'), { target: { value: '2026-11-05' } })
@@ -100,20 +100,20 @@ describe('agenda isolada', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByText(occurrence.title)).toBeInTheDocument()
   })
-  it('evento aberto não apresenta inscrição, presença nominal ou check-in', () => {
+  it('evento aberto não apresenta inscrição, presença nominal ou check-in', async () => {
     show([{ ...occurrence, participation: 'open', checkInEnabled: true }])
     expect(screen.getByText('Evento aberto · sem inscrição e sem presença individual')).toBeInTheDocument()
     expect(screen.queryByText(/Check-in habilitado/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
-  it('não exibe links privados ou campos extras do objeto recebido', () => {
+  it('não exibe links privados ou campos extras do objeto recebido', async () => {
     const withPrivateData = { ...occurrence, privateOnlineUrl: 'https://private.invalid/secret', minorDocument: 'documento-secreto' }
     const { container } = show([withPrivateData])
     expect(container.innerHTML).not.toContain('private.invalid')
     expect(container.innerHTML).not.toContain('documento-secreto')
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
-  it('não mistura igrejas e ordena as ocorrências pelo início', () => {
+  it('não mistura igrejas e ordena as ocorrências pelo início', async () => {
     show([occurrence, { ...occurrence, id: '2', title: 'Anterior', startsAt: '2026-11-04T12:00:00Z' }, { ...occurrence, id: '3', title: 'Outra igreja', churchId: 'church-b' }])
     expect(screen.getAllByRole('heading', { level: 3 }).map(node => node.textContent)).toEqual(['Anterior', occurrence.title])
     expect(screen.queryByText('Outra igreja')).not.toBeInTheDocument()
@@ -128,11 +128,11 @@ describe('agenda isolada', () => {
 })
 
 describe('entrada de eventos', () => {
-  it('redireciona visitante e não faz requests de eventos', () => {
+  it('redireciona visitante e não faz requests de eventos', async () => {
     const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
     render(<MemoryRouter initialEntries={['/eventos']}><AuthProvider><App /></AuthProvider></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
-    expect(fetcher).not.toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument()
+    expect(fetcher.mock.calls.filter(([url]) => !url.endsWith('/accounts/me'))).toHaveLength(0)
   })
   it('conta sem contexto recebe estado vazio real, sem ações de gestão ou publicação', async () => {
     const fetcher = vi.fn((path: string) => Promise.resolve(new Response(JSON.stringify(path === '/api/v1/accounts/me/event-churches' ? [] : { contexts: [] })))); vi.stubGlobal('fetch', fetcher)
