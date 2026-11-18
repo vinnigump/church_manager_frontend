@@ -60,7 +60,7 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
     expect(screen.getByRole('link', { name: 'Criar evento' })).toHaveAttribute('href', `${base}/novo?view=list`)
     expect(screen.queryByRole('link', { name: /publicar|calendário anual/i })).not.toBeInTheDocument()
   })
-  it.each([['Salvar rascunho', true], ['Salvar e disponibilizar', false]] as const)('cria pelo botão %s com audiência, CSRF e fuso, sem publicar', async (button, draft) => {
+  it.each([['Salvar rascunho', true], ['Salvar evento', false]] as const)('cria pelo botão %s com audiência, CSRF e fuso, sem publicar', async (button, draft) => {
     const fetcher = backend(); await login(); render(tree(`${base}/novo`)); await fill()
     fireEvent.click(screen.getByRole('button', { name: button }))
     await screen.findByRole('link', { name: 'Ver evento salvo' })
@@ -76,7 +76,7 @@ describe('cadastro v4 por API real integrada (testes de componente com transport
     const fetcher = backend((url, init) => url.endsWith(`/records/${id}`) && !init.method ? json(restricted) : undefined)
     await login(); render(tree(`${base}/${id}/editar`)); await screen.findByDisplayValue(value.name)
     fireEvent.change(screen.getByLabelText('Nome do evento'), { target: { value: 'Encontro atualizado' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar e disponibilizar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar evento' }))
     await screen.findByRole('link', { name: 'Ver evento salvo' })
     const [, init] = writes(fetcher)[0]
     expect(new Headers(init?.headers).get('X-Expected-Revision')).toBe('4')

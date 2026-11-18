@@ -2,8 +2,9 @@ import { api, type ApiClient } from '../api'
 import { isInstant, isUuid } from '../validation'
 import { isCalendarYear } from './calendar-api'
 import { validateAnnualPattern, type AnnualPattern } from './generation-api'
-import { editableOccurrence, instantNanos, parseOccurrence, type Modality, type Occurrence, type Participation } from './occurrence-api'
+import { instantNanos, parseOccurrence, type Modality, type Occurrence, type Participation } from './occurrence-api'
 
+export const editableSeriesOccurrence = (item: Occurrence) => item.firstPublishedAt === null && (item.status === 'DRAFT' || item.status === 'AVAILABLE' && Date.parse(item.startsAt) > Date.now())
 // event-series-v1 1.0.0, integrated backend #113.
 export interface SeriesPage { id: string; churchId: string; eventTypeId: string; timezone: string; rrule: string; active: boolean; revision: number; pattern: AnnualPattern | null; boundedYear: number | null; items: Occurrence[]; page: number; size: number; total: number }
 export interface SeriesSlot { index: number; startsAt: string; endsAt: string; adjusted: boolean }
@@ -59,8 +60,8 @@ export function validateSeriesSelections(churchId: string, before: SeriesPage, p
   const ids = new Set<string>(); const indices = new Set<number>()
   return selections.map(({ before: value, slotIndex }) => {
     const item = parseOccurrence(value, churchId)
-    if (!editableOccurrence(item) || item.recurrenceRuleId !== before.id || item.eventTypeId !== before.eventTypeId || !integer(slotIndex)
-      || !preview.slots.some(slot => slot.index === slotIndex) || ids.has(item.id) || indices.has(slotIndex)) throw new Error('Selecione rascunhos nunca publicados e associe um horário diferente a cada ocorrência, sem repetir destinos.')
+    if (!editableSeriesOccurrence(item) || item.recurrenceRuleId !== before.id || item.eventTypeId !== before.eventTypeId || !integer(slotIndex)
+      || !preview.slots.some(slot => slot.index === slotIndex) || ids.has(item.id) || indices.has(slotIndex)) throw new Error('Selecione rascunhos nunca publicados ou eventos disponíveis futuros e associe um horário diferente a cada ocorrência, sem repetir destinos.')
     ids.add(item.id); indices.add(slotIndex)
     return { occurrenceId: item.id, expectedRevision: item.revision, slotIndex }
   })

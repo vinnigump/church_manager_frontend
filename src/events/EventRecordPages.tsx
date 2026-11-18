@@ -63,6 +63,7 @@ function Detail({ church, id }: { church: string; id: string }) {
       <dt>Público</dt><dd>{v.audience ? visibilityLabel[v.audience.visibility] : 'Ainda não configurado'}</dd>
     </dl>
     {v.draft && <p>Este rascunho fica oculto para os participantes.</p>}
+    {v.recurrenceRuleId&&<p><Link to={`/eventos/igrejas/${church}/planejamento/series/${v.recurrenceRuleId}`}>Repetições do evento</Link></p>}
     {editableRecord(v) ? <ResourceAccess permissionCode="EVENT_EDIT" resourceType="CHURCH" resourceId={church} optional>
       <Link to={`${recordRoute(church)}/${id}/editar${recordSearch(search)}`}>Editar evento</Link>
       <Link to={`/eventos/igrejas/${church}/ocorrencias/${id}/inscricao-publica`}>Inscrição sem cadastro prévio</Link>

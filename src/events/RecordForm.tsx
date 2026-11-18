@@ -70,7 +70,7 @@ export default function RecordForm({ church, before, fields, change, busy, block
 
     </details>
     </section>{!before&&fields.scheduling&&<EventSchedulingOptions value={fields.scheduling} change={scheduling=>change({...fields,scheduling})} startsAt={fields.startsAt} registrationRequired={fields.participationMode==='REGISTRATION_REQUIRED'} visitorCompatible={fields.visibility==='PUBLIC'&&!fields.churchLinkRequired&&!fields.activeMembershipRequired&&!fields.functionIds.length&&!fields.ministryIds.length&&!fields.departmentIds.length&&(fields.maximumAge===''||Number(fields.maximumAge)>=18)}/>}
-    <p>Rascunhos ficam ocultos. Salvar como disponível mostra o evento conforme o público escolhido.</p>
-    <div className="record-actions"><button type="submit" value="draft">Salvar rascunho</button><button type="submit" value="available">Salvar e disponibilizar</button></div>
+    <p>Rascunhos ficam ocultos. Salvar evento mostra o evento conforme o público escolhido.</p>
+    <div className="record-actions"><button type="submit" value="draft">Salvar rascunho</button><button type="submit" value="available">Salvar evento</button></div>
   </fieldset></form>
 }
