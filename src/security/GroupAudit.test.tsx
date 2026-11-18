@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -36,7 +37,7 @@ describe('auditoria1.6 de vínculos de grupos', () => {
   })
   it('selecionar não consulta; aplicar/paginar/limpar preserva contrato sem expor motivo', async () => {
     const rows = Array.from({ length: 20 }, (_, index) => ({ ...entry, id: `10000000-0000-0000-0000-${String(index).padStart(12, '0')}` }))
-    const fetcher = vi.fn(async (url: string) => {
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       const params = new URL(url, 'https://example.test').searchParams, n = Number(params.get('page'))
       if (params.get('resourceType') !== 'GROUP_MEMBERSHIP') return json(page([domain]))
@@ -58,7 +59,7 @@ describe('auditoria1.6 de vínculos de grupos', () => {
     expect(new URL(fetcher.mock.calls.at(-1)![0], 'https://example.test').searchParams.has('resourceType')).toBe(false)
   })
   it('rota contextual exige permissão de auditoria própria e conserva tipo/ID', async () => {
-    const fetcher = vi.fn(async (url: string) => url.includes('/authorization?') ? json({ allowed: true }) : json(page([entry])))
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?') ? json({ allowed: true }) : json(page([entry])) })
     vi.stubGlobal('fetch', fetcher); show(`${route}/GROUP_MEMBERSHIP/${link}`)
     await screen.findByRole('heading', { name: 'GROUP_MEMBER_LINKED' })
     expect(screen.getByLabelText('Tipo de recurso')).toBeDisabled()
@@ -66,14 +67,14 @@ describe('auditoria1.6 de vínculos de grupos', () => {
     expect(new URL(fetcher.mock.calls[0][0], 'https://example.test').searchParams.get('permissionCode')).toBe('security:audit:read')
   })
   it('gestão de participantes não concede auditoria denominacional', async () => {
-    const fetcher = vi.fn(async (url: string) => json({ allowed: new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'GROUP_MEMBERSHIP_MANAGE' }))
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return json({ allowed: new URL(url, 'https://example.test').searchParams.get('permissionCode') === 'GROUP_MEMBERSHIP_MANAGE' }) })
     vi.stubGlobal('fetch', fetcher); show(`${route}/GROUP_MEMBERSHIP/${link}`)
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')
     expect(fetcher.mock.calls).toHaveLength(1)
   })
   it('revogação em foco remove metadados do vínculo', async () => {
     let allowed = true
-    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.includes('/authorization?') ? json({ allowed }) : json(page([entry]))))
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?') ? json({ allowed }) : json(page([entry])) }))
     show(`${route}/GROUP_MEMBERSHIP/${link}`); await screen.findByRole('heading', { name: 'GROUP_MEMBER_LINKED' })
     allowed = false; fireEvent(window, new Event('focus'))
     expect(await screen.findByRole('alert')).toHaveTextContent('Acesso não autorizado')

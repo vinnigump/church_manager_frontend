@@ -12,7 +12,7 @@ export default function PasswordPage() {
   const [uncertain, setUncertain] = useState(false)
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
   function signInAgain(notice: PasswordNotice) {
-    logout(notice)
+    void Promise.resolve(logout(notice)).catch(() => setMessage('Não foi possível confirmar a saída. Tente novamente antes de deixar este dispositivo.'))
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

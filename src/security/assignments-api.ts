@@ -3,6 +3,7 @@ import { isUuid } from '../validation'
 import { instant, type SecurityPage } from './security-api'
 
 export interface Assignment {
+  userName?: string; profileName?: string; unitName?: string;
   id: string; userId: string; profileId: string; organizationUnitId: string
   delegationId: string | null; status: string; revision: number; startsAt: string; endsAt: string | null
 }
@@ -15,7 +16,7 @@ function parse(value: unknown): Assignment {
     || (v.delegationId !== null && !(typeof v.delegationId === 'string' && isUuid(v.delegationId)))
     || typeof v.status !== 'string' || !v.status.trim() || !integer(v.revision)
     || !instant(v.startsAt) || (v.endsAt !== null && !instant(v.endsAt))) throw invalid()
-  return { id: v.id as string, userId: v.userId as string, profileId: v.profileId as string,
+  return { userName: typeof v.userName === 'string' ? v.userName : undefined, profileName: typeof v.profileName === 'string' ? v.profileName : undefined, unitName: typeof v.unitName === 'string' ? v.unitName : undefined, id: v.id as string, userId: v.userId as string, profileId: v.profileId as string,
     organizationUnitId: v.organizationUnitId as string, delegationId: v.delegationId as string | null,
     status: v.status, revision: v.revision, startsAt: v.startsAt, endsAt: v.endsAt as string | null }
 }

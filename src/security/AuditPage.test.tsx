@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -13,7 +14,7 @@ const account = { id, personId: denomination, login: 'ana', status: 'ACTIVE' }
 const entry = { id, occurredAt: '2026-11-07T12:00:00Z', actorUserId: id, action: 'PROFILE_PUBLISHED', resourceType: 'ACCESS_ROLE', resourceId: denomination, outcome: 'SUCCESS' }
 const json = (value: unknown) => new Response(JSON.stringify(value))
 function server(allowed = true) {
-  const fetcher = vi.fn(async (url: string) => {
+  const fetcher = vi.fn(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.includes('/authorization?')) return json({ allowed })
     if (url.endsWith(`/profiles/${denomination}`)) return json({ id: denomination, code: 'READER', name: 'Consulta', scopeType: 'CHURCH', status: 'ACTIVE', revision: 1, publishedVersionId: null })
     if (url.includes('/versions?')) return json({ items: [], page: 0, size: 20, total: 0 })
@@ -79,7 +80,7 @@ describe('auditoria estruturada denominacional', () => {
     expect(screen.queryByText('Nenhum registro de auditoria nesta página e filtros.')).not.toBeInTheDocument()
     expect(screen.queryByText('sensitive-metadata')).not.toBeInTheDocument()
   })
-  it.each([`${root}/auditoria/INVALID/${id}`, `${root}/auditoria/ACCESS_ROLE/invalid`])('rota %s inválida não consulta', path => {
+  it.each([`${root}/auditoria/INVALID/${id}`, `${root}/auditoria/ACCESS_ROLE/invalid`])('rota %s inválida não consulta', async path => {
     const fetcher = server(); show(path)
     expect(screen.getByRole('alert')).toHaveTextContent('inválido')
     expect(fetcher).not.toHaveBeenCalled()

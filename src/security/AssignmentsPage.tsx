@@ -1,3 +1,4 @@
+import AssignmentGrantForm from './AssignmentGrantForm'
 import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -9,29 +10,29 @@ import { Pagination, ReadResult, securityRoute, useRead } from './SecurityPages'
 import AuditLink from './AuditLink'
 
 export function AssignmentMetadata({ value }: { value: Assignment }) {
-  return <><p>Identificador da conta: {value.userId}</p><p>Identificador do perfil: {value.profileId}</p>
-    <p>Unidade organizacional: {value.organizationUnitId}</p><p>Estado registrado: {value.status}</p>
-    <p>Início inclusivo: <time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time></p>
+  return <><p>Pessoa: {value.userName ?? value.userId}</p><p>Perfil: {value.profileName ?? value.profileId}</p>
+    <p>Unidade organizacional: {value.unitName ?? value.organizationUnitId}</p><p>Estado registrado: {value.status === 'ACTIVE' ? 'Ativo' : value.status === 'REVOKED' ? 'Revogado' : value.status}</p>
+    <details><summary>Identificadores técnicos</summary><p>Conta: {value.userId} · Perfil: {value.profileId} · Unidade: {value.organizationUnitId}{value.delegationId && <> · Fonte: {value.delegationId}</>}</p></details><p>Início inclusivo: <time dateTime={value.startsAt}>{formatDateTime(value.startsAt)}</time></p>
     <p>Fim exclusivo: {value.endsAt ? <time dateTime={value.endsAt}>{formatDateTime(value.endsAt)}</time> : 'Sem fim definido'}</p>
-    <p>{value.delegationId ? `Fonte da delegação: ${value.delegationId}` : 'Atribuição central'}</p></>
+    <p>{value.delegationId ? 'Concedido por delegação' : 'Atribuição central'}</p></>
 }
 function List({ denominationId }: { denominationId: string }) {
   const [page, setPage] = useState(0)
   const load = useCallback((signal: AbortSignal) => listAssignments(denominationId, page, signal), [denominationId, page])
   const query = useRead(JSON.stringify([denominationId, page]), load)
-  return <ReadResult query={query} label="atribuições">{data => <>
+  return <><AssignmentGrantForm denominationId={denominationId} onGranted={query.refresh}/><ReadResult query={query} label="atribuições">{data => <>
     <p role="status">Página {page + 1} · {data.total} atribuições.</p>
     {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}>
-      <h2>Atribuição {item.id}</h2><AssignmentMetadata value={item}/>
-      <Link to={`${securityRoute(denominationId)}/atribuicoes/${item.id}`}>Consultar atribuição {item.id}</Link>
+      <h2>{item.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={item}/>
+      <Link to={`${securityRoute(denominationId)}/atribuicoes/${item.id}`}>Consultar acesso</Link>
     </li>)}</ul> : <p>Nenhuma atribuição nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das atribuições"/>
-  </>}</ReadResult>
+  </>}</ReadResult></>
 }
 function Detail({ denominationId, assignmentId }: { denominationId: string; assignmentId: string }) {
   const load = useCallback((signal: AbortSignal) => readAssignment(denominationId, assignmentId, signal), [denominationId, assignmentId])
   const query = useRead(JSON.stringify([denominationId, assignmentId]), load)
-  return <ReadResult query={query} label="atribuição">{data => <><h2>Atribuição {data.id}</h2><AssignmentMetadata value={data}/>
+  return <ReadResult query={query} label="atribuição">{data => <><h2>{data.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={data}/>
     <AuditLink denominationId={denominationId} resourceType="USER_ROLE_ASSIGNMENT" resourceId={data.id}/>
     {data.status === 'ACTIVE' && <Link to={`${securityRoute(denominationId)}/atribuicoes/${data.id}/revogar`}>Revogar atribuição</Link>}
     {data.delegationId && <Link to={`${securityRoute(denominationId)}/delegacoes/${data.delegationId}/atribuicoes`}>Consultar atribuições desta fonte</Link>}

@@ -29,7 +29,7 @@ export function useRead<T>(context: string, load: (signal: AbortSignal) => Promi
 }
 export function ReadResult<T>({ query, label, children }: { query: ReturnType<typeof useRead<T>>; label: string; children: (data: T) => ReactNode }) {
   if (query.state.kind === 'loading') return <p role="status" aria-busy="true">Carregando {label}…</p>
-  return <><button type="button" onClick={query.refresh}>Atualizar {label}</button>{query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}</>
+  return <>{query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : children(query.state.data)}<button className="read-refresh" type="button" onClick={query.refresh}>Atualizar {label}</button></>
 }
 export function Pagination({ page, total, setPage, label }: { page: number; total: number; setPage: (page: number) => void; label: string }) {
   return <nav className="security-actions" aria-label={label}>

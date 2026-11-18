@@ -1,3 +1,4 @@
+import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -23,7 +24,7 @@ afterEach(() => api.clear())
 function server({ initialProfile = profile, initialDraft = draft, allowed = true, write }: { initialProfile?: SecurityProfile; initialDraft?: ProfileVersionDetail | null; allowed?: boolean; write?: (url: string, init: RequestInit) => Promise<Response> } = {}) {
   let p = structuredClone(initialProfile)
   let d = initialDraft && structuredClone(initialDraft)
-  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {
+  const fetcher = vi.fn().mockImplementation(async (url: string, init: RequestInit = {}) => {const session = browserSessionResponse(url, init); if (session) return session;
     if (url.endsWith('/accounts/me')) return json(account)
     if (url.endsWith('/csrf')) return json({ headerName: 'X-CSRF-TOKEN', token: 'test' })
     if (url.includes('/authorization?')) return json({ allowed })
@@ -139,21 +140,21 @@ describe('gestão de perfil com decisões atuais', () => {
     fireEvent.change(await screen.findByLabelText('Código do perfil'), { target: { value: 'NEW' } })
     fireEvent.change(screen.getByLabelText('Escopo do perfil'), { target: { value: 'DENOMINATION' } })
     fireEvent.change(screen.getByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome não enviado' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: 'security:profile:manage' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /security:profile:manage/ }))
     fireEvent(window, new Event('focus'))
     expect(await screen.findByLabelText('Código do perfil')).toHaveValue('NEW')
     expect(screen.getByLabelText('Escopo do perfil')).toHaveValue('DENOMINATION')
     expect(screen.getByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome não enviado')
-    expect(screen.getByRole('checkbox', { name: 'security:profile:manage' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /security:profile:manage/ })).toBeChecked()
     expect(writes(fetcher)).toHaveLength(0)
   })
   it('edição preserva alterações de nome/permissões e bloqueio de publicar após foco', async () => {
     const fetcher = server(); await show()
     fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /EVENT_VIEW/ }))
     fireEvent(window, new Event('focus'))
     expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue('Nome local')
-    expect(screen.getByRole('checkbox', { name: 'EVENT_VIEW' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /EVENT_VIEW/ })).not.toBeChecked()
     expect(screen.getByRole('button', { name: 'Publicar versão do perfil' })).toBeDisabled()
     expect(writes(fetcher)).toHaveLength(0)
   })
@@ -161,13 +162,13 @@ describe('gestão de perfil com decisões atuais', () => {
     const fetcher = server({ initialDraft: { ...draft, permissionCodes: [] } })
     const handler = fetcher.getMockImplementation()!
     let retired = false
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => retired && url.endsWith('/permission-catalog')
-      ? json({ catalogVersion: 'changed', permissions: [{ code: 'EVENT_VIEW', introducedIn: 'events-1', resourceType: 'CHURCH', scopeTypes: ['CHURCH'], available: false }] }) : handler(url, init))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return retired && url.endsWith('/permission-catalog')
+      ? json({ catalogVersion: 'changed', permissions: [{ code: 'EVENT_VIEW', introducedIn: 'events-1', resourceType: 'CHURCH', scopeTypes: ['CHURCH'], available: false }] }) : handler(url, init) })
     await show()
-    fireEvent.click(await screen.findByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent.click(await screen.findByRole('checkbox', { name: /EVENT_VIEW/ }))
     retired = true; fireEvent(window, new Event('focus'))
     expect(await screen.findByRole('alert')).toHaveTextContent('indisponíveis ou incompatíveis')
-    const choice = screen.getByRole('checkbox', { name: /^EVENT_VIEW/ })
+    const choice = screen.getByRole('checkbox', { name: /EVENT_VIEW/ })
     expect(choice).toBeChecked()
     expect(screen.getByRole('button', { name: 'Salvar rascunho do perfil' })).toBeDisabled()
     fireEvent.click(choice)
@@ -181,8 +182,8 @@ describe('gestão de perfil com decisões atuais', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let current = { p: profile, d: draft }
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => !init?.method && url.endsWith(`/profiles/${profileId}/draft`)
-      ? json(current.d) : !init?.method && url.endsWith(`/profiles/${profileId}`) ? json(current.p) : handler(url, init))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return !init?.method && url.endsWith(`/profiles/${profileId}/draft`)
+      ? json(current.d) : !init?.method && url.endsWith(`/profiles/${profileId}`) ? json(current.p) : handler(url, init) })
     await show()
     fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local' } })
     current = changed; fireEvent(window, new Event('focus'))
@@ -199,7 +200,7 @@ describe('gestão de perfil com decisões atuais', () => {
   it('campos preservados não são expostos enquanto a permissão estiver negada', async () => {
     const fetcher = server(); const handler = fetcher.getMockImplementation()!
     let allowed = true
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.includes('/authorization?') ? json({ allowed }) : handler(url, init))
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?') ? json({ allowed }) : handler(url, init) })
     await show()
     fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome local protegido' } })
     allowed = false; fireEvent(window, new Event('focus'))
@@ -212,10 +213,10 @@ describe('gestão de perfil com decisões atuais', () => {
   it('nome e escolhas não salvos não passam para outra denominação', async () => {
     const fetcher = server(); await show(route(), true)
     fireEvent.change(await screen.findByLabelText('Nome do rascunho do perfil'), { target: { value: 'Nome A' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /EVENT_VIEW/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Outra denominação' }))
     expect(await screen.findByLabelText('Nome do rascunho do perfil')).toHaveValue(draft.name)
-    expect(screen.getByRole('checkbox', { name: 'EVENT_VIEW' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /EVENT_VIEW/ })).toBeChecked()
     expect(writes(fetcher)).toHaveLength(0)
   })
   it('erro e foco não apagam campos nem liberam repetição sem leitura explícita', async () => {
@@ -266,12 +267,12 @@ describe('gestão de perfil com decisões atuais', () => {
     await show(`${root}/novo`)
     fireEvent.change(await screen.findByLabelText('Código do perfil'), { target: { value: 'NEW' } })
     fireEvent.change(screen.getByLabelText('Nome do rascunho do perfil'), { target: { value: 'Novo' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: 'EVENT_VIEW' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /EVENT_VIEW/ }))
     fireEvent.change(screen.getByLabelText('Escopo do perfil'), { target: { value: 'DENOMINATION' } })
     expect(screen.getByRole('checkbox', { name: /EVENT_VIEW/ })).toBeChecked()
     expect(screen.getByRole('button', { name: 'Criar perfil em rascunho' })).toBeDisabled()
     fireEvent.click(screen.getByRole('checkbox', { name: /EVENT_VIEW/ }))
-    fireEvent.click(screen.getByRole('checkbox', { name: 'security:profile:manage' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /security:profile:manage/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Criar perfil em rascunho' }))
     expect(await screen.findByText('Perfil criado em rascunho. Nenhuma atribuição foi criada.')).toBeInTheDocument()
     expect(await screen.findByRole('link', { name: 'Abrir perfil criado' })).toBeInTheDocument()
@@ -358,7 +359,7 @@ describe('gestão de perfil com decisões atuais', () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     let revoked = false
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?') && revoked) return json({ allowed: false })
       const value = await handler(url, init)
       if (init?.method === 'POST' && url.endsWith('/deactivate')) revoked = true
@@ -373,7 +374,7 @@ describe('gestão de perfil com decisões atuais', () => {
   it('401 na escrita encerra sessão real', async () => {
     server({ write: async () => new Response(null, { status: 401 }) })
     render(<MemoryRouter initialEntries={[route()]}><AuthProvider><App/></AuthProvider></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Login'), { target: { value: 'ana' } })
+    fireEvent.change(await screen.findByLabelText('Login'), { target: { value: 'ana' } })
     fireEvent.change(screen.getByLabelText('Senha'), { target: { value: 'test-password' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Entrar' }).closest('form')!)
     await save()
