@@ -32,7 +32,7 @@ describe('consultas de atribuições', () => {
     const fetcher = server()
     show()
     fireEvent.click(await screen.findByRole('link', { name: 'Consultar acesso' }))
-    expect(await screen.findByRole('button', { name: 'Atualizar atribuição' })).toBeInTheDocument()
+    expect(await screen.findByText('Estado registrado: Ativo')).toBeInTheDocument()
     expect(screen.getByText(/não representam autorização efetiva/)).toBeInTheDocument()
     expect(screen.getByText('Estado registrado: Ativo')).toBeInTheDocument()
     expect(screen.getByText('Fim exclusivo: Sem fim definido')).toBeInTheDocument()
@@ -62,7 +62,7 @@ describe('consultas de atribuições', () => {
     fetcher.mockImplementation(async url => url.includes('/authorization?') ? json({ allowed: true }) : new Response(null, { status }))
     show()
     expect(await screen.findByRole('alert')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Atualizar atribuições' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
   })
   it.each([{ revision: -1 }, { startsAt: '2026-02-30T12:00:00Z' }, { delegationId: 'invalid' }, { userId: null }, { endsAt: 'tomorrow' }])('rejeita DTO inválido %j', async change => {
     const fetcher = server()

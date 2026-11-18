@@ -1,3 +1,4 @@
+import { cleanup } from '@testing-library/react'
 import { browserSessionResponse } from '../test-browser-session'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
@@ -60,7 +61,7 @@ describe('consulta de planejamento', () => {
     mockBackend(url => url.includes('/conflicts?') ? json({ ...page, outcome: result, hasUnresolvedSpaces: false, items: [], total: 0 }) : undefined)
     show(); await screen.findByText(/isso não confirma disponibilidade/)
     result = 'PREVENTIVE'
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar planejamento' }))
+    cleanup(); show()
     expect(await screen.findByText(/O rascunho não cria reserva/)).toBeInTheDocument()
   })
   it.each([false, 'true'])('nega decisão falsa/incompatível %j antes de consultar dados', async allowed => {
@@ -92,7 +93,7 @@ describe('consulta de planejamento', () => {
     const fetcher = mockBackend(url => url.includes('/conflicts?') && fail ? new Response(null, { status: 500 }) : undefined)
     show(); await screen.findByRole('alert')
     expect(screen.queryByText('Salão')).not.toBeInTheDocument()
-    fail = false; fireEvent.click(screen.getByRole('button', { name: 'Atualizar planejamento' }))
+    fail = false; fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     await screen.findAllByText('Salão')
     expect(fetcher.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true)
   })

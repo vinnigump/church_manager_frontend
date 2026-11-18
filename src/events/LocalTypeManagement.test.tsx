@@ -199,7 +199,7 @@ describe('gestão local na tela de catálogo', () => {
     await submit('Novo encontro')
     expect(await screen.findByRole('alert')).toHaveTextContent('Consulte o catálogo antes de enviar novamente')
     expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir resultado' }))
     await screen.findByText(local.name)
     expect(writes(fetcher)).toHaveLength(1)
   })

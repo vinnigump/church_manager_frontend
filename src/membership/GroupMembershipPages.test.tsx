@@ -192,7 +192,7 @@ describe('gestão contextual de participantes do grupo', () => {
     fireEvent(window, new Event('focus'))
     expect(await screen.findByRole('button', { name: 'Revisar desvinculação' })).toBeDisabled()
     expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar dados e reavaliar acesso' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir dados' }))
     expect(await screen.findByRole('button', { name: 'Revisar desvinculação' })).toBeEnabled()
     expect(writes(fetcher)).toHaveLength(1)
   })

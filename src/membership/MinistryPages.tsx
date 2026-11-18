@@ -29,10 +29,10 @@ function ChurchAccess() {
   }, [account])
   useEffect(() => { const refresh = () => setAttempt(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
   if (!account) return null
-  return <><button type="button" onClick={() => setAttempt(v => v + 1)}>Atualizar acessos aos ministérios</button>
+  return <>
     <ContextOperation key={attempt} contextId="ministry-access" operation={load}>{state => {
       if (state.kind === 'loading') return <p role="status" aria-busy="true">Carregando igrejas para gestão de ministérios…</p>
-      if (state.kind === 'error') return <p role="alert">Não foi possível confirmar seus acessos. Tente atualizar.</p>
+      if (state.kind === 'error') return <><p role="alert">Não foi possível confirmar seus acessos.</p><button onClick={() => setAttempt(v => v + 1)}>Tentar novamente</button></>
       return state.data.length ? <DefaultChurchAccess  options={state.data.map(v => ({ churchId: v.resourceId, path: `/ministerios/igrejas/${v.resourceId}` }))}><ul className="event-list">{state.data.map(v => <li key={v.resourceId}><h2>{v.label}</h2>
         <Link to={`/ministerios/igrejas/${v.resourceId}`}>Ministérios de {v.label}</Link>
       </li>)}</ul></DefaultChurchAccess> : <p role="status">Você ainda não tem acesso à gestão de ministérios de uma igreja.</p>

@@ -35,7 +35,7 @@ function TeamWorkspace({ churchId, occurrenceId }: { churchId: string; occurrenc
   return <ResourceAccess key={command.version} permissionCode="EVENT_VIEW" resourceType="CHURCH" resourceId={churchId}>
     {command.message && <p role={command.failed ? 'alert' : 'status'}>{command.message}</p>}
     {command.busy && <p role="status" aria-busy="true">Confirmando liberação…</p>}
-    <button disabled={command.busy} onClick={command.refresh}>Atualizar equipe e reavaliar acesso</button>
+    {command.failed && <button disabled={command.busy} onClick={command.refresh}>Conferir resultado</button>}
     <TeamRecords churchId={churchId} occurrenceId={occurrenceId} page={page} setPage={setPage} command={command}/>
   </ResourceAccess>
 }

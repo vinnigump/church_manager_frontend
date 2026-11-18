@@ -107,7 +107,7 @@ describe('liberação administrativa de atribuição', () => {
     fireEvent(window, new Event('focus'))
     expect(await screen.findByRole('button', { name: `Liberar atribuição ${assignment}` })).toBeDisabled()
     expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar equipe e reavaliar acesso' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir resultado' }))
     expect(await screen.findByRole('button', { name: `Liberar atribuição ${assignment}` })).toBeEnabled()
     expect(writes(fetcher)).toHaveLength(1)
   })

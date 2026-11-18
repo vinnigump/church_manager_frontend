@@ -73,7 +73,7 @@ function TransitionWorkspace({ churchId, id, action }: { churchId: string; id: s
     <ResourceAccess permissionCode={transitionPermission[action]} resourceType="CHURCH" resourceId={churchId}>
       {command.message && <p role={command.failed ? 'alert' : 'status'}>{command.message}</p>}
       {command.busy && <p role="status" aria-busy="true">Confirmando transição…</p>}
-      <button disabled={command.busy} onClick={command.refresh}>Atualizar ocorrência e reavaliar acesso</button>
+      {command.failed && <button disabled={command.busy} onClick={command.refresh}>Conferir resultado</button>}
       <TransitionRecords churchId={churchId} id={id} action={action} command={command}/>
     </ResourceAccess>
   </ResourceAccess>

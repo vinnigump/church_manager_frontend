@@ -131,7 +131,7 @@ describe('consulta paginada do catálogo autorizada', () => {
   it.each([403, 404, 409, 422, 500])('trata erro %s na listagem após consulta autorizada', async status => {
     vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/authorization?') ? json({ allowed: true }) : new Response('dado privado', { status }) }))
     show()
-    expect(await screen.findByRole('button', { name: 'Atualizar catálogo' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.queryByText('dado privado')).not.toBeInTheDocument()
     expect(screen.queryByText(item.name)).not.toBeInTheDocument()
@@ -144,7 +144,7 @@ describe('consulta paginada do catálogo autorizada', () => {
       return json(page)
     }))
     show()
-    fireEvent.click(await screen.findByRole('button', { name: 'Atualizar catálogo' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Tentar novamente' }))
     expect(await screen.findByText(item.name)).toBeInTheDocument()
   })
   it('descarta resposta de igreja anterior mesmo que o request ignore abort', async () => {
@@ -180,7 +180,7 @@ describe('recuperação da paginação quando o catálogo encolhe', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await screen.findByText('Tipo da página 3')
     shrunk = true
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Página anterior' }))
     await screen.findByText(`Página 1 · ${total} tipos de evento no catálogo.`)
     expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
@@ -188,11 +188,11 @@ describe('recuperação da paginação quando o catálogo encolhe', () => {
     if (total === 0) expect(screen.getByText('Nenhum tipo de evento nesta página.')).toBeInTheDocument()
     else expect(screen.getByText('Tipo da página 1')).toBeInTheDocument()
     const reads = fetcher.mock.calls.filter(([url]) => !url.includes('/authorization?'))
-    expect(reads.map(([url]) => new URL(url, 'https://example.test').searchParams.get('page'))).toEqual(['0', '1', '2', '2', '0'])
+    expect(reads.map(([url]) => new URL(url, 'https://example.test').searchParams.get('page'))).toEqual(['0', '1', '2', '1', '0'])
     expect(fetcher.mock.calls.every(([, init]) => !init.method || init.method === 'GET')).toBe(true)
   })
 
-  it('preserva a página atual quando ela ainda existe após atualizar', async () => {
+  it('preserva a página atual sem exigir atualização manual', async () => {
     vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {const session = browserSessionResponse(url, init); if (session) return session;
       if (url.includes('/authorization?')) return json({ allowed: true })
       const currentPage = Number(new URL(url, 'https://example.test').searchParams.get('page'))
@@ -202,7 +202,7 @@ describe('recuperação da paginação quando o catálogo encolhe', () => {
     await screen.findByText(item.name)
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await screen.findByText('Página 2 · 21 tipos de evento no catálogo.')
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    expect(screen.queryByRole('button', { name: /Atualizar/ })).not.toBeInTheDocument()
     expect(await screen.findByText('Página 2 · 21 tipos de evento no catálogo.')).toBeInTheDocument()
   })
 })

@@ -38,7 +38,7 @@ function Workspace({ church, person }: { church: string; person: string }) {
   const load = useCallback(async (signal: AbortSignal) => { const [data, history] = await Promise.all([readBasicPerson(church, person, signal), readEditHistory(church, person, signal)]); return { data, history } }, [church, person])
   const query = useRead(JSON.stringify([church, person, epoch]), load)
   return <><p role="note">Este cadastro é compartilhado. Alterações de nome, nascimento e contatos valerão também nas demais igrejas.</p>
-    <button disabled={busy} onClick={() => setEpoch(v => v + 1)}>Atualizar cadastro</button>
+    {query.state.kind === 'error' && <button disabled={busy} onClick={() => setEpoch(v => v + 1)}>Tentar novamente</button>}
     {query.state.kind === 'loading' ? <p role="status">Carregando cadastro…</p> : query.state.kind === 'error' ? <p role="alert">{query.state.message}</p> : <>
       <Form key={`${query.state.data.data.updatedAt}:${epoch}`} person={query.state.data.data} church={church} onBusy={setBusy} saved={() => { setBusy(false); setEpoch(v => v + 1) }}/>
       <h2>Alterações nesta igreja</h2><p>Últimas 20 alterações. O histórico preserva o autor, a data e os campos alterados.</p>

@@ -33,10 +33,10 @@ export default function EventAccess() {
   if (!account) return null
   return <section className="events-panel" aria-labelledby={titleId}>
     <h2 id={titleId}>Eventos das suas igrejas</h2>
-    <button type="button" onClick={() => setAttempt(value => value + 1)}>Atualizar acessos</button>
+
     <ContextOperation key={`${attempt}:${permissionKey}`} contextId={`event-access:${permissionKey}`} operation={load}>{state => {
       if (state.kind === 'loading') return <p role="status" aria-busy="true">Carregando seus acessos a eventos…</p>
-      if (state.kind === 'error') return <p role="alert">Não foi possível carregar seus acessos a eventos. Tente atualizar os acessos.</p>
+      if (state.kind === 'error') return <><p role="alert">Não foi possível carregar seus acessos a eventos.</p><button onClick={() => setAttempt(value => value + 1)}>Tentar novamente</button></>
       if (action === 'presencas' && selectedChurch && state.data.some(v => v.resourceId === selectedChurch)) return <EventAttendanceOptions key={selectedChurch} church={selectedChurch}/>
       return state.data.length ? <DefaultChurchAccess  options={state.data.map(v => ({ churchId: v.resourceId, path: path(v.resourceId) }))}><ul className="event-list">{state.data.map(church => <li key={church.resourceId}>
         <h3>{church.label}</h3>

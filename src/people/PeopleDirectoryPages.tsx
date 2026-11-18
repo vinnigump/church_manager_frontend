@@ -26,9 +26,9 @@ function Access() {
     return decisions.filter(v => creating ? v.canCreate : v.canRead || v.canCreate)
   }, [account, creating])
   useEffect(() => { const refresh = () => setEpoch(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [])
-  return <><button onClick={() => setEpoch(v => v + 1)}>Atualizar acessos a Pessoas</button>
+  return <>
     <ContextOperation key={epoch} contextId="people-access" operation={load}>{s => s.kind === 'loading' ? <p role="status">Carregando igrejas…</p>
-      : s.kind === 'error' ? <p role="alert">Não foi possível confirmar seus acessos.</p>
+      : s.kind === 'error' ? <><p role="alert">Não foi possível confirmar seus acessos.</p><button onClick={() => setEpoch(v => v + 1)}>Tentar novamente</button></>
         : s.data.length ? <DefaultChurchAccess  options={s.data.map(v => ({ churchId: v.resourceId, path: !creating && v.canRead ? `/pessoas/igrejas/${v.resourceId}` : `/pessoas/igrejas/${v.resourceId}/cadastrar` }))}><ul className="people-church-list">{s.data.map(v => <li key={v.resourceId}><span className="people-card-eyebrow">Igreja</span><h2>{v.label}</h2>
           {!creating && v.canRead && <p><Link to={`/pessoas/igrejas/${v.resourceId}`}>Consultar pessoas de {v.label}</Link></p>}
           {v.canCreate && <Link to={`/pessoas/igrejas/${v.resourceId}/cadastrar`}>Cadastrar pessoa em {v.label}</Link>}

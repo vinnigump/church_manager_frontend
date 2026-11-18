@@ -38,7 +38,7 @@ function Workspace({ denominationId, assignmentId, delegationId }: { denominatio
     <Link to={delegationId ? `${securityRoute(denominationId)}/delegacoes/${delegationId}/atribuicoes/${assignmentId}` : `${securityRoute(denominationId)}/atribuicoes/${assignmentId}`}>Voltar à atribuição</Link>
     {delegationId && <p>O servidor aplica a política central quando houver essa permissão; caso contrário, exige fonte própria válida e atribuição criada pelo delegado nessa origem. Conhecer a fonte não concede gestão denominacional.</p>}
     {message && <p role={failed ? 'alert' : 'status'}>{message}</p>}
-    <button disabled={busy} onClick={refresh}>Atualizar atribuição e permissão</button>
+    {failed && <button disabled={busy} onClick={refresh}>Conferir resultado</button>}
     {delegationId ? loaded : <ResourceAccess key={revision} permissionCode="security:assignment:manage" resourceType="DENOMINATION" resourceId={denominationId}>{loaded}</ResourceAccess>}
   </>
 }

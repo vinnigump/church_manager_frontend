@@ -46,7 +46,7 @@ function DenominationCatalog({ denominationId, creation }: { denominationId: str
   }, [denominationId, page, attempt, revision, key, acknowledgeRead, failureGeneration])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando templates…</p>
   return <>
-    <button data-tone="secondary" disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>Atualizar catálogo</button>
+    {(result.kind === 'error' || creation.failed) && <button data-tone="secondary" disabled={creation.busy} onClick={() => setAttempt(value => value + 1)}>{creation.failed ? 'Conferir resultado' : 'Tentar novamente'}</button>}
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <p role="status">Página {page + 1} · {result.data.total} templates no catálogo.</p>
       {result.data.items.length === 0 ? <p>Nenhum template no catálogo.</p> : <ul className="event-list">{result.data.items.map(item => <li key={item.id} className="navigation-card">
@@ -96,7 +96,7 @@ function VersionHistory({ denominationId, typeId, publishedVersionId }: { denomi
   return <section className="events-panel" aria-labelledby="template-history-title"><h2 id="template-history-title">Histórico de versões</h2>
     <p>Versões publicadas são imutáveis. Ocorrências existentes preservam sua versão anterior.</p>
     {!result || result.key !== key ? <p role="status" aria-busy="true">Carregando histórico…</p> : <>
-      <button data-tone="secondary" onClick={() => setAttempt(value => value + 1)}>Atualizar histórico</button>
+      {result.kind === 'error' && <button data-tone="secondary" onClick={() => setAttempt(value => value + 1)}>Tentar novamente</button>}
       {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
         <p role="status">Página {page + 1} · {result.data.total} versões.</p>
         {result.data.items.length === 0 ? <p>Nenhuma versão no histórico.</p> : <ol className="event-list event-version-history">{result.data.items.map(version => <li key={version.id}><VersionDetails version={version}/>{version.id === publishedVersionId && <p>Versão publicada de referência na última consulta do template.</p>}</li>)}</ol>}
@@ -121,7 +121,7 @@ function TemplateDetails({ denominationId, typeId, mutation }: { denominationId:
   }, [denominationId, typeId, attempt, revision, key])
   if (!result || result.key !== key) return <p role="status" aria-busy="true">Carregando template…</p>
   return <>
-    <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>Atualizar template</button>
+    {(result.kind === 'error' || mutation.failed) && <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.refresh(); setAttempt(value => value + 1) }}>{mutation.failed ? 'Conferir resultado' : 'Tentar novamente'}</button>}
     {mutation.editor && <button data-tone="secondary" disabled={mutation.busy} onClick={() => { mutation.discardChanges(); mutation.refresh(); setAttempt(value => value + 1) }}>Descartar alterações locais e atualizar template</button>}
     {result.kind === 'error' ? <p role="alert">{result.message}</p> : <>
       <section className="events-panel" aria-labelledby="template-identification-title"><h2 id="template-identification-title">Identificação do template</h2>

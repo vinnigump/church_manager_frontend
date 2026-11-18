@@ -79,16 +79,16 @@ describe('catálogo denominacional autorizado', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Verificar novamente' }))
     expect(await screen.findByRole('link', { name: /Consultar versões/ })).toBeInTheDocument()
   })
-  it('mostra catálogo vazio e permite atualizar', async () => {
+  it('mostra catálogo vazio sem atualização manual', async () => {
     const fetcher = server()
     const handler = fetcher.getMockImplementation()!
     fetcher.mockImplementation(async (url: string, init?: RequestInit) => { const session = browserSessionResponse(url, init); if (session) return session; return url.includes('/types?') ? json({ ...catalog, items: [], total: 0 }) : handler(url) })
     show()
     expect(await screen.findByText('Nenhum template no catálogo.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    expect(screen.queryByRole('button', { name: /Atualizar/ })).not.toBeInTheDocument()
     await screen.findByText('Nenhum template no catálogo.')
-    expect(reads(fetcher)).toHaveLength(2)
+    expect(reads(fetcher)).toHaveLength(1)
   })
   it('descarta resposta antiga ao trocar denominação', async () => {
     const fetcher = server()
@@ -102,7 +102,7 @@ describe('catálogo denominacional autorizado', () => {
     await act(async () => { finish(json({ ...catalog, items: [{ ...catalog.items[0], name: 'Dado antigo' }] })) })
     expect(screen.queryByText('Dado antigo')).not.toBeInTheDocument()
   })
-  it('pagina catálogo e recupera a última página válida quando o total diminui', async () => {
+  it('pagina catálogo e consulta o novo total ao navegar', async () => {
     const fetcher = server()
     let shrunk = false
     const handler = fetcher.getMockImplementation()!
@@ -116,9 +116,9 @@ describe('catálogo denominacional autorizado', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await screen.findByText('Página 2 · 21 templates no catálogo.')
     shrunk = true
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Página anterior' }))
     expect(await screen.findByText('Página 1 · 1 templates no catálogo.')).toBeInTheDocument()
-    expect(reads(fetcher).map(([url]) => new URL(url, 'https://example.test').searchParams.get('page'))).toEqual(['0', '1', '1', '0'])
+    expect(reads(fetcher).map(([url]) => new URL(url, 'https://example.test').searchParams.get('page'))).toEqual(['0', '1', '0'])
   })
   it('nega leitura após revogação observada no foco', async () => {
     const fetcher = server()
@@ -137,7 +137,7 @@ describe('catálogo denominacional autorizado', () => {
     show()
     expect(await screen.findByRole('alert')).not.toHaveTextContent('privado')
     fail = false
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar catálogo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(await screen.findByRole('link', { name: /Consultar versões/ })).toBeInTheDocument()
   })
 })
@@ -192,7 +192,7 @@ describe('consulta de template e histórico', () => {
     show(detailRoute())
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível conectar')
     expect(screen.getByText('Estado do template: Publicado')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar histórico' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(await screen.findByText('Versão 1 · Encontro original')).toBeInTheDocument()
     expect(reads(fetcher).filter(([url]) => url.endsWith(`/types/${type}`))).toHaveLength(1)
   })

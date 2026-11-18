@@ -224,7 +224,7 @@ describe('gerência autorizada de versões', () => {
     expect(screen.getByRole('alert')).not.toHaveTextContent('dado privado')
     expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeDisabled()
     expect(writes(fetcher)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Atualizar template' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Conferir resultado' }))
     expect(await screen.findByRole('button', { name: 'Salvar rascunho' })).toBeEnabled()
     expect(writes(fetcher)).toHaveLength(1)
   })

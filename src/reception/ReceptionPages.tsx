@@ -22,9 +22,9 @@ function Access() {
     return contexts.filter((_v, i) => decisions[i])
   }, [])
   const [epoch, setEpoch] = useState(0)
-  return <><p>Escolha a igreja para entregar ou recolher crachás.</p><button onClick={() => setEpoch(v => v + 1)}>Atualizar meus acessos</button>
-    <ContextOperation key={epoch} contextId="reception-access" operation={load}>{state => state.kind === 'loading' ? <p role="status">Carregando igrejas…</p> : state.kind === 'error' ? <p role="alert">Não foi possível consultar seus acessos à recepção.</p>
-      : state.data.length ? <DefaultChurchAccess  options={state.data.map(v => ({ churchId: v.resourceId, path: `/recepcao/igrejas/${v.resourceId}${suffix}` }))}><ul>{state.data.map(v => <li key={v.resourceId}><Link to={`/recepcao/igrejas/${v.resourceId}${suffix}`}>Recepção de {v.label}</Link></li>)}</ul></DefaultChurchAccess> : <p>Você ainda não tem acesso à recepção de uma igreja.</p>}
+  return <><p>Escolha a igreja para entregar ou recolher crachás.</p>
+    <ContextOperation key={epoch} contextId="reception-access" operation={load}>{state => state.kind === 'loading' ? <p role="status">Carregando igrejas…</p> : state.kind === 'error' ? <><p role="alert">Não foi possível consultar seus acessos ao Check-in.</p><button onClick={() => setEpoch(v => v + 1)}>Tentar novamente</button></>
+      : state.data.length ? <DefaultChurchAccess  options={state.data.map(v => ({ churchId: v.resourceId, path: `/recepcao/igrejas/${v.resourceId}${suffix}` }))}><ul>{state.data.map(v => <li key={v.resourceId}><Link to={`/recepcao/igrejas/${v.resourceId}${suffix}`}>Check-in de {v.label}</Link></li>)}</ul></DefaultChurchAccess> : <p>Você ainda não tem acesso à recepção de uma igreja.</p>}
     </ContextOperation>
   </>
 }
@@ -72,7 +72,7 @@ function Workspace({ church }: { church: string }) {
   function reload() { if (busy) return; setBlocked(false); setMessage(''); setLastBadge(null); setLost(null); setEpoch(v => v + 1) }
   return <>
     {name.state.kind === 'ready' && <h2>{name.state.data}</h2>}
-    <button disabled={busy} onClick={reload}>Atualizar recepção</button>{busy && <p role="status" aria-busy="true">Confirmando atendimento…</p>}
+    {blocked && <button disabled={busy} onClick={reload}>Conferir atendimento</button>}{busy && <p role="status" aria-busy="true">Confirmando atendimento…</p>}
     <ResourceAccess key={epoch} permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={church} preserveDuringRecheck>
       {message && <p role="status" className="reception-message">{message}</p>}{lastBadge && <BadgeQr badge={lastBadge}/>}
       <fieldset disabled={busy || blocked} className="reception-workspace"><legend>Atendimento da recepção</legend>
@@ -94,7 +94,7 @@ function ReceptionSwitchLink() {
 export default function ReceptionPages() {
   const { churchId } = useParams(), { account } = useAuth(), [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
-  return <div className="reception"><header className="reception-heading"><span className="reception-eyebrow">Atendimento e atuação ministerial</span><h1 data-page-title="Recepção">Recepção — Controle de crachás</h1><p>Entrega e devolução de crachás físicos com identificação por QR Code.</p></header>
+  return <div className="reception"><header className="reception-heading"><span className="reception-eyebrow">Atendimento e atuação ministerial</span><h1 data-page-title="Check-in">Check-in — Controle de crachás</h1><p>Entrega e devolução de crachás físicos com identificação por QR Code.</p></header>
     {churchId === undefined ? <Access key={scope.epoch}/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Volte à recepção e selecione novamente.</p> : <>
       <p><ReceptionSwitchLink/></p><ResourceAccess permissionCode="BADGE_MANAGE" resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck>
         <Workspace key={`${scope.epoch}:${churchId}`} church={churchId}/>
