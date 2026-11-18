@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { LoginRedirect, useAuth } from '../auth'
@@ -19,10 +20,10 @@ function List() {
   const query = useRead(`own-trails:${page}`, load)
   return <><p><Link to="/minhas-trilhas/participar">Participar de uma trilha</Link></p><p><Link to="/trilhas/gestao">Acesso da equipe às trilhas</Link></p><ReadResult query={query} label="minhas trilhas">{data => <>
     <p role="status">{data.total} percursos · Página {page + 1}</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}>
+    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="navigation-card">
       <h2>{v.name}</h2><p>{v.churchName} · {trailLabel[v.status]}</p>
       <p>{v.completedTaskCount} de {v.taskCount} etapas com conclusão registrada.</p><progress className="trail-progress" value={v.completedTaskCount} max={Math.max(1, v.taskCount)} aria-label="Etapas concluídas"/>
-      <Link to={`/minhas-trilhas/${v.id}`}>Acompanhar {v.name}</Link>
+      <ItemLink to={`/minhas-trilhas/${v.id}`}>Acompanhar {v.name}</ItemLink>
     </li>)}</ul> : <p>Você ainda não tem percursos registrados.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das minhas trilhas"/>
   </>}</ReadResult></>

@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { formatDateTime } from '../time'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -55,9 +56,9 @@ function Profiles({ denominationId }: { denominationId: string }) {
   return <ReadResult query={query} label="perfis">{data => <>
     <p><Link to={`${securityRoute(denominationId)}/perfis/novo`}>Criar perfil de acesso</Link></p>
     <p role="status">Página {page + 1} · {data.total} perfis.</p>
-    {data.items.length ? <ul className="security-list">{data.items.map(profile => <li key={profile.id}>
+    {data.items.length ? <ul className="security-list">{data.items.map(profile => <li key={profile.id} className="navigation-card">
       <h2>{profile.name}</h2><p>Código: {profile.code}</p><p>Escopo: {scopeName(profile.scopeType)}</p><p>Estado: {statusName(profile.status)}</p>
-      <Link to={`${securityRoute(denominationId)}/perfis/${profile.id}`}>Consultar perfil {profile.name}</Link>
+      <ItemLink to={`${securityRoute(denominationId)}/perfis/${profile.id}`}>Consultar perfil {profile.name}</ItemLink>
     </li>)}</ul> : <p>Nenhum perfil nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos perfis"/>
   </>}</ReadResult>

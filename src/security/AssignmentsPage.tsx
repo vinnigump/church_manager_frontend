@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import AssignmentGrantForm from './AssignmentGrantForm'
 import { formatDateTime } from '../time'
 import { useCallback, useState } from 'react'
@@ -22,9 +23,9 @@ function List({ denominationId }: { denominationId: string }) {
   const query = useRead(JSON.stringify([denominationId, page]), load)
   return <><AssignmentGrantForm denominationId={denominationId} onGranted={query.refresh}/><ReadResult query={query} label="atribuições">{data => <>
     <p role="status">Página {page + 1} · {data.total} atribuições.</p>
-    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}>
+    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id} className="navigation-card">
       <h2>{item.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={item}/>
-      <Link to={`${securityRoute(denominationId)}/atribuicoes/${item.id}`}>Consultar acesso</Link>
+      <ItemLink to={`${securityRoute(denominationId)}/atribuicoes/${item.id}`}>Consultar acesso</ItemLink>
     </li>)}</ul> : <p>Nenhuma atribuição nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das atribuições"/>
   </>}</ReadResult></>

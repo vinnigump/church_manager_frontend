@@ -28,7 +28,7 @@ function currentArea(path: string): Area | null {
 }
 type Resolved = { label: string; path: string }[]
 export default function SidebarNavigation() {
- const { account }=useAuth(),{defaultChurchId,churches,ready}=useDefaultChurch(),{pathname,search}=useLocation()
+ const { account }=useAuth(),{defaultChurchId:ownChurchId,selectedChurchId,churches,ready}=useDefaultChurch(),{pathname,search}=useLocation()
  const [mobile,setMobile]=useState(()=>typeof window.matchMedia==='function' && window.matchMedia('(max-width:767px)').matches)
  useEffect(()=>{
   if(typeof window.matchMedia!=='function')return
@@ -39,6 +39,7 @@ export default function SidebarNavigation() {
  const area=currentArea(pathname),[expanded,setExpanded]=useState<'management'|'settings'|null>(null)
  const specs=[...(area?definitions[area]:[]),...(expanded==='management'?management:expanded==='settings'?settings:[])]
  const moduleChurchId=pathname.match(/\/igrejas\/([0-9a-f-]{36})(?:\/|$)/i)?.[1]??null
+ const defaultChurchId=selectedChurchId??ownChurchId
  const contextId=moduleChurchId??defaultChurchId
  const key=JSON.stringify([area,expanded,defaultChurchId,moduleChurchId,ready])
  const [snapshot,setSnapshot]=useState<{account:typeof account;key:string;links:Resolved;churchLabel?:string}>({account:null,key:'',links:[]})

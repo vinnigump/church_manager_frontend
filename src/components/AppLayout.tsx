@@ -4,6 +4,7 @@ import { useAuth } from '../auth'
 import { useSignOut } from '../useSignOut'
 import Brand from './Brand'
 import SidebarNavigation from './SidebarNavigation'
+import ManagementContextSelector from './ManagementContextSelector'
 import './app-shell.css'
 
 export default function AppLayout() {
@@ -26,6 +27,6 @@ export default function AppLayout() {
       {account && <><div className="app-header-context"><span>Church Manager</span><span aria-hidden="true"> / </span><strong>{area}</strong></div><div className="app-session-actions"><NavLink className="app-session-button app-account-button" to="/conta"><span className="app-avatar" aria-hidden="true">{account.login.slice(0,2).toUpperCase()}</span>Minha conta</NavLink><button className="app-session-button" onClick={signOut}>Sair</button></div></>}
     </header>
     {account && <SidebarNavigation/>}
-    <main className={`app-content${accessPage ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}><Outlet/></main>
+    <main className={`app-content${accessPage ? ' app-content--access' : ''}`} ref={main} id="conteudo" tabIndex={-1}>{account&&<ManagementContextSelector/>}<Outlet/></main>
   </div></>
 }

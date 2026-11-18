@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { DefaultChurchAccess } from '../church-context'
 import UiIcon from '../components/UiIcon'
 import './membership-visual.css'
@@ -49,10 +50,10 @@ function Directory({ church }: { church: string }) {
     <button type="submit">Pesquisar</button>
   </form><ReadResult query={query} label="ministérios e departamentos">{data => <>
     <p role="status">{data.total} resultados · Página {page + 1}</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}>
+    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="navigation-card">
       <span className="ministry-card-symbol"><UiIcon kind="ministries"/></span><h2>{v.name}</h2><p>{v.kind === 'MINISTRY' ? 'Ministério' : `Departamento de ${v.ministryName}`} · {v.active ? 'Ativo' : 'Inativo'}</p>
       {!v.active && <p>Unidade inativa: consulte os vínculos e seu histórico.</p>}
-      <Link to={groupRoute({ churchId: church, kind: v.kind, groupId: v.id })}>Consultar integrantes de {v.name}</Link>
+      <ItemLink to={groupRoute({ churchId: church, kind: v.kind, groupId: v.id })}>Consultar integrantes de {v.name}</ItemLink>
     </li>)}</ul> : <p>Nenhum ministério ou departamento disponível para sua gestão com estes filtros.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas dos ministérios e departamentos"/>
   </>}</ReadResult></>
@@ -63,7 +64,7 @@ export default function MinistryPages({ directory = false }: { directory?: boole
   if (session.account !== account) { setSession({ account, epoch: session.epoch + 1 }); return null }
   return <div className="occurrences ministry-visual"><header className="ministry-heading"><span className="ministry-eyebrow">Comunidade e serviço</span><h1 data-page-title="Ministérios">Ministérios e departamentos</h1><p>Organize as equipes e acompanhe os integrantes da sua igreja.</p></header>
     <nav className="ministry-tabs" aria-label="Áreas de atuação"><Link aria-current="page" to="/ministerios">Ministérios</Link><Link to="/grupos">Grupos de trabalho</Link><Link to="/ministerios/escalas">Escalas de atuação</Link><Link to="/ministerios/estrutura">Organizar estrutura</Link></nav>
-    {directory ? <><Link to="/ministerios?selecionar=1">Trocar igreja</Link>
+    {directory ? <><Link to="/ministerios?selecionar=1" className="legacy-context-switch">Trocar igreja</Link>
       {!isUuid(churchId) ? <p role="alert">Igreja inválida. Escolha novamente uma igreja.</p> : <div key={`${session.epoch}:${churchId}`}>
         <GroupAccess churchId={churchId}><Directory church={churchId}/></GroupAccess>
       </div>}</> : <ChurchAccess/>}

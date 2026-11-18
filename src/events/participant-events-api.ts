@@ -33,6 +33,12 @@ export async function participantEvents(church: string, page: number, signal?: A
   const items = v.items.map(item => publicEvent(item, church)); if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
   return { items, page, size: 20, total: v.total as number }
 }
+export async function participantEvent(church: string, id: string, signal?: AbortSignal, client: ApiClient = api): Promise<PublicEvent> {
+  if (!isUuid(church) || !isUuid(id)) throw invalid()
+  const value = publicEvent(await client.request<unknown>(`/public/churches/${church}/events/${id}`, { signal }), church)
+  if (value.id !== id) throw invalid()
+  return value
+}
 export async function ownOccurrenceOption(church: string, occurrence: string, signal?: AbortSignal, client: ApiClient = api): Promise<PublicEvent | null> {
   if (!isUuid(church) || !isUuid(occurrence)) throw invalid()
   const v = await client.request<unknown>(`/events/churches/${church}/occurrences/${occurrence}/registration`, { signal })

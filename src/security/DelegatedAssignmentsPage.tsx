@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import AssignmentGrantForm from './AssignmentGrantForm'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -16,9 +17,9 @@ function List({ denominationId, delegationId }: { denominationId: string; delega
   useEffect(() => { window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [refresh])
   return <><AssignmentGrantForm denominationId={denominationId} delegationId={delegationId} onGranted={query.refresh}/><ReadResult query={query} label="atribuições da fonte">{data => <>
     <p role="status">Página {page + 1} · {data.total} atribuições desta fonte.</p>
-    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id}>
+    {data.items.length ? <ul className="security-list">{data.items.map(item => <li key={item.id} className="navigation-card">
       <h2>{item.userName ?? 'Atribuição'}</h2><AssignmentMetadata value={item}/>
-      <Link to={`${route(denominationId, delegationId)}/${item.id}`}>Consultar acesso</Link>
+      <ItemLink to={`${route(denominationId, delegationId)}/${item.id}`}>Consultar acesso</ItemLink>
     </li>)}</ul> : <p>Nenhuma atribuição desta fonte nesta página.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das atribuições da fonte"/>
   </>}</ReadResult></>

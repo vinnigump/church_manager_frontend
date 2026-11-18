@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { DefaultChurchAccess } from '../church-context'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -45,11 +46,11 @@ function Directory({ church }: { church: string }) {
   </ResourceAccess><section className="people-search-card"><h2>Consulta de pessoas</h2><p>Pesquise pelo nome para consultar os registros desta igreja.</p><form className="people-search-form" onSubmit={e => { e.preventDefault(); setSearch(field); setPage(0) }}>
     <label>Pesquisar pelo nome<input type="search" placeholder="Digite o nome da pessoa" maxLength={120} value={field} onChange={e => setField(e.target.value)}/></label><button>Pesquisar</button>
   </form></section><ReadResult query={query} label="pessoas">{data => <><p role="status">{data.total} pessoas · Página {page + 1}</p>
-    {data.items.length ? <ul className="people-record-list">{data.items.map(p => <li key={p.id}><div className="people-avatar" aria-hidden="true">{(p.preferredName?.trim() || p.fullName).slice(0, 1).toLocaleUpperCase()}</div><div className="people-record-content"><h2>{p.preferredName?.trim() || p.fullName}</h2>
+    {data.items.length ? <ul className="people-record-list">{data.items.map(p => <li key={p.id} className="navigation-card"><div className="people-avatar" aria-hidden="true">{(p.preferredName?.trim() || p.fullName).slice(0, 1).toLocaleUpperCase()}</div><div className="people-record-content"><h2>{p.preferredName?.trim() || p.fullName}</h2>
       {p.preferredName?.trim() && <p>{p.fullName}</p>}
       <p className="people-status">{p.status === 'ACTIVE' ? 'Cadastro ativo' : p.status === 'INACTIVE' ? 'Cadastro inativo' : `Situação registrada: ${p.status}`}</p>
       <p>{p.membershipStatus === 'ACTIVE' ? 'Membresia ativa nesta igreja' : p.membershipStatus === 'SUSPENDED' ? 'Membresia suspensa nesta igreja' : 'Sem membresia ativa ou suspensa nesta igreja'}</p>
-      {canEdit && p.status !== 'MERGED' && <Link to={`/pessoas/igrejas/${church}/${p.id}/editar`}>Editar dados de {p.preferredName?.trim() || p.fullName}</Link>}</div>
+      {canEdit && p.status !== 'MERGED' && <ItemLink to={`/pessoas/igrejas/${church}/${p.id}/editar`}>Editar dados de {p.preferredName?.trim() || p.fullName}</ItemLink>}</div>
     </li>)}</ul> : <p>Nenhuma pessoa encontrada.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das pessoas"/>
   </>}</ReadResult></>
@@ -59,7 +60,7 @@ export default function PeopleDirectoryPages({ directory = false }: { directory?
   const [scope, setScope] = useState({ account, epoch: 0 })
   if (scope.account !== account) { setScope({ account, epoch: scope.epoch + 1 }); return null }
   return <div className="people-page"><PeoplePageHeader title="Pesquisa e Cadastro de Pessoa" description="Cadastre ou consulte pessoas da congregação. O registro reúne a identificação e os dados de contato, sem criar automaticamente conta de acesso ou membresia."><Link className="people-secondary-link" to="/pessoas/primeiro-acesso">Gerar link de primeiro acesso</Link></PeoplePageHeader>
-    {directory && <Link className="people-back-link" to="/pessoas?selecionar=1">Trocar igreja</Link>}
+    {directory && <Link className="people-back-link legacy-context-switch" to="/pessoas?selecionar=1">Trocar igreja</Link>}
     {!directory ? <Access/> : !isUuid(churchId) ? <p role="alert">Igreja inválida. Escolha novamente seu acesso.</p> : <div key={`${scope.epoch}:${churchId}`}>
       <ResourceAccess permissionCode={read} resourceType="CHURCH" resourceId={churchId} preserveDuringRecheck><Directory church={churchId}/></ResourceAccess>
     </div>}

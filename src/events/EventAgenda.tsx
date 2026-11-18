@@ -1,5 +1,6 @@
+import ItemLink from '../components/ItemLink'
 import { useCallback, type ReactNode } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { ReadResult, useRead } from '../security/SecurityPages'
 import { addDays, civilDate, eventDateRange, readAgenda, zoneDate, type Agenda } from './agenda-api'
 import { recordRoute, recordSearch, recordStatusLabel } from './record-presentation'
@@ -12,7 +13,7 @@ const civilLabel = (date: string) => new Intl.DateTimeFormat('pt-BR', { dateStyl
 function EventLink({ value, church, date, agenda, search }: { value: EventRecord; church: string; date: string; agenda: Agenda; search: string }) {
   const time = (value: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(new Date(value))
   const continuing = zoneDate(value.startsAt, agenda.timeZone) < date
-  return <li><Link aria-label={`Ver evento ${value.name}`} to={`${recordRoute(church)}/${value.id}${search}`}>{value.name}</Link>
+  return <li className="navigation-card"><ItemLink aria-label={`Ver evento ${value.name}`} to={`${recordRoute(church)}/${value.id}${search}`}>{value.name}</ItemLink>
     <p>{continuing ? 'Continuação' : time(value.startsAt)} · Duração: {eventDurationLabel(value.startsAt,value.endsAt)} · {recordStatusLabel(value.status)}</p>
     {value.location && <p>{value.location}</p>}
   </li>

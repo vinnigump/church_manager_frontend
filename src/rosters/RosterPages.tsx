@@ -1,3 +1,4 @@
+import ItemLink from '../components/ItemLink'
 import { DefaultChurchAccess, ChurchSwitchLink } from '../church-context'
 import { formatDateTime } from '../time'
 import '../membership/membership-visual.css'
@@ -46,10 +47,10 @@ function List({ church }: { church: string }) {
   const query = useRead(`${church}:${page}`, load)
   return <ReadResult query={query} label="escalas">{data => <>
     <p role="status">{data.total} escalas · Página {page + 1}</p>
-    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id}><h2>{v.departmentName ?? v.ministryName}</h2>
+    {data.items.length ? <ul className="event-list">{data.items.map(v => <li key={v.id} className="navigation-card"><h2>{v.departmentName ?? v.ministryName}</h2>
       <RosterDates value={v}/><p>{v.participants.length} pessoas previstas</p>
       {v.eventId && <p>{v.eventName ? `Evento: ${v.eventName}` : 'Atuação vinculada a evento restrito'}</p>}
-      <Link to={`${rosterRoute(church)}/${v.id}`}>Ver escala de {v.departmentName ?? v.ministryName}</Link>
+      <ItemLink to={`${rosterRoute(church)}/${v.id}`}>Ver escala de {v.departmentName ?? v.ministryName}</ItemLink>
     </li>)}</ul> : <p>Nenhuma escala cadastrada.</p>}
     <Pagination page={page} total={data.total} setPage={setPage} label="Páginas das escalas"/>
   </>}</ReadResult>
@@ -138,7 +139,7 @@ export default function RosterPages({ view }: { view: 'access' | 'list' | 'detai
   return <div className="occurrences rosters ministry-visual"><h1 data-page-title={title}>{title}</h1><nav className="ministry-tabs" aria-label="Navegação de escalas"><Link to="/ministerios">Ministérios</Link><Link to="/ministerios/escalas">Gestão de escalas</Link><Link to="/minhas-escalas">Minhas escalas</Link></nav>
     {!valid ? <p role="alert">Acesso à escala inválido. Escolha novamente sua igreja.</p> : <div key={`${scope.epoch}:${churchId}:${rosterId}:${view}`}>
       {view === 'access' ? <Access/> : view === 'own' ? <OwnServiceRosters full/> : <>
-        <p>{view === 'create' ? <Link to="/ministerios/escalas?acao=criar&selecionar=1">Trocar igreja</Link> : <ChurchSwitchLink to="/ministerios/escalas"/>}</p>
+        <p>{view === 'create' ? <Link to="/ministerios/escalas?acao=criar&selecionar=1" className="legacy-context-switch">Trocar igreja</Link> : <ChurchSwitchLink to="/ministerios/escalas"/>}</p>
         <ResourceAccess permissionCode="SERVICE_ROSTER_VIEW" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={rosterRoute(churchId)}>Listar escalas desta igreja</Link></p></ResourceAccess>
         <ResourceAccess permissionCode="SERVICE_ROSTER_MANAGE" resourceType="CHURCH" resourceId={churchId} optional><p><Link to={`${rosterRoute(churchId)}/nova`}>Criar escala</Link></p></ResourceAccess>
         {view === 'create' || view === 'edit' ? <Editor church={churchId} id={view === 'edit' ? rosterId : undefined}/> : view === 'list'
